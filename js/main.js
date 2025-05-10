@@ -29,6 +29,8 @@ function handleNavSelect(navId) {
     window.ui.displayTrackerView('Travel Planner', allCampaigns[currentCampaign]);
   } else if (navId === 'nav-settlement-tracker') {
     window.ui.displayTrackerView('Settlement Tracker', allCampaigns[currentCampaign]);
+  } else if (navId === 'nav-campaign-journal') {
+    window.ui.displayTrackerView('Campaign Journal', allCampaigns[currentCampaign]);
   }
   // Add more tracker navs as needed
 }
