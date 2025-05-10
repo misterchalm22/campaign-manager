@@ -37,6 +37,8 @@ window.ui = {
       window.gameExpectations.renderGameExpectationsView(main, campaignData);
     } else if (trackerName === 'NPC Tracker') {
       window.npcTracker.renderNPCList(main, campaignData);
+    } else if (trackerName === 'Travel Planner') {
+      window.travelPlanner.renderTravelList(main, campaignData);
     } else {
       main.innerHTML = `<h2>${trackerName}</h2><div>Tracker UI goes here.</div>`;
     }
