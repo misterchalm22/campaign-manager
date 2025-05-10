@@ -37,6 +37,8 @@ function handleNavSelect(navId) {
     window.ui.displayTrackerView('Campaign Conflicts', allCampaigns[currentCampaign]);
   } else if (navId === 'nav-magic-item-tracker') {
     window.ui.displayTrackerView('Magic Item Tracker', allCampaigns[currentCampaign]);
+  } else if (navId === 'nav-bastion-tracker') {
+    window.ui.displayTrackerView('Bastion Tracker', allCampaigns[currentCampaign]);
   }
   // Add more tracker navs as needed
 }

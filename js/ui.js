@@ -38,6 +38,9 @@ window.ui = {
         <li class="nav-item">
           <button class="nav-link" id="nav-magic-item-tracker">Magic Item Tracker</button>
         </li>
+        <li class="nav-item">
+          <button class="nav-link" id="nav-bastion-tracker">Bastion Tracker</button>
+        </li>
       </ul>
     `;
     if (onSelect) {
@@ -64,6 +67,8 @@ window.ui = {
       window.campaignConflicts.renderCampaignConflictsList(main, campaignData);
     } else if (trackerName === 'Magic Item Tracker') {
       window.magicItemTracker.renderMagicItemTracker(main, campaignData);
+    } else if (trackerName === 'Bastion Tracker') {
+      window.bastionTracker.renderBastionList(main, campaignData);
     } else {
       main.innerHTML = `<h2>${trackerName}</h2><div>Tracker UI goes here.</div>`;
     }
