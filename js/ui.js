@@ -35,6 +35,8 @@ window.ui = {
     const main = document.getElementById('main-content');
     if (trackerName === 'Game Expectations') {
       window.gameExpectations.renderGameExpectationsView(main, campaignData);
+    } else if (trackerName === 'NPC Tracker') {
+      window.npcTracker.renderNPCList(main, campaignData);
     } else {
       main.innerHTML = `<h2>${trackerName}</h2><div>Tracker UI goes here.</div>`;
     }
