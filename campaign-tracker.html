@@ -1,0 +1,1518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TTRPG Campaign Tracker</title>
+  <link rel="stylesheet" href="css/style.css">
+  <!-- Inter font from Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <header>
+    <h1>TTRPG Campaign Tracker</h1>
+    <div id="campaign-selector"></div>
+    <div id="campaign-actions">
+      <button id="create-campaign-btn">New Campaign</button>
+      <button id="delete-campaign-btn">Delete Campaign</button>
+      <button id="export-campaigns-btn">Export Data</button>
+      <input type="file" id="import-campaigns-input" style="display:none" accept="application/json" />
+      <button id="import-campaigns-btn">Import Data</button>
+    </div>
+    <div id="campaign-message"></div>
+  </header>
+  <nav id="tracker-nav">
+    <!-- Tracker navigation will be rendered here -->
+  </nav>
+  <main id="main-content">
+    <!-- Main content area for tracker UIs -->
+  </main>
+  <script>
+
+// Data management for TTRPG Campaign Tracker
+window.dataManager = {
+  loadCampaignsFromLocalStorage: function() {
+    try {
+      return JSON.parse(localStorage.getItem('ttrpgCampaigns') || '{}');
+    } catch {
+      return {};
+    }
+  },
+  saveCampaignsToLocalStorage: function(allCampaignData) {
+    localStorage.setItem('ttrpgCampaigns', JSON.stringify(allCampaignData));
+  },
+  exportDataAsJSON: function(allCampaignData) {
+    const dataStr = JSON.stringify(allCampaignData, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'ttrpg_campaigns.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  },
+  handleJSONFileImport: function(file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const data = JSON.parse(e.target.result);
+        localStorage.setItem('ttrpgCampaigns', JSON.stringify(data));
+        location.reload();
+      } catch (err) {
+        const msg = document.getElementById('campaign-message');
+        if (msg) msg.textContent = 'Invalid JSON file.';
+      }
+    };
+    reader.readAsText(file);
+  }
+};
+</script>
+  <script>
+
+// UI rendering functions for TTRPG Campaign Tracker
+window.ui = {
+  renderCampaignSelector: function(campaignNames, selectedCampaign) {
+    const selector = document.getElementById('campaign-selector');
+    if (!selector) return;
+    let html = '<select id="campaign-selector-dropdown"><option value="">Select Campaign</option>';
+    for (const name of campaignNames) {
+      html += `<option value="${name}"${selectedCampaign === name ? ' selected' : ''}>${name}</option>`;
+    }
+    html += '</select>';
+    selector.innerHTML = html;
+  },
+  renderTrackerNavigation: function(onSelect) {
+    const nav = document.getElementById('tracker-nav');
+    nav.innerHTML = `
+      <ul class="nav flex-column nav-pills">
+        <li class="nav-item">
+          <button class="nav-link" id="nav-game-expectations">Game Expectations</button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" id="nav-npc-tracker">NPC Tracker</button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" id="nav-travel-planner">Travel Planner</button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" id="nav-settlement-tracker">Settlement Tracker</button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" id="nav-campaign-journal">Campaign Journal</button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" id="nav-dm-character-tracker">DM's Character Tracker</button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" id="nav-campaign-conflicts">Campaign Conflicts</button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" id="nav-magic-item-tracker">Magic Item Tracker</button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" id="nav-bastion-tracker">Bastion Tracker</button>
+        </li>
+      </ul>
+    `;
+    if (onSelect) {
+      nav.querySelectorAll('.nav-link').forEach(btn => {
+        btn.onclick = (e) => onSelect(e.target.id);
+      });
+    }
+  },
+  displayTrackerView: function(trackerName, campaignData) {
+    const main = document.getElementById('main-content');
+    if (trackerName === 'Game Expectations') {
+      window.gameExpectations.renderGameExpectationsView(main, campaignData);
+    } else if (trackerName === 'NPC Tracker') {
+      window.npcTracker.renderNPCList(main, campaignData);
+    } else if (trackerName === 'Travel Planner') {
+      window.travelPlanner.renderTravelList(main, campaignData);
+    } else if (trackerName === 'Settlement Tracker') {
+      window.settlementTracker.renderSettlementList(main, campaignData);
+    } else if (trackerName === 'Campaign Journal') {
+      window.campaignJournal.renderJournalList(main, campaignData);
+    } else if (trackerName === "DM's Character Tracker") {
+      window.dmCharacterTracker.renderDMCharacterList(main, campaignData);
+    } else if (trackerName === 'Campaign Conflicts') {
+      window.campaignConflicts.renderCampaignConflictsList(main, campaignData);
+    } else if (trackerName === 'Magic Item Tracker') {
+      window.magicItemTracker.renderMagicItemTracker(main, campaignData);
+    } else if (trackerName === 'Bastion Tracker') {
+      window.bastionTracker.renderBastionList(main, campaignData);
+    } else {
+      main.innerHTML = `<h2>${trackerName}</h2><div>Tracker UI goes here.</div>`;
+    }
+  }
+};
+</script>
+  <script>
+
+// Main app logic for TTRPG Campaign Tracker
+// Handles campaign management and navigation
+
+let currentCampaign = localStorage.getItem('ttrpgCurrentCampaign') || null;
+let allCampaigns = {};
+
+function updateCampaignUI() {
+  window.ui.renderCampaignSelector(Object.keys(allCampaigns), currentCampaign);
+  window.ui.renderTrackerNavigation(handleNavSelect);
+  if (currentCampaign && allCampaigns[currentCampaign]) {
+    window.ui.displayTrackerView('Game Expectations', allCampaigns[currentCampaign]);
+  }
+}
+
+function showMessage(msg, isError = false) {
+  const el = document.getElementById('campaign-message');
+  el.textContent = msg;
+  el.style.color = isError ? 'red' : 'green';
+  setTimeout(() => { el.textContent = ''; }, 3000);
+}
+
+function handleNavSelect(navId) {
+  if (!currentCampaign || !allCampaigns[currentCampaign]) return;
+  if (navId === 'nav-game-expectations') {
+    window.ui.displayTrackerView('Game Expectations', allCampaigns[currentCampaign]);
+  } else if (navId === 'nav-npc-tracker') {
+    window.ui.displayTrackerView('NPC Tracker', allCampaigns[currentCampaign]);
+  } else if (navId === 'nav-travel-planner') {
+    window.ui.displayTrackerView('Travel Planner', allCampaigns[currentCampaign]);
+  } else if (navId === 'nav-settlement-tracker') {
+    window.ui.displayTrackerView('Settlement Tracker', allCampaigns[currentCampaign]);
+  } else if (navId === 'nav-campaign-journal') {
+    window.ui.displayTrackerView('Campaign Journal', allCampaigns[currentCampaign]);
+  } else if (navId === 'nav-dm-character-tracker') {
+    window.ui.displayTrackerView("DM's Character Tracker", allCampaigns[currentCampaign]);
+  } else if (navId === 'nav-campaign-conflicts') {
+    window.ui.displayTrackerView('Campaign Conflicts', allCampaigns[currentCampaign]);
+  } else if (navId === 'nav-magic-item-tracker') {
+    window.ui.displayTrackerView('Magic Item Tracker', allCampaigns[currentCampaign]);
+  } else if (navId === 'nav-bastion-tracker') {
+    window.ui.displayTrackerView('Bastion Tracker', allCampaigns[currentCampaign]);
+  }
+  // Add more tracker navs as needed
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Initialize app
+  window.dataManager = window.dataManager || {};
+  window.ui = window.ui || {};
+  
+  // Load campaigns and render UI
+  allCampaigns = window.dataManager.loadCampaignsFromLocalStorage();
+  updateCampaignUI();
+
+  document.getElementById('create-campaign-btn').onclick = () => {
+    const name = prompt('Enter new campaign name:');
+    if (!name) return;
+    if (allCampaigns[name]) {
+      showMessage('Campaign already exists!', true);
+      return;
+    }
+    allCampaigns[name] = { trackers: {} };
+    window.dataManager.saveCampaignsToLocalStorage(allCampaigns);
+    updateCampaignUI();
+    showMessage('Campaign created!');
+  };
+
+  document.getElementById('delete-campaign-btn').onclick = () => {
+    const selector = document.getElementById('campaign-selector-dropdown');
+    const name = selector && selector.value;
+    if (!name || !allCampaigns[name]) return;
+    if (!confirm(`Delete campaign '${name}'?`)) return;
+    delete allCampaigns[name];
+    window.dataManager.saveCampaignsToLocalStorage(allCampaigns);
+    currentCampaign = null;
+    localStorage.removeItem('ttrpgCurrentCampaign');
+    updateCampaignUI();
+    showMessage('Campaign deleted!');
+  };
+
+  document.getElementById('export-campaigns-btn').onclick = () => {
+    window.dataManager.exportDataAsJSON(allCampaigns);
+    showMessage('Exported campaigns!');
+  };
+
+  document.getElementById('import-campaigns-btn').onclick = () => {
+    document.getElementById('import-campaigns-input').click();
+  };
+
+  document.getElementById('import-campaigns-input').onchange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      window.dataManager.handleJSONFileImport(file);
+      showMessage('Imported campaigns!');
+    }
+  };
+
+  document.getElementById('campaign-selector').onclick = (e) => {
+    if (e.target && e.target.id === 'campaign-selector-dropdown') {
+      // handled by change event
+    }
+  };
+
+  document.getElementById('campaign-selector').onchange = (e) => {
+    if (e.target && e.target.id === 'campaign-selector-dropdown') {
+      const name = e.target.value;
+      if (allCampaigns[name]) {
+        currentCampaign = name;
+        localStorage.setItem('ttrpgCurrentCampaign', name);
+        showMessage(`Selected campaign: ${name}`);
+        window.ui.displayTrackerView('Game Expectations', allCampaigns[currentCampaign]);
+      }
+    }
+  };
+});
+</script>
+  <script>
+
+// Logic for Game Expectations tracker
+
+window.gameExpectations = {
+  getEntries: function(campaign) {
+    return (campaign.trackers && campaign.trackers.gameExpectations) || [];
+  },
+  saveEntries: function(campaign, entries) {
+    campaign.trackers = campaign.trackers || {};
+    campaign.trackers.gameExpectations = entries;
+    window.dataManager.saveCampaignsToLocalStorage(allCampaigns);
+  },
+  renderGameExpectationsView: function(container, campaign) {
+    const entries = this.getEntries(campaign);
+    let html = `<div class="d-flex justify-content-between align-items-center mb-3">
+      <h2>Game Expectations</h2>
+      <button class="btn btn-primary" id="add-ge-btn">Add Entry</button>
+    </div>`;
+    if (entries.length === 0) {
+      html += '<div class="alert alert-info">No entries yet.</div>';
+    } else {
+      html += '<div class="list-group mb-3">';
+      entries.forEach((entry, idx) => {
+        html += `<div class="list-group-item">
+          <div class="d-flex justify-content-between align-items-center">
+            <div><strong>${entry.playerName || '(No Player Name)'}</strong></div>
+            <div>
+              <button class="btn btn-sm btn-secondary me-2" data-edit="${idx}">Edit</button>
+              <button class="btn btn-sm btn-danger" data-delete="${idx}">Delete</button>
+            </div>
+          </div>
+          <div class="small text-muted">Theme: ${entry.gameTheme || ''}</div>
+        </div>`;
+      });
+      html += '</div>';
+    }
+    container.innerHTML = html + `<div id="ge-form-area"></div>`;
+    document.getElementById('add-ge-btn').onclick = () => this.renderGameExpectationsForm(container, campaign);
+    container.querySelectorAll('[data-edit]').forEach(btn => {
+      btn.onclick = () => this.renderGameExpectationsForm(container, campaign, parseInt(btn.getAttribute('data-edit')));
+    });
+    container.querySelectorAll('[data-delete]').forEach(btn => {
+      btn.onclick = () => {
+        if (confirm('Delete this entry?')) {
+          entries.splice(parseInt(btn.getAttribute('data-delete')), 1);
+          this.saveEntries(campaign, entries);
+          this.renderGameExpectationsView(container, campaign);
+        }
+      };
+    });
+  },
+  renderGameExpectationsForm: function(container, campaign, idx) {
+    const entries = this.getEntries(campaign);
+    const entry = idx != null ? {...entries[idx]} : {
+      dmName: '', playerName: '', gameTheme: '', sensitive: [], hopes: '', concerns: ''
+    };
+    let html = `<form class="card card-body mb-3" id="ge-form">
+      <div class="mb-2">
+        <label class="form-label">DM Name</label>
+        <input class="form-control" name="dmName" value="${entry.dmName || ''}" />
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Player Name</label>
+        <input class="form-control" name="playerName" value="${entry.playerName || ''}" required />
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Game Theme and Flavor</label>
+        <textarea class="form-control" name="gameTheme">${entry.gameTheme || ''}</textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Potentially Sensitive Elements</label>
+        <div id="sensitive-list"></div>
+        <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="add-sensitive-btn">Add Sensitive Element</button>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Player's Hopes and Expectations</label>
+        <textarea class="form-control" name="hopes">${entry.hopes || ''}</textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">At-the-Table Concerns</label>
+        <textarea class="form-control" name="concerns">${entry.concerns || ''}</textarea>
+      </div>
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-success">Save</button>
+        <button type="button" class="btn btn-secondary" id="cancel-ge-btn">Cancel</button>
+      </div>
+    </form>`;
+    document.getElementById('ge-form-area').innerHTML = html;
+    // Render sensitive elements
+    function renderSensitiveList() {
+      const list = document.getElementById('sensitive-list');
+      if (!entry.sensitive) entry.sensitive = [];
+      let sHtml = '';
+      entry.sensitive.forEach((el, i) => {
+        sHtml += `<div class="input-group mb-1">
+          <input class="form-control" name="sensitive-desc" value="${el.desc || ''}" placeholder="Element description" />
+          <div class="input-group-text">
+            <input type="checkbox" name="hardLimit" ${el.hardLimit ? 'checked' : ''} /> Hard
+          </div>
+          <div class="input-group-text">
+            <input type="checkbox" name="softLimit" ${el.softLimit ? 'checked' : ''} /> Soft
+          </div>
+          <button type="button" class="btn btn-outline-danger btn-sm" data-remove="${i}">Remove</button>
+        </div>`;
+      });
+      list.innerHTML = sHtml;
+      list.querySelectorAll('[data-remove]').forEach(btn => {
+        btn.onclick = () => {
+          entry.sensitive.splice(parseInt(btn.getAttribute('data-remove')), 1);
+          renderSensitiveList();
+        };
+      });
+      // Update element values
+      list.querySelectorAll('.input-group').forEach((row, i) => {
+        row.querySelector('input[name="sensitive-desc"]').oninput = e => { entry.sensitive[i].desc = e.target.value; };
+        row.querySelector('input[name="hardLimit"]').onchange = e => { entry.sensitive[i].hardLimit = e.target.checked; };
+        row.querySelector('input[name="softLimit"]').onchange = e => { entry.sensitive[i].softLimit = e.target.checked; };
+      });
+    }
+    renderSensitiveList();
+    document.getElementById('add-sensitive-btn').onclick = () => {
+      entry.sensitive.push({ desc: '', hardLimit: false, softLimit: false });
+      renderSensitiveList();
+    };
+    document.getElementById('cancel-ge-btn').onclick = () => {
+      this.renderGameExpectationsView(container, campaign);
+    };
+    document.getElementById('ge-form').onsubmit = (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const newEntry = {
+        dmName: form.dmName.value,
+        playerName: form.playerName.value,
+        gameTheme: form.gameTheme.value,
+        sensitive: entry.sensitive,
+        hopes: form.hopes.value,
+        concerns: form.concerns.value
+      };
+      if (idx != null) {
+        entries[idx] = newEntry;
+      } else {
+        entries.push(newEntry);
+      }
+      this.saveEntries(campaign, entries);
+      this.renderGameExpectationsView(container, campaign);
+    };
+  }
+};
+</script>
+  <script>
+
+// Logic for NPC Tracker
+window.npcTracker = {
+  getEntries: function(campaign) {
+    return (campaign.trackers && campaign.trackers.npcs) || [];
+  },
+  saveEntries: function(campaign, entries) {
+    campaign.trackers = campaign.trackers || {};
+    campaign.trackers.npcs = entries;
+    window.dataManager.saveCampaignsToLocalStorage(allCampaigns);
+  },
+  renderNPCList: function(container, campaign) {
+    const entries = this.getEntries(campaign);
+    let html = `<div class="d-flex justify-content-between align-items-center mb-3">
+      <h2>NPC Tracker</h2>
+      <button class="btn btn-primary" id="add-npc-btn">Add NPC</button>
+    </div>`;
+    if (entries.length === 0) {
+      html += '<div class="alert alert-info">No NPCs yet.</div>';
+    } else {
+      html += '<div class="list-group mb-3">';
+      entries.forEach((npc, idx) => {
+        html += `<div class="list-group-item">
+          <div class="d-flex justify-content-between align-items-center">
+            <div><strong>${npc.name || '(No Name)'}</strong> <span class="text-muted small">${npc.statBlock || ''}</span></div>
+            <div>
+              <button class="btn btn-sm btn-secondary me-2" data-edit="${idx}">Edit</button>
+              <button class="btn btn-sm btn-danger" data-delete="${idx}">Delete</button>
+            </div>
+          </div>
+          <div class="small text-muted">Alignment: ${npc.alignment || ''}</div>
+        </div>`;
+      });
+      html += '</div>';
+    }
+    container.innerHTML = html + `<div id="npc-form-area"></div>`;
+    document.getElementById('add-npc-btn').onclick = () => this.renderNPCForm(container, campaign);
+    container.querySelectorAll('[data-edit]').forEach(btn => {
+      btn.onclick = () => this.renderNPCForm(container, campaign, parseInt(btn.getAttribute('data-edit')));
+    });
+    container.querySelectorAll('[data-delete]').forEach(btn => {
+      btn.onclick = () => {
+        if (confirm('Delete this NPC?')) {
+          entries.splice(parseInt(btn.getAttribute('data-delete')), 1);
+          this.saveEntries(campaign, entries);
+          this.renderNPCList(container, campaign);
+        }
+      };
+    });
+  },
+  renderNPCForm: function(container, campaign, idx) {
+    const entries = this.getEntries(campaign);
+    const npc = idx != null ? {...entries[idx]} : {
+      name: '', statBlock: '', mmPage: '', alterations: '', alignment: '', personality: '', appearance: '', secret: ''
+    };
+    let html = `<form class="card card-body mb-3" id="npc-form">
+      <div class="mb-2">
+        <label class="form-label">NPC Name</label>
+        <input class="form-control" name="name" value="${npc.name || ''}" required />
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Stat Block (Source)</label>
+        <input class="form-control" name="statBlock" value="${npc.statBlock || ''}" />
+      </div>
+      <div class="mb-2">
+        <label class="form-label">MM Page</label>
+        <input class="form-control" name="mmPage" value="${npc.mmPage || ''}" />
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Stat Block Alterations</label>
+        <textarea class="form-control" name="alterations">${npc.alterations || ''}</textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Alignment</label>
+        <input class="form-control" name="alignment" value="${npc.alignment || ''}" placeholder="e.g. LG, NG, N, CE" />
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Personality</label>
+        <textarea class="form-control" name="personality">${npc.personality || ''}</textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Appearance</label>
+        <textarea class="form-control" name="appearance">${npc.appearance || ''}</textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Secret</label>
+        <textarea class="form-control" name="secret">${npc.secret || ''}</textarea>
+      </div>
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-success">Save</button>
+        <button type="button" class="btn btn-secondary" id="cancel-npc-btn">Cancel</button>
+      </div>
+    </form>`;
+    document.getElementById('npc-form-area').innerHTML = html;
+    document.getElementById('cancel-npc-btn').onclick = () => {
+      this.renderNPCList(container, campaign);
+    };
+    document.getElementById('npc-form').onsubmit = (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const newNPC = {
+        name: form.name.value,
+        statBlock: form.statBlock.value,
+        mmPage: form.mmPage.value,
+        alterations: form.alterations.value,
+        alignment: form.alignment.value,
+        personality: form.personality.value,
+        appearance: form.appearance.value,
+        secret: form.secret.value
+      };
+      if (idx != null) {
+        entries[idx] = newNPC;
+      } else {
+        entries.push(newNPC);
+      }
+      this.saveEntries(campaign, entries);
+      this.renderNPCList(container, campaign);
+    };
+  }
+};
+</script>
+  <script>
+
+// Logic for Travel Planner tracker
+
+window.travelPlanner = {
+  getEntries: function(campaign) {
+    return (campaign.trackers && campaign.trackers.travelPlans) || [];
+  },
+  saveEntries: function(campaign, entries) {
+    campaign.trackers = campaign.trackers || {};
+    campaign.trackers.travelPlans = entries;
+    window.dataManager.saveCampaignsToLocalStorage(allCampaigns);
+  },
+  renderTravelList: function(container, campaign) {
+    const entries = this.getEntries(campaign);
+    let html = `<div class="d-flex justify-content-between align-items-center mb-3">
+      <h2>Travel Planner</h2>
+      <button class="btn btn-primary" id="add-travel-btn">Add Journey</button>
+    </div>`;
+    if (entries.length === 0) {
+      html += '<div class="alert alert-info">No journeys yet.</div>';
+    } else {
+      html += '<div class="list-group mb-3">';
+      entries.forEach((journey, idx) => {
+        html += `<div class="list-group-item">
+          <div class="d-flex justify-content-between align-items-center">
+            <div><strong>${journey.name || '(No Name)'}</strong> <span class="text-muted small">${journey.origin || ''} → ${journey.destination || ''}</span></div>
+            <div>
+              <button class="btn btn-sm btn-secondary me-2" data-edit="${idx}">Edit</button>
+              <button class="btn btn-sm btn-danger" data-delete="${idx}">Delete</button>
+            </div>
+          </div>
+          <div class="small text-muted">Stages: ${journey.stages ? journey.stages.length : 0}</div>
+        </div>`;
+      });
+      html += '</div>';
+    }
+    container.innerHTML = html + `<div id="travel-form-area"></div>`;
+    document.getElementById('add-travel-btn').onclick = () => this.renderTravelForm(container, campaign);
+    container.querySelectorAll('[data-edit]').forEach(btn => {
+      btn.onclick = () => this.renderTravelForm(container, campaign, parseInt(btn.getAttribute('data-edit')));
+    });
+    container.querySelectorAll('[data-delete]').forEach(btn => {
+      btn.onclick = () => {
+        if (confirm('Delete this journey?')) {
+          entries.splice(parseInt(btn.getAttribute('data-delete')), 1);
+          this.saveEntries(campaign, entries);
+          this.renderTravelList(container, campaign);
+        }
+      };
+    });
+  },
+  renderTravelForm: function(container, campaign, idx) {
+    const entries = this.getEntries(campaign);
+    const journey = idx != null ? {...entries[idx], stages: [...(entries[idx].stages||[])]} : {
+      name: '', origin: '', destination: '', stages: []
+    };
+    let html = `<form class="card card-body mb-3" id="travel-form">
+      <div class="mb-2">
+        <label class="form-label">Journey Name</label>
+        <input class="form-control" name="name" value="${journey.name || ''}" required />
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Origin</label>
+        <input class="form-control" name="origin" value="${journey.origin || ''}" />
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Destination</label>
+        <input class="form-control" name="destination" value="${journey.destination || ''}" />
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Stages</label>
+        <div id="stages-list"></div>
+        <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="add-stage-btn">Add Stage</button>
+      </div>
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-success">Save</button>
+        <button type="button" class="btn btn-secondary" id="cancel-travel-btn">Cancel</button>
+      </div>
+    </form>`;
+    document.getElementById('travel-form-area').innerHTML = html;
+    // Render stages
+    const renderStages = () => {
+      const list = document.getElementById('stages-list');
+      if (!journey.stages) journey.stages = [];
+      let sHtml = '';
+      journey.stages.forEach((stage, i) => {
+        sHtml += `<div class="card card-body mb-2">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <strong>Stage ${i+1}</strong>
+            <button type="button" class="btn btn-outline-danger btn-sm" data-remove-stage="${i}">Remove</button>
+          </div>
+          <div class="mb-1"><label class="form-label">Start</label><input class="form-control" name="start" value="${stage.start || ''}" /></div>
+          <div class="mb-1"><label class="form-label">End</label><input class="form-control" name="end" value="${stage.end || ''}" /></div>
+          <div class="mb-1"><label class="form-label">Distance</label><input class="form-control" name="distance" value="${stage.distance || ''}" /></div>
+          <div class="mb-1"><label class="form-label">Terrain</label><input class="form-control" name="terrain" value="${stage.terrain || ''}" /></div>
+          <div class="mb-1"><label class="form-label">Weather</label><input class="form-control" name="weather" value="${stage.weather || ''}" /></div>
+          <div class="mb-1"><label class="form-label">Pace</label>
+            <select class="form-select" name="pace">
+              <option value="Fast"${stage.pace==="Fast"?" selected":""}>Fast</option>
+              <option value="Normal"${stage.pace==="Normal"?" selected":""}>Normal</option>
+              <option value="Slow"${stage.pace==="Slow"?" selected":""}>Slow</option>
+            </select>
+          </div>
+          <div class="mb-1"><label class="form-label">Travel Time</label><input class="form-control" name="travelTime" value="${stage.travelTime || ''}" placeholder="e.g. 3" />
+            <select class="form-select mt-1" name="travelTimeUnit">
+              <option value="days"${stage.travelTimeUnit==="days"?" selected":""}>days</option>
+              <option value="hrs"${stage.travelTimeUnit==="hrs"?" selected":""}>hrs</option>
+            </select>
+          </div>
+          <div class="mb-1"><label class="form-label">Narrative Notes</label><textarea class="form-control" name="narrative">${stage.narrative || ''}</textarea></div>
+          <div class="mb-1"><label class="form-label">Challenges</label><textarea class="form-control" name="challenges">${stage.challenges || ''}</textarea></div>
+          <div class="mb-1"><label class="form-label">Elapsed Time</label><input class="form-control" name="elapsedTime" value="${stage.elapsedTime || ''}" /></div>
+        </div>`;
+      });
+      list.innerHTML = sHtml;
+      list.querySelectorAll('[data-remove-stage]').forEach(btn => {
+        btn.onclick = () => {
+          journey.stages.splice(parseInt(btn.getAttribute('data-remove-stage')), 1);
+          renderStages();
+        };
+      });
+      // Update stage values on input
+      list.querySelectorAll('.card').forEach((card, i) => {
+        card.querySelector('input[name="start"]').oninput = e => { journey.stages[i].start = e.target.value; };
+        card.querySelector('input[name="end"]').oninput = e => { journey.stages[i].end = e.target.value; };
+        card.querySelector('input[name="distance"]').oninput = e => { journey.stages[i].distance = e.target.value; };
+        card.querySelector('input[name="terrain"]').oninput = e => { journey.stages[i].terrain = e.target.value; };
+        card.querySelector('input[name="weather"]').oninput = e => { journey.stages[i].weather = e.target.value; };
+        card.querySelector('select[name="pace"]').onchange = e => { journey.stages[i].pace = e.target.value; };
+        card.querySelector('input[name="travelTime"]').oninput = e => { journey.stages[i].travelTime = e.target.value; };
+        card.querySelector('select[name="travelTimeUnit"]').onchange = e => { journey.stages[i].travelTimeUnit = e.target.value; };
+        card.querySelector('textarea[name="narrative"]').oninput = e => { journey.stages[i].narrative = e.target.value; };
+        card.querySelector('textarea[name="challenges"]').oninput = e => { journey.stages[i].challenges = e.target.value; };
+        card.querySelector('input[name="elapsedTime"]').oninput = e => { journey.stages[i].elapsedTime = e.target.value; };
+      });
+    };
+    renderStages();
+    document.getElementById('add-stage-btn').onclick = () => {
+      journey.stages.push({ start: '', end: '', distance: '', terrain: '', weather: '', pace: 'Normal', travelTime: '', travelTimeUnit: 'days', narrative: '', challenges: '', elapsedTime: '' });
+      renderStages();
+    };
+    document.getElementById('cancel-travel-btn').onclick = () => {
+      this.renderTravelList(container, campaign);
+    };
+    document.getElementById('travel-form').onsubmit = (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const newJourney = {
+        name: form.name.value,
+        origin: form.origin.value,
+        destination: form.destination.value,
+        stages: journey.stages
+      };
+      if (idx != null) {
+        entries[idx] = newJourney;
+      } else {
+        entries.push(newJourney);
+      }
+      this.saveEntries(campaign, entries);
+      this.renderTravelList(container, campaign);
+    };
+  }
+};
+</script>
+  <script>
+
+// SettlementTracker.js
+
+// Logic for Settlement Tracker
+window.settlementTracker = {
+  getEntries: function(campaign) {
+    return (campaign.trackers && campaign.trackers.settlements) || [];
+  },
+  saveEntries: function(campaign, entries) {
+    campaign.trackers = campaign.trackers || {};
+    campaign.trackers.settlements = entries;
+    window.dataManager.saveCampaignsToLocalStorage(allCampaigns);
+  },
+  renderSettlementList: function(container, campaign) {
+    const entries = this.getEntries(campaign);
+    let html = `<div class="d-flex justify-content-between align-items-center mb-3">
+      <h2>Settlement Tracker</h2>
+      <button class="btn btn-primary" id="add-settlement-btn">Add Settlement</button>
+    </div>`;
+    if (entries.length === 0) {
+      html += '<div class="alert alert-info">No settlements yet.</div>';
+    } else {
+      html += '<div class="list-group mb-3">';
+      entries.forEach((settlement, idx) => {
+        html += `<div class="list-group-item">
+          <div class="d-flex justify-content-between align-items-center">
+            <div><strong>${settlement.name || '(No Name)'}</strong> <span class="text-muted small">${settlement.size || ''}</span></div>
+            <div>
+              <button class="btn btn-sm btn-secondary me-2" data-edit="${idx}">Edit</button>
+              <button class="btn btn-sm btn-danger" data-delete="${idx}">Delete</button>
+            </div>
+          </div>
+          <div class="small text-muted">Leader: ${settlement.localLeader || ''}</div>
+        </div>`;
+      });
+      html += '</div>';
+    }
+    container.innerHTML = html + `<div id="settlement-form-area"></div>`;
+    document.getElementById('add-settlement-btn').onclick = () => this.renderSettlementForm(container, campaign);
+    container.querySelectorAll('[data-edit]').forEach(btn => {
+      btn.onclick = () => this.renderSettlementForm(container, campaign, parseInt(btn.getAttribute('data-edit')));
+    });
+    container.querySelectorAll('[data-delete]').forEach(btn => {
+      btn.onclick = () => {
+        if (confirm('Delete this settlement?')) {
+          entries.splice(parseInt(btn.getAttribute('data-delete')), 1);
+          this.saveEntries(campaign, entries);
+          this.renderSettlementList(container, campaign);
+        }
+      };
+    });
+  },
+  renderSettlementForm: function(container, campaign, idx) {
+    const entries = this.getEntries(campaign);
+    const settlement = idx != null ? {...entries[idx]} : {
+      name: '', size: '', trait: '', fame: '', calamity: '', localLeader: '', people: '', places: '', gpValue: ''
+    };
+    let html = `<form class="card card-body mb-3" id="settlement-form">
+      <div class="mb-2">
+        <label class="form-label">Settlement Name</label>
+        <input class="form-control" name="name" value="${settlement.name || ''}" required />
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Size</label>
+        <select class="form-select" name="size" required>
+          <option value="">Select size</option>
+          <option value="Village (Pop up to 500)"${settlement.size==="Village (Pop up to 500)"?" selected":""}>Village (Pop up to 500)</option>
+          <option value="Town (Pop. 501-5,000)"${settlement.size==="Town (Pop. 501-5,000)"?" selected":""}>Town (Pop. 501-5,000)</option>
+          <option value="City (Pop. 5,001+)"${settlement.size==="City (Pop. 5,001+)"?" selected":""}>City (Pop. 5,001+)</option>
+        </select>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Defining Trait</label>
+        <textarea class="form-control" name="trait">${settlement.trait || ''}</textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Claim to Fame</label>
+        <textarea class="form-control" name="fame">${settlement.fame || ''}</textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Current Calamity</label>
+        <textarea class="form-control" name="calamity">${settlement.calamity || ''}</textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Local Leader</label>
+        <input class="form-control" name="localLeader" value="${settlement.localLeader || ''}" />
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Noteworthy People</label>
+        <textarea class="form-control" name="people">${settlement.people || ''}</textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Noteworthy Places</label>
+        <textarea class="form-control" name="places">${settlement.places || ''}</textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">GP Value of Most Expensive Item for Sale</label>
+        <input class="form-control" name="gpValue" value="${settlement.gpValue || ''}" type="number" min="0" />
+      </div>
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-success">Save</button>
+        <button type="button" class="btn btn-secondary" id="cancel-settlement-btn">Cancel</button>
+      </div>
+    </form>`;
+    document.getElementById('settlement-form-area').innerHTML = html;
+    document.getElementById('cancel-settlement-btn').onclick = () => {
+      this.renderSettlementList(container, campaign);
+    };
+    document.getElementById('settlement-form').onsubmit = (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const newSettlement = {
+        name: form.name.value,
+        size: form.size.value,
+        trait: form.trait.value,
+        fame: form.fame.value,
+        calamity: form.calamity.value,
+        localLeader: form.localLeader.value,
+        people: form.people.value,
+        places: form.places.value,
+        gpValue: form.gpValue.value
+      };
+      if (idx != null) {
+        entries[idx] = newSettlement;
+      } else {
+        entries.push(newSettlement);
+      }
+      this.saveEntries(campaign, entries);
+      this.renderSettlementList(container, campaign);
+    };
+  }
+};
+</script>
+  <script>
+
+// Logic for Campaign Journal tracker
+
+window.campaignJournal = {
+  getEntries: function(campaign) {
+    return (campaign.trackers && campaign.trackers.campaignJournal) || [];
+  },
+  saveEntries: function(campaign, entries) {
+    campaign.trackers = campaign.trackers || {};
+    campaign.trackers.campaignJournal = entries;
+    window.dataManager.saveCampaignsToLocalStorage(allCampaigns);
+  },
+  renderJournalList: function(container, campaign) {
+    const entries = this.getEntries(campaign);
+    let html = `<div class="d-flex justify-content-between align-items-center mb-3">
+      <h2>Campaign Journal</h2>
+      <button class="btn btn-primary" id="add-journal-btn">Add Session Log</button>
+    </div>`;
+    if (entries.length === 0) {
+      html += '<div class="alert alert-info">No journal entries yet.</div>';
+    } else {
+      html += '<div class="list-group mb-3">';
+      entries.forEach((entry, idx) => {
+        html += `<div class="list-group-item">
+          <div class="d-flex justify-content-between align-items-center">
+            <div><strong>Session ${entry.sessionNumber || idx+1}</strong> <span class="text-muted small">${entry.sessionDate || ''}</span></div>
+            <div>
+              <button class="btn btn-sm btn-secondary me-2" data-edit="${idx}">Edit</button>
+              <button class="btn btn-sm btn-danger" data-delete="${idx}">Delete</button>
+            </div>
+          </div>
+          <div class="small text-muted">${entry.sessionTitle || ''}</div>
+        </div>`;
+      });
+      html += '</div>';
+    }
+    container.innerHTML = html + `<div id="journal-form-area"></div>`;
+    document.getElementById('add-journal-btn').onclick = () => this.renderJournalForm(container, campaign);
+    container.querySelectorAll('[data-edit]').forEach(btn => {
+      btn.onclick = () => this.renderJournalForm(container, campaign, parseInt(btn.getAttribute('data-edit')));
+    });
+    container.querySelectorAll('[data-delete]').forEach(btn => {
+      btn.onclick = () => {
+        if (confirm('Delete this journal entry?')) {
+          entries.splice(parseInt(btn.getAttribute('data-delete')), 1);
+          this.saveEntries(campaign, entries);
+          this.renderJournalList(container, campaign);
+        }
+      };
+    });
+  },
+  renderJournalForm: function(container, campaign, idx) {
+    const entries = this.getEntries(campaign);
+    const entry = idx != null ? {...entries[idx]} : {
+      sessionNumber: entries.length + 1,
+      sessionDate: '',
+      sessionTitle: '',
+      earlierEvents: '',
+      plannedSummary: '',
+      notes: ''
+    };
+    let html = `<form class="card card-body mb-3" id="journal-form">
+      <div class="mb-2">
+        <label class="form-label">Session Number</label>
+        <input class="form-control" name="sessionNumber" type="number" min="1" value="${entry.sessionNumber || ''}" required />
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Session Date</label>
+        <input class="form-control" name="sessionDate" type="date" value="${entry.sessionDate || ''}" />
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Session/Adventure Title</label>
+        <input class="form-control" name="sessionTitle" value="${entry.sessionTitle || ''}" />
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Important Events from Earlier Sessions</label>
+        <textarea class="form-control" name="earlierEvents">${entry.earlierEvents || ''}</textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Planned Summary for This Session</label>
+        <textarea class="form-control" name="plannedSummary">${entry.plannedSummary || ''}</textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Additional Notes</label>
+        <textarea class="form-control" name="notes">${entry.notes || ''}</textarea>
+      </div>
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-success">Save</button>
+        <button type="button" class="btn btn-secondary" id="cancel-journal-btn">Cancel</button>
+      </div>
+    </form>`;
+    document.getElementById('journal-form-area').innerHTML = html;
+    document.getElementById('cancel-journal-btn').onclick = () => {
+      this.renderJournalList(container, campaign);
+    };
+    document.getElementById('journal-form').onsubmit = (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const newEntry = {
+        sessionNumber: parseInt(form.sessionNumber.value, 10),
+        sessionDate: form.sessionDate.value,
+        sessionTitle: form.sessionTitle.value,
+        earlierEvents: form.earlierEvents.value,
+        plannedSummary: form.plannedSummary.value,
+        notes: form.notes.value
+      };
+      if (idx != null) {
+        entries[idx] = newEntry;
+      } else {
+        entries.push(newEntry);
+      }
+      this.saveEntries(campaign, entries);
+      this.renderJournalList(container, campaign);
+    };
+  }
+};
+</script>
+  <script>
+
+// DM's Character Tracker
+
+window.dmCharacterTracker = {
+  getEntries: function(campaign) {
+    return (campaign.trackers && campaign.trackers.dmCharacters) || [];
+  },
+  saveEntries: function(campaign, entries) {
+    campaign.trackers = campaign.trackers || {};
+    campaign.trackers.dmCharacters = entries;
+    window.dataManager.saveCampaignsToLocalStorage(allCampaigns);
+  },
+  renderDMCharacterList: function(container, campaign) {
+    const entries = this.getEntries(campaign);
+    let html = `<div class="d-flex justify-content-between align-items-center mb-3">
+      <h2>DM's Character Tracker</h2>
+      <button class="btn btn-primary" id="add-dmchar-btn">Add Character</button>
+    </div>`;
+    if (entries.length === 0) {
+      html += '<div class="alert alert-info">No DM characters yet.</div>';
+    } else {
+      html += '<div class="list-group mb-3">';
+      entries.forEach((char, idx) => {
+        html += `<div class="list-group-item">
+          <div class="d-flex justify-content-between align-items-center">
+            <div><strong>${char.characterName || '(No Name)'}</strong> <span class="text-muted small">${char.playerName || ''}</span></div>
+            <div>
+              <button class="btn btn-sm btn-secondary me-2" data-edit="${idx}">Edit</button>
+              <button class="btn btn-sm btn-danger" data-delete="${idx}">Delete</button>
+            </div>
+          </div>
+          <div class="small text-muted">Class: ${char.className || ''} Level: ${char.level || ''}</div>
+        </div>`;
+      });
+      html += '</div>';
+    }
+    container.innerHTML = html + `<div id="dmchar-form-area"></div>`;
+    document.getElementById('add-dmchar-btn').onclick = () => this.renderDMCharacterForm(container, campaign);
+    container.querySelectorAll('[data-edit]').forEach(btn => {
+      btn.onclick = () => this.renderDMCharacterForm(container, campaign, parseInt(btn.getAttribute('data-edit')));
+    });
+    container.querySelectorAll('[data-delete]').forEach(btn => {
+      btn.onclick = () => {
+        if (confirm('Delete this character?')) {
+          entries.splice(parseInt(btn.getAttribute('data-delete')), 1);
+          this.saveEntries(campaign, entries);
+          this.renderDMCharacterList(container, campaign);
+        }
+      };
+    });
+  },
+  renderDMCharacterForm: function(container, campaign, idx) {
+    const entries = this.getEntries(campaign);
+    const motivations = [
+      'Acting', 'Exploring', 'Fighting', 'Instigating', 'Optimizing', 'Problem-Solving', 'Socializing', 'Storytelling'
+    ];
+    const char = idx != null ? {...entries[idx]} : {
+      characterName: '',
+      playerName: '',
+      motivations: [],
+      playerExpectations: '',
+      className: '',
+      subclass: '',
+      level: '',
+      background: '',
+      species: '',
+      alignment: '',
+      goals: '',
+      quirks: '',
+      magicItems: '',
+      details: '',
+      family: '',
+      adventureIdeas: ''
+    };
+    let html = `<form class="card card-body mb-3" id="dmchar-form">
+      <div class="mb-2">
+        <label class="form-label">Character's Name</label>
+        <input class="form-control" name="characterName" value="${char.characterName || ''}" required />
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Player's Name</label>
+        <input class="form-control" name="playerName" value="${char.playerName || ''}" />
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Player Motivation</label><br />
+        ${motivations.map(m => `<label class="form-check form-check-inline"><input class="form-check-input" type="checkbox" name="motivations" value="${m}"${char.motivations && char.motivations.includes(m) ? ' checked' : ''}> ${m}</label>`).join(' ')}
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Notes on Player Expectations</label>
+        <textarea class="form-control" name="playerExpectations">${char.playerExpectations || ''}</textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Class</label>
+        <input class="form-control" name="className" value="${char.className || ''}" />
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Subclass</label>
+        <input class="form-control" name="subclass" value="${char.subclass || ''}" />
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Level</label>
+        <input class="form-control" name="level" type="number" min="1" value="${char.level || ''}" />
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Background</label>
+        <input class="form-control" name="background" value="${char.background || ''}" />
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Species (Race)</label>
+        <input class="form-control" name="species" value="${char.species || ''}" />
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Alignment</label>
+        <input class="form-control" name="alignment" value="${char.alignment || ''}" placeholder="e.g. LG, NG, N, CE" />
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Goals and Ambitions</label>
+        <textarea class="form-control" name="goals">${char.goals || ''}</textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Quirks and Whims</label>
+        <textarea class="form-control" name="quirks">${char.quirks || ''}</textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Magic Items</label>
+        <textarea class="form-control" name="magicItems">${char.magicItems || ''}</textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Character Details</label>
+        <textarea class="form-control" name="details">${char.details || ''}</textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Family, Friends, and Foes</label>
+        <textarea class="form-control" name="family">${char.family || ''}</textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Adventure Ideas</label>
+        <textarea class="form-control" name="adventureIdeas">${char.adventureIdeas || ''}</textarea>
+      </div>
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-success">Save</button>
+        <button type="button" class="btn btn-secondary" id="cancel-dmchar-btn">Cancel</button>
+      </div>
+    </form>`;
+    document.getElementById('dmchar-form-area').innerHTML = html;
+    document.getElementById('cancel-dmchar-btn').onclick = () => {
+      this.renderDMCharacterList(container, campaign);
+    };
+    document.getElementById('dmchar-form').onsubmit = (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const newChar = {
+        characterName: form.characterName.value,
+        playerName: form.playerName.value,
+        motivations: Array.from(form.querySelectorAll('input[name="motivations"]:checked')).map(cb => cb.value),
+        playerExpectations: form.playerExpectations.value,
+        className: form.className.value,
+        subclass: form.subclass.value,
+        level: form.level.value,
+        background: form.background.value,
+        species: form.species.value,
+        alignment: form.alignment.value,
+        goals: form.goals.value,
+        quirks: form.quirks.value,
+        magicItems: form.magicItems.value,
+        details: form.details.value,
+        family: form.family.value,
+        adventureIdeas: form.adventureIdeas.value
+      };
+      if (idx != null) {
+        entries[idx] = newChar;
+      } else {
+        entries.push(newChar);
+      }
+      this.saveEntries(campaign, entries);
+      this.renderDMCharacterList(container, campaign);
+    };
+  }
+};
+</script>
+  <script>
+
+// Campaign Conflicts Tracker
+
+window.campaignConflicts = {
+  getConflicts: function(campaign) {
+    return (campaign.trackers && campaign.trackers.campaignConflicts) || [];
+  },
+  saveConflicts: function(campaign, conflicts) {
+    campaign.trackers = campaign.trackers || {};
+    campaign.trackers.campaignConflicts = conflicts;
+    window.dataManager.saveCampaignsToLocalStorage(allCampaigns);
+  },
+  renderCampaignConflictsList: function(container, campaign) {
+    const conflicts = this.getConflicts(campaign);
+    let html = `<div class="d-flex justify-content-between align-items-center mb-3">
+      <h2>Campaign Conflicts</h2>
+      <button class="btn btn-primary" id="add-conflict-btn">Add Conflict</button>
+    </div>`;
+    if (conflicts.length === 0) {
+      html += '<div class="alert alert-info">No campaign conflicts yet.</div>';
+    } else {
+      html += '<div class="list-group mb-3">';
+      conflicts.forEach((conflict, idx) => {
+        html += `<div class="list-group-item">
+          <div class="d-flex justify-content-between align-items-center">
+            <div><strong>${conflict.title || '(No Title)'}</strong> <span class="text-muted small">vs. ${conflict.antagonist || ''}</span></div>
+            <div>
+              <button class="btn btn-sm btn-secondary me-2" data-edit="${idx}">Edit</button>
+              <button class="btn btn-sm btn-danger" data-delete="${idx}">Delete</button>
+            </div>
+          </div>
+          <div class="small text-muted">${conflict.notes ? conflict.notes.substring(0, 80) : ''}</div>
+        </div>`;
+      });
+      html += '</div>';
+    }
+    container.innerHTML = html + `<div id="conflict-form-area"></div>`;
+    document.getElementById('add-conflict-btn').onclick = () => this.renderCampaignConflictsForm(container, campaign);
+    container.querySelectorAll('[data-edit]').forEach(btn => {
+      btn.onclick = () => this.renderCampaignConflictsForm(container, campaign, parseInt(btn.getAttribute('data-edit')));
+    });
+    container.querySelectorAll('[data-delete]').forEach(btn => {
+      btn.onclick = () => {
+        if (confirm('Delete this conflict?')) {
+          conflicts.splice(parseInt(btn.getAttribute('data-delete')), 1);
+          this.saveConflicts(campaign, conflicts);
+          this.renderCampaignConflictsList(container, campaign);
+        }
+      };
+    });
+  },
+  renderCampaignConflictsForm: function(container, campaign, idx) {
+    const conflicts = this.getConflicts(campaign);
+    const conflict = idx != null ? {...conflicts[idx]} : {
+      title: '',
+      antagonist: '',
+      notes: ''
+    };
+    let html = `<form class="card card-body mb-3" id="conflict-form">
+      <div class="mb-2">
+        <label class="form-label">Conflict Title/Identifier</label>
+        <input class="form-control" name="title" value="${conflict.title || ''}" required />
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Adventurers vs. (Antagonist/Situation)</label>
+        <input class="form-control" name="antagonist" value="${conflict.antagonist || ''}" />
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Notes</label>
+        <textarea class="form-control" name="notes">${conflict.notes || ''}</textarea>
+      </div>
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-success">Save</button>
+        <button type="button" class="btn btn-secondary" id="cancel-conflict-btn">Cancel</button>
+      </div>
+    </form>`;
+    document.getElementById('conflict-form-area').innerHTML = html;
+    document.getElementById('cancel-conflict-btn').onclick = () => {
+      this.renderCampaignConflictsList(container, campaign);
+    };
+    document.getElementById('conflict-form').onsubmit = (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const newConflict = {
+        title: form.title.value,
+        antagonist: form.antagonist.value,
+        notes: form.notes.value
+      };
+      if (idx != null) {
+        conflicts[idx] = newConflict;
+      } else {
+        conflicts.push(newConflict);
+      }
+      this.saveConflicts(campaign, conflicts);
+      this.renderCampaignConflictsList(container, campaign);
+    };
+  }
+};
+</script>
+  <script>
+
+// Magic Item Tracker
+
+// Logic for Magic Item Tracker
+window.magicItemTracker = {
+  getTracker: function(campaign) {
+    return (campaign.trackers && campaign.trackers.magicItemTracker) || {
+      tiers: [
+        { name: 'Levels 1-4', rarities: { Common: [], Uncommon: [], Rare: [], 'Very Rare': [], Legendary: [] } },
+        { name: 'Levels 5-10', rarities: { Common: [], Uncommon: [], Rare: [], 'Very Rare': [], Legendary: [] } },
+        { name: 'Levels 11-16', rarities: { Common: [], Uncommon: [], Rare: [], 'Very Rare': [], Legendary: [] } },
+        { name: 'Levels 17-20', rarities: { Common: [], Uncommon: [], Rare: [], 'Very Rare': [], Legendary: [] } }
+      ]
+    };
+  },
+  saveTracker: function(campaign, tracker) {
+    campaign.trackers = campaign.trackers || {};
+    campaign.trackers.magicItemTracker = tracker;
+    window.dataManager.saveCampaignsToLocalStorage(allCampaigns);
+  },
+  renderMagicItemTracker: function(container, campaign) {
+    const tracker = this.getTracker(campaign);
+    let html = `<div class="d-flex justify-content-between align-items-center mb-3">
+      <h2>Magic Item Tracker</h2>
+      <button class="btn btn-primary" id="edit-magic-items-btn">Edit</button>
+    </div>`;
+    tracker.tiers.forEach((tier, tIdx) => {
+      html += `<div class="card card-body mb-3">
+        <h4>${tier.name}</h4>`;
+      Object.keys(tier.rarities).forEach(rarity => {
+        const items = tier.rarities[rarity] || [];
+        html += `<div class="mb-2">
+          <strong>${rarity}</strong> <span class="text-muted small">(${items.length} item${items.length !== 1 ? 's' : ''})</span>
+          <ul class="list-group">`;
+        if (items.length === 0) {
+          html += `<li class="list-group-item text-muted">No items</li>`;
+        } else {
+          items.forEach(item => {
+            html += `<li class="list-group-item">${item}</li>`;
+          });
+        }
+        html += `</ul></div>`;
+      });
+      html += `</div>`;
+    });
+    container.innerHTML = html + `<div id="magic-item-form-area"></div>`;
+    document.getElementById('edit-magic-items-btn').onclick = () => this.renderMagicItemForm(container, campaign);
+  },
+  renderMagicItemForm: function(container, campaign) {
+    const tracker = JSON.parse(JSON.stringify(this.getTracker(campaign)));
+    let html = `<form class="card card-body mb-3" id="magic-item-form">
+      <h3>Edit Magic Item Tracker</h3>`;
+    tracker.tiers.forEach((tier, tIdx) => {
+      html += `<div class="mb-3 border p-2">
+        <h5>${tier.name}</h5>`;
+      Object.keys(tier.rarities).forEach(rarity => {
+        html += `<div class="mb-2">
+          <label class="form-label"><strong>${rarity}</strong></label>
+          <div id="tier${tIdx}-rarity-${rarity.replace(/\s/g, '')}-list"></div>
+          <button type="button" class="btn btn-sm btn-outline-primary mt-1" data-add="${tIdx}|${rarity}">Add Item</button>
+        </div>`;
+      });
+      html += `</div>`;
+    });
+    html += `<div class="d-flex gap-2">
+      <button type="submit" class="btn btn-success">Save</button>
+      <button type="button" class="btn btn-secondary" id="cancel-magic-item-btn">Cancel</button>
+    </div></form>`;
+    document.getElementById('magic-item-form-area').innerHTML = html;
+    // Render item lists
+    tracker.tiers.forEach((tier, tIdx) => {
+      Object.keys(tier.rarities).forEach(rarity => {
+        const listId = `tier${tIdx}-rarity-${rarity.replace(/\s/g, '')}-list`;
+        const listDiv = document.getElementById(listId);
+        function renderList() {
+          let lHtml = '';
+          tier.rarities[rarity].forEach((item, i) => {
+            lHtml += `<div class="input-group mb-1">
+              <input class="form-control" value="${item}" data-item-input="${tIdx}|${rarity}|${i}" />
+              <button type="button" class="btn btn-outline-danger btn-sm" data-remove="${tIdx}|${rarity}|${i}">Remove</button>
+            </div>`;
+          });
+          listDiv.innerHTML = lHtml;
+          // Remove handlers
+          listDiv.querySelectorAll('[data-remove]').forEach(btn => {
+            btn.onclick = () => {
+              const [tierIdx, rar, idx] = btn.getAttribute('data-remove').split('|');
+              tracker.tiers[tierIdx].rarities[rar].splice(idx, 1);
+              renderList();
+            };
+          });
+          // Input handlers
+          listDiv.querySelectorAll('[data-item-input]').forEach(input => {
+            input.oninput = e => {
+              const [tierIdx, rar, idx] = input.getAttribute('data-item-input').split('|');
+              tracker.tiers[tierIdx].rarities[rar][idx] = e.target.value;
+            };
+          });
+        }
+        renderList();
+        // Add handler
+        const addBtn = container.querySelector(`[data-add="${tIdx}|${rarity}"]`);
+        if (addBtn) {
+          addBtn.onclick = () => {
+            tier.rarities[rarity].push('');
+            renderList();
+          };
+        }
+      });
+    });
+    document.getElementById('cancel-magic-item-btn').onclick = () => {
+      this.renderMagicItemTracker(container, campaign);
+    };
+    document.getElementById('magic-item-form').onsubmit = (e) => {
+      e.preventDefault();
+      this.saveTracker(campaign, tracker);
+      this.renderMagicItemTracker(container, campaign);
+    };
+  }
+};
+</script>
+  <script>
+
+// Bastion Tracker Module
+
+// Logic for Bastion Tracker
+// Placeholder for tracker-specific functions
+
+window.bastionTracker = {
+  getEntries: function(campaign) {
+    return (campaign.trackers && campaign.trackers.bastions) || [];
+  },
+  saveEntries: function(campaign, entries) {
+    campaign.trackers = campaign.trackers || {};
+    campaign.trackers.bastions = entries;
+    window.dataManager.saveCampaignsToLocalStorage(allCampaigns);
+  },
+  renderBastionList: function(container, campaign) {
+    const entries = this.getEntries(campaign);
+    let html = `<div class="d-flex justify-content-between align-items-center mb-3">
+      <h2>Bastion Tracker</h2>
+      <button class="btn btn-primary" id="add-bastion-btn">Add Bastion</button>
+    </div>`;
+    if (entries.length === 0) {
+      html += '<div class="alert alert-info">No bastions yet.</div>';
+    } else {
+      html += '<div class="list-group mb-3">';
+      entries.forEach((bastion, idx) => {
+        html += `<div class="list-group-item">
+          <div class="d-flex justify-content-between align-items-center">
+            <div><strong>${bastion.bastionName || '(No Name)'} </strong> <span class="text-muted small">(${bastion.characterName || ''})</span></div>
+            <div>
+              <button class="btn btn-sm btn-secondary me-2" data-edit="${idx}">Edit</button>
+              <button class="btn btn-sm btn-danger" data-delete="${idx}">Delete</button>
+            </div>
+          </div>
+          <div class="small text-muted">Level: ${bastion.level || ''}</div>
+        </div>`;
+      });
+      html += '</div>';
+    }
+    container.innerHTML = html + `<div id="bastion-form-area"></div>`;
+    document.getElementById('add-bastion-btn').onclick = () => this.renderBastionForm(container, campaign);
+    container.querySelectorAll('[data-edit]').forEach(btn => {
+      btn.onclick = () => this.renderBastionForm(container, campaign, parseInt(btn.getAttribute('data-edit')));
+    });
+    container.querySelectorAll('[data-delete]').forEach(btn => {
+      btn.onclick = () => {
+        if (confirm('Delete this bastion?')) {
+          entries.splice(parseInt(btn.getAttribute('data-delete')), 1);
+          this.saveEntries(campaign, entries);
+          this.renderBastionList(container, campaign);
+        }
+      };
+    });
+  },
+  renderBastionForm: function(container, campaign, idx) {
+    const entries = this.getEntries(campaign);
+    const bastion = idx != null ? {...entries[idx], facilities: [...(entries[idx].facilities||[])]} : {
+      bastionName: '', characterName: '', level: '', facilities: [], basicFacilities: '', defenders: ''
+    };
+    let html = `<form class="card card-body mb-3" id="bastion-form">
+      <div class="mb-2">
+        <label class="form-label">Bastion's Name</label>
+        <input class="form-control" name="bastionName" value="${bastion.bastionName || ''}" required />
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Character's Name</label>
+        <input class="form-control" name="characterName" value="${bastion.characterName || ''}" required />
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Level</label>
+        <input class="form-control" name="level" type="number" min="1" value="${bastion.level || ''}" />
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Special Facilities</label>
+        <div id="facilities-list"></div>
+        <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="add-facility-btn">Add Facility</button>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Basic Facilities</label>
+        <textarea class="form-control" name="basicFacilities">${bastion.basicFacilities || ''}</textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Bastion Defenders</label>
+        <textarea class="form-control" name="defenders">${bastion.defenders || ''}</textarea>
+      </div>
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-success">Save</button>
+        <button type="button" class="btn btn-secondary" id="cancel-bastion-btn">Cancel</button>
+      </div>
+    </form>`;
+    document.getElementById('bastion-form-area').innerHTML = html;
+    // Render facilities
+    function renderFacilities() {
+      const list = document.getElementById('facilities-list');
+      if (!bastion.facilities) bastion.facilities = [];
+      let fHtml = '';
+      bastion.facilities.forEach((fac, i) => {
+        fHtml += `<div class="card card-body mb-2">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <strong>Facility ${i+1}</strong>
+            <button type="button" class="btn btn-outline-danger btn-sm" data-remove-facility="${i}">Remove</button>
+          </div>
+          <div class="mb-1"><label class="form-label">Facility Name/Type</label><input class="form-control" name="facilityName" value="${fac.facilityName || ''}" /></div>
+          <div class="mb-1"><label class="form-label">Space</label><input class="form-control" name="space" value="${fac.space || ''}" /></div>
+          <div class="mb-1"><label class="form-label">Order</label><input class="form-control" name="order" value="${fac.order || ''}" /></div>
+          <div class="mb-1"><label class="form-label">Hirelings</label><textarea class="form-control" name="hirelings">${fac.hirelings || ''}</textarea></div>
+          <div class="mb-1"><label class="form-label">Notes</label><textarea class="form-control" name="notes">${fac.notes || ''}</textarea></div>
+        </div>`;
+      });
+      list.innerHTML = fHtml;
+      list.querySelectorAll('[data-remove-facility]').forEach(btn => {
+        btn.onclick = () => {
+          bastion.facilities.splice(parseInt(btn.getAttribute('data-remove-facility')), 1);
+          renderFacilities();
+        };
+      });
+      // Update facility values
+      list.querySelectorAll('.card').forEach((card, i) => {
+        card.querySelector('input[name="facilityName"]').oninput = e => { bastion.facilities[i].facilityName = e.target.value; };
+        card.querySelector('input[name="space"]').oninput = e => { bastion.facilities[i].space = e.target.value; };
+        card.querySelector('input[name="order"]').oninput = e => { bastion.facilities[i].order = e.target.value; };
+        card.querySelector('textarea[name="hirelings"]').oninput = e => { bastion.facilities[i].hirelings = e.target.value; };
+        card.querySelector('textarea[name="notes"]').oninput = e => { bastion.facilities[i].notes = e.target.value; };
+      });
+    }
+    renderFacilities();
+    document.getElementById('add-facility-btn').onclick = () => {
+      bastion.facilities.push({ facilityName: '', space: '', order: '', hirelings: '', notes: '' });
+      renderFacilities();
+    };
+    document.getElementById('cancel-bastion-btn').onclick = () => {
+      this.renderBastionList(container, campaign);
+    };
+    document.getElementById('bastion-form').onsubmit = (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const newBastion = {
+        bastionName: form.bastionName.value,
+        characterName: form.characterName.value,
+        level: form.level.value,
+        facilities: bastion.facilities,
+        basicFacilities: form.basicFacilities.value,
+        defenders: form.defenders.value
+      };
+      if (idx != null) {
+        entries[idx] = newBastion;
+      } else {
+        entries.push(newBastion);
+      }
+      this.saveEntries(campaign, entries);
+      this.renderBastionList(container, campaign);
+    };
+  }
+};
+</script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
