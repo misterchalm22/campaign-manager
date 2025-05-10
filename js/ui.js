@@ -1,11 +1,11 @@
 // UI rendering functions for TTRPG Campaign Tracker
 window.ui = {
-  renderCampaignSelector: function(campaignNames) {
+  renderCampaignSelector: function(campaignNames, selectedCampaign) {
     const selector = document.getElementById('campaign-selector');
     if (!selector) return;
     let html = '<select id="campaign-selector-dropdown"><option value="">Select Campaign</option>';
     for (const name of campaignNames) {
-      html += `<option value="${name}">${name}</option>`;
+      html += `<option value="${name}"${selectedCampaign === name ? ' selected' : ''}>${name}</option>`;
     }
     html += '</select>';
     selector.innerHTML = html;

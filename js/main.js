@@ -1,12 +1,15 @@
 // Main app logic for TTRPG Campaign Tracker
 // Handles campaign management and navigation
 
-let currentCampaign = null;
+let currentCampaign = localStorage.getItem('ttrpgCurrentCampaign') || null;
 let allCampaigns = {};
 
 function updateCampaignUI() {
-  window.ui.renderCampaignSelector(Object.keys(allCampaigns));
+  window.ui.renderCampaignSelector(Object.keys(allCampaigns), currentCampaign);
   window.ui.renderTrackerNavigation(handleNavSelect);
+  if (currentCampaign && allCampaigns[currentCampaign]) {
+    window.ui.displayTrackerView('Game Expectations', allCampaigns[currentCampaign]);
+  }
 }
 
 function showMessage(msg, isError = false) {
@@ -54,6 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
     delete allCampaigns[name];
     window.dataManager.saveCampaignsToLocalStorage(allCampaigns);
     currentCampaign = null;
+    localStorage.removeItem('ttrpgCurrentCampaign');
     updateCampaignUI();
     showMessage('Campaign deleted!');
   };
@@ -86,6 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const name = e.target.value;
       if (allCampaigns[name]) {
         currentCampaign = name;
+        localStorage.setItem('ttrpgCurrentCampaign', name);
         showMessage(`Selected campaign: ${name}`);
         window.ui.displayTrackerView('Game Expectations', allCampaigns[currentCampaign]);
       }
