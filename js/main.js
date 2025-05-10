@@ -27,6 +27,8 @@ function handleNavSelect(navId) {
     window.ui.displayTrackerView('NPC Tracker', allCampaigns[currentCampaign]);
   } else if (navId === 'nav-travel-planner') {
     window.ui.displayTrackerView('Travel Planner', allCampaigns[currentCampaign]);
+  } else if (navId === 'nav-settlement-tracker') {
+    window.ui.displayTrackerView('Settlement Tracker', allCampaigns[currentCampaign]);
   }
   // Add more tracker navs as needed
 }

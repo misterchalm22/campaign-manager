@@ -23,6 +23,9 @@ window.ui = {
         <li class="nav-item">
           <button class="nav-link" id="nav-travel-planner">Travel Planner</button>
         </li>
+        <li class="nav-item">
+          <button class="nav-link" id="nav-settlement-tracker">Settlement Tracker</button>
+        </li>
       </ul>
     `;
     if (onSelect) {
@@ -39,6 +42,8 @@ window.ui = {
       window.npcTracker.renderNPCList(main, campaignData);
     } else if (trackerName === 'Travel Planner') {
       window.travelPlanner.renderTravelList(main, campaignData);
+    } else if (trackerName === 'Settlement Tracker') {
+      window.settlementTracker.renderSettlementList(main, campaignData);
     } else {
       main.innerHTML = `<h2>${trackerName}</h2><div>Tracker UI goes here.</div>`;
     }
