@@ -21,3 +21,20 @@ header {
   margin-left: 220px;
   padding: 2rem;
 }
+
+/* Modal read-only view styles */
+#genericModalBody dl.row dt {
+  font-weight: bold;
+}
+#genericModalBody dl.row dd pre {
+  background-color: #f8f9fa;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  border: 1px solid #dee2e6;
+  font-size: 0.9em;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+#genericModalBody dl.row dd {
+  margin-bottom: 1rem;
+}

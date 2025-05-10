@@ -52,23 +52,23 @@ window.ui = {
   displayTrackerView: function(trackerName, campaignData) {
     const main = document.getElementById('main-content');
     if (trackerName === 'Game Expectations') {
-      window.gameExpectations.renderGameExpectationsView(main, campaignData);
+      window.gameExpectations.renderGameExpectationsListView(main, campaignData);
     } else if (trackerName === 'NPC Tracker') {
-      window.npcTracker.renderNPCList(main, campaignData);
+      window.npcTracker.renderNPCListView(main, campaignData);
     } else if (trackerName === 'Travel Planner') {
-      window.travelPlanner.renderTravelList(main, campaignData);
+      window.travelPlanner.renderTravelPlannerListView(main, campaignData);
     } else if (trackerName === 'Settlement Tracker') {
-      window.settlementTracker.renderSettlementList(main, campaignData);
+      window.settlementTracker.renderSettlementListView(main, campaignData);
     } else if (trackerName === 'Campaign Journal') {
-      window.campaignJournal.renderJournalList(main, campaignData);
+      window.campaignJournal.renderCampaignJournalListView(main, campaignData);
     } else if (trackerName === "DM's Character Tracker") {
-      window.dmCharacterTracker.renderDMCharacterList(main, campaignData);
+      window.dmCharacterTracker.renderDMCharacterListView(main, campaignData);
     } else if (trackerName === 'Campaign Conflicts') {
-      window.campaignConflicts.renderCampaignConflictsList(main, campaignData);
+      window.campaignConflicts.renderCampaignConflictsListView(main, campaignData);
     } else if (trackerName === 'Magic Item Tracker') {
-      window.magicItemTracker.renderMagicItemTracker(main, campaignData);
+      window.magicItemTracker.renderMagicItemTrackerListView(main, campaignData);
     } else if (trackerName === 'Bastion Tracker') {
-      window.bastionTracker.renderBastionList(main, campaignData);
+      window.bastionTracker.renderBastionListView(main, campaignData);
     } else {
       main.innerHTML = `<h2>${trackerName}</h2><div>Tracker UI goes here.</div>`;
     }

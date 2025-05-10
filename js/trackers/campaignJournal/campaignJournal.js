@@ -1,5 +1,12 @@
 // Logic for Campaign Journal tracker
 
+// Utility for escaping HTML (use window.modalUtils.escapeHtml if available)
+function escapeHtml(unsafe) {
+  if (window.modalUtils && window.modalUtils.escapeHtml) return window.modalUtils.escapeHtml(unsafe);
+  if (typeof unsafe !== 'string') return '';
+  return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+}
+
 window.campaignJournal = {
   getEntries: function(campaign) {
     return (campaign.trackers && campaign.trackers.campaignJournal) || [];
@@ -110,6 +117,135 @@ window.campaignJournal = {
       }
       this.saveEntries(campaign, entries);
       this.renderJournalList(container, campaign);
+    };
+  },
+  renderCampaignJournalListView: function(container, campaign) {
+    const entries = this.getEntries(campaign);
+    let html = `<div class="d-flex justify-content-between align-items-center mb-3">
+      <h2>Campaign Journal</h2>
+      <button class="btn btn-primary" id="add-journal-btn">Add Session Log</button>
+    </div>`;
+    if (entries.length === 0) {
+      html += '<div class="alert alert-info">No journal entries yet.</div>';
+    } else {
+      html += '<div class="list-group mb-3">';
+      entries.forEach((entry, idx) => {
+        html += `<div class="list-group-item">
+          <div class="d-flex justify-content-between align-items-center">
+            <div><strong>Session ${escapeHtml(entry.sessionNumber) || idx+1}</strong> <span class="text-muted small">${escapeHtml(entry.sessionDate) || ''}</span></div>
+            <div>
+              <button class="btn btn-sm btn-info me-2" data-view="${idx}">View Details</button>
+              <button class="btn btn-sm btn-danger" data-delete="${idx}">Delete</button>
+            </div>
+          </div>
+          <div class="small text-muted">${escapeHtml(entry.sessionTitle) || ''}</div>
+        </div>`;
+      });
+      html += '</div>';
+    }
+    container.innerHTML = html;
+    document.getElementById('add-journal-btn').onclick = () => this.renderCampaignJournalFormModal(campaign, null);
+    container.querySelectorAll('[data-view]').forEach(btn => {
+      btn.onclick = () => this.renderCampaignJournalEntryView(entries[parseInt(btn.getAttribute('data-view'))], campaign, parseInt(btn.getAttribute('data-view')));
+    });
+    container.querySelectorAll('[data-delete]').forEach(btn => {
+      btn.onclick = () => {
+        if (confirm('Delete this journal entry?')) {
+          entries.splice(parseInt(btn.getAttribute('data-delete')), 1);
+          this.saveEntries(campaign, entries);
+          this.renderCampaignJournalListView(container, campaign);
+        }
+      };
+    });
+  },
+  renderCampaignJournalEntryView: function(entry, campaign, idx) {
+    let html = `<dl class="row">
+      <dt class="col-sm-4">Session Number:</dt><dd class="col-sm-8">${escapeHtml(entry.sessionNumber) || 'N/A'}</dd>
+      <dt class="col-sm-4">Session Date:</dt><dd class="col-sm-8">${escapeHtml(entry.sessionDate) || 'N/A'}</dd>
+      <dt class="col-sm-4">Session/Adventure Title:</dt><dd class="col-sm-8">${escapeHtml(entry.sessionTitle) || 'N/A'}</dd>
+      <dt class="col-sm-4">Important Events from Earlier Sessions:</dt><dd class="col-sm-8"><pre>${escapeHtml(entry.earlierEvents) || 'N/A'}</pre></dd>
+      <dt class="col-sm-4">Planned Summary for This Session:</dt><dd class="col-sm-8"><pre>${escapeHtml(entry.plannedSummary) || 'N/A'}</pre></dd>
+      <dt class="col-sm-4">Additional Notes:</dt><dd class="col-sm-8"><pre>${escapeHtml(entry.notes) || 'N/A'}</pre></dd>
+    </dl>`;
+    let footer = `<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      <button type="button" class="btn btn-primary" id="editJournalFromViewBtn">Edit</button>`;
+    window.modalUtils.showModal(`View Session Log: Session ${escapeHtml(entry.sessionNumber)}`, html, footer);
+    document.getElementById('editJournalFromViewBtn').onclick = () => {
+      window.campaignJournal.renderCampaignJournalFormModal(campaign, idx, true);
+    };
+  },
+  renderCampaignJournalFormModal: function(campaign, idx, isEditFromView = false) {
+    const entries = this.getEntries(campaign);
+    const entry = idx != null ? {...entries[idx]} : {
+      sessionNumber: entries.length + 1,
+      sessionDate: '',
+      sessionTitle: '',
+      earlierEvents: '',
+      plannedSummary: '',
+      notes: ''
+    };
+    let html = `<form id="journal-form-modal">
+      <div class="mb-2">
+        <label class="form-label">Session Number</label>
+        <input class="form-control" name="sessionNumber" type="number" min="1" value="${escapeHtml(entry.sessionNumber) || ''}" required />
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Session Date</label>
+        <input class="form-control" name="sessionDate" type="date" value="${escapeHtml(entry.sessionDate) || ''}" />
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Session/Adventure Title</label>
+        <input class="form-control" name="sessionTitle" value="${escapeHtml(entry.sessionTitle) || ''}" />
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Important Events from Earlier Sessions</label>
+        <textarea class="form-control" name="earlierEvents">${escapeHtml(entry.earlierEvents) || ''}</textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Planned Summary for This Session</label>
+        <textarea class="form-control" name="plannedSummary">${escapeHtml(entry.plannedSummary) || ''}</textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Additional Notes</label>
+        <textarea class="form-control" name="notes">${escapeHtml(entry.notes) || ''}</textarea>
+      </div>
+    </form>`;
+    let footer = `<button type="button" class="btn btn-secondary" id="cancelJournalFormBtn">Cancel</button>
+      <button type="button" class="btn btn-success" id="saveJournalFormBtn">Save</button>`;
+    window.modalUtils.showModal(idx != null ? `Edit Session Log: Session ${escapeHtml(entry.sessionNumber)}` : 'Add Session Log', html, footer);
+    document.getElementById('cancelJournalFormBtn').onclick = () => {
+      if (isEditFromView && idx != null) {
+        window.campaignJournal.renderCampaignJournalEntryView(entries[idx], campaign, idx);
+      } else {
+        window.modalUtils.hideModal();
+      }
+    };
+    document.getElementById('saveJournalFormBtn').onclick = () => {
+      const form = document.getElementById('journal-form-modal');
+      const newEntry = {
+        sessionNumber: form.sessionNumber.value.trim(),
+        sessionDate: form.sessionDate.value.trim(),
+        sessionTitle: form.sessionTitle.value.trim(),
+        earlierEvents: form.earlierEvents.value.trim(),
+        plannedSummary: form.plannedSummary.value.trim(),
+        notes: form.notes.value.trim()
+      };
+      if (!newEntry.sessionNumber) {
+        alert('Session Number is required.');
+        return;
+      }
+      if (idx != null) {
+        entries[idx] = newEntry;
+      } else {
+        entries.push(newEntry);
+      }
+      window.campaignJournal.saveEntries(campaign, entries);
+      window.modalUtils.hideModal();
+      // Refresh list view
+      const mainContent = document.getElementById('main-content');
+      if (mainContent) {
+        window.campaignJournal.renderCampaignJournalListView(mainContent, campaign);
+      }
     };
   }
 };
