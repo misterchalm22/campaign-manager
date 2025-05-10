@@ -33,6 +33,8 @@ function handleNavSelect(navId) {
     window.ui.displayTrackerView('Campaign Journal', allCampaigns[currentCampaign]);
   } else if (navId === 'nav-dm-character-tracker') {
     window.ui.displayTrackerView("DM's Character Tracker", allCampaigns[currentCampaign]);
+  } else if (navId === 'nav-campaign-conflicts') {
+    window.ui.displayTrackerView('Campaign Conflicts', allCampaigns[currentCampaign]);
   }
   // Add more tracker navs as needed
 }

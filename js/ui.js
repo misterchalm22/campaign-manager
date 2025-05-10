@@ -32,6 +32,9 @@ window.ui = {
         <li class="nav-item">
           <button class="nav-link" id="nav-dm-character-tracker">DM's Character Tracker</button>
         </li>
+        <li class="nav-item">
+          <button class="nav-link" id="nav-campaign-conflicts">Campaign Conflicts</button>
+        </li>
       </ul>
     `;
     if (onSelect) {
@@ -54,6 +57,8 @@ window.ui = {
       window.campaignJournal.renderJournalList(main, campaignData);
     } else if (trackerName === "DM's Character Tracker") {
       window.dmCharacterTracker.renderDMCharacterList(main, campaignData);
+    } else if (trackerName === 'Campaign Conflicts') {
+      window.campaignConflicts.renderCampaignConflictsList(main, campaignData);
     } else {
       main.innerHTML = `<h2>${trackerName}</h2><div>Tracker UI goes here.</div>`;
     }
