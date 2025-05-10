@@ -10,12 +10,33 @@ window.ui = {
     html += '</select>';
     selector.innerHTML = html;
   },
-  renderTrackerNavigation: function() {
+  renderTrackerNavigation: function(onSelect) {
     const nav = document.getElementById('tracker-nav');
-    nav.innerHTML = '<ul><li>Game Expectations</li><li>NPC Tracker</li><li>Travel Planner</li></ul>';
+    nav.innerHTML = `
+      <ul class="nav flex-column nav-pills">
+        <li class="nav-item">
+          <button class="nav-link" id="nav-game-expectations">Game Expectations</button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" id="nav-npc-tracker">NPC Tracker</button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" id="nav-travel-planner">Travel Planner</button>
+        </li>
+      </ul>
+    `;
+    if (onSelect) {
+      nav.querySelectorAll('.nav-link').forEach(btn => {
+        btn.onclick = (e) => onSelect(e.target.id);
+      });
+    }
   },
   displayTrackerView: function(trackerName, campaignData) {
     const main = document.getElementById('main-content');
-    main.innerHTML = `<h2>${trackerName}</h2><div>Tracker UI goes here.</div>`;
+    if (trackerName === 'Game Expectations') {
+      window.gameExpectations.renderGameExpectationsView(main, campaignData);
+    } else {
+      main.innerHTML = `<h2>${trackerName}</h2><div>Tracker UI goes here.</div>`;
+    }
   }
 };

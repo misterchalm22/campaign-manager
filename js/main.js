@@ -6,7 +6,7 @@ let allCampaigns = {};
 
 function updateCampaignUI() {
   window.ui.renderCampaignSelector(Object.keys(allCampaigns));
-  window.ui.renderTrackerNavigation();
+  window.ui.renderTrackerNavigation(handleNavSelect);
 }
 
 function showMessage(msg, isError = false) {
@@ -14,6 +14,14 @@ function showMessage(msg, isError = false) {
   el.textContent = msg;
   el.style.color = isError ? 'red' : 'green';
   setTimeout(() => { el.textContent = ''; }, 3000);
+}
+
+function handleNavSelect(navId) {
+  if (!currentCampaign || !allCampaigns[currentCampaign]) return;
+  if (navId === 'nav-game-expectations') {
+    window.ui.displayTrackerView('Game Expectations', allCampaigns[currentCampaign]);
+  }
+  // Add more tracker navs as needed
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -79,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (allCampaigns[name]) {
         currentCampaign = name;
         showMessage(`Selected campaign: ${name}`);
-        // Optionally, update tracker view here
+        window.ui.displayTrackerView('Game Expectations', allCampaigns[currentCampaign]);
       }
     }
   };
