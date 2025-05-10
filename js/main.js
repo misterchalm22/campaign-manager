@@ -35,6 +35,8 @@ function handleNavSelect(navId) {
     window.ui.displayTrackerView("DM's Character Tracker", allCampaigns[currentCampaign]);
   } else if (navId === 'nav-campaign-conflicts') {
     window.ui.displayTrackerView('Campaign Conflicts', allCampaigns[currentCampaign]);
+  } else if (navId === 'nav-magic-item-tracker') {
+    window.ui.displayTrackerView('Magic Item Tracker', allCampaigns[currentCampaign]);
   }
   // Add more tracker navs as needed
 }
