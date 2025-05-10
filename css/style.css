@@ -1,0 +1,23 @@
+/* Main styles for TTRPG Campaign Tracker */
+body {
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  background: #f8fafc;
+  color: #222;
+}
+header {
+  background: #2d3748;
+  color: #fff;
+  padding: 1rem;
+}
+#tracker-nav {
+  background: #e2e8f0;
+  padding: 1rem;
+  min-width: 200px;
+  float: left;
+  height: 100vh;
+}
+#main-content {
+  margin-left: 220px;
+  padding: 2rem;
+}
