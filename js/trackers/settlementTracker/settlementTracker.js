@@ -1,11 +1,5 @@
+(function() {
 // SettlementTracker.js
-
-// Utility for escaping HTML (use window.modalUtils.escapeHtml if available)
-function escapeHtml(unsafe) {
-  if (window.modalUtils && window.modalUtils.escapeHtml) return window.modalUtils.escapeHtml(unsafe);
-  if (typeof unsafe !== 'string') return '';
-  return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-}
 
 // Logic for Settlement Tracker
 window.settlementTracker = {
@@ -148,13 +142,13 @@ window.settlementTracker = {
       entries.forEach((settlement, idx) => {
         html += `<div class="list-group-item">
           <div class="d-flex justify-content-between align-items-center">
-            <div><strong>${escapeHtml(settlement.name) || '(No Name)'}</strong> <span class="text-muted small">${escapeHtml(settlement.size) || ''}</span></div>
+            <div><strong>${window.modalUtils.escapeHtml(settlement.name) || '(No Name)'}</strong> <span class="text-muted small">${window.modalUtils.escapeHtml(settlement.size) || ''}</span></div>
             <div>
               <button class="btn btn-sm btn-info me-2" data-view="${idx}">View Details</button>
               <button class="btn btn-sm btn-danger" data-delete="${idx}">Delete</button>
             </div>
           </div>
-          <div class="small text-muted">Leader: ${escapeHtml(settlement.localLeader) || ''}</div>
+          <div class="small text-muted">Leader: ${window.modalUtils.escapeHtml(settlement.localLeader) || ''}</div>
         </div>`;
       });
       html += '</div>';
@@ -176,19 +170,19 @@ window.settlementTracker = {
   },
   renderSettlementEntryView: function(settlement, campaign, idx) {
     let html = `<dl class="row">
-      <dt class="col-sm-4">Settlement Name:</dt><dd class="col-sm-8">${escapeHtml(settlement.name) || 'N/A'}</dd>
-      <dt class="col-sm-4">Size:</dt><dd class="col-sm-8">${escapeHtml(settlement.size) || 'N/A'}</dd>
-      <dt class="col-sm-4">Defining Trait:</dt><dd class="col-sm-8"><pre>${escapeHtml(settlement.trait) || 'N/A'}</pre></dd>
-      <dt class="col-sm-4">Claim to Fame:</dt><dd class="col-sm-8"><pre>${escapeHtml(settlement.fame) || 'N/A'}</pre></dd>
-      <dt class="col-sm-4">Current Calamity:</dt><dd class="col-sm-8"><pre>${escapeHtml(settlement.calamity) || 'N/A'}</pre></dd>
-      <dt class="col-sm-4">Local Leader:</dt><dd class="col-sm-8">${escapeHtml(settlement.localLeader) || 'N/A'}</dd>
-      <dt class="col-sm-4">Noteworthy People:</dt><dd class="col-sm-8"><pre>${escapeHtml(settlement.people) || 'N/A'}</pre></dd>
-      <dt class="col-sm-4">Noteworthy Places:</dt><dd class="col-sm-8"><pre>${escapeHtml(settlement.places) || 'N/A'}</pre></dd>
-      <dt class="col-sm-4">GP Value of Most Expensive Item:</dt><dd class="col-sm-8">${escapeHtml(settlement.gpValue) || 'N/A'}</dd>
+      <dt class="col-sm-4">Settlement Name:</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(settlement.name) || 'N/A'}</dd>
+      <dt class="col-sm-4">Size:</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(settlement.size) || 'N/A'}</dd>
+      <dt class="col-sm-4">Defining Trait:</dt><dd class="col-sm-8"><pre>${window.modalUtils.escapeHtml(settlement.trait) || 'N/A'}</pre></dd>
+      <dt class="col-sm-4">Claim to Fame:</dt><dd class="col-sm-8"><pre>${window.modalUtils.escapeHtml(settlement.fame) || 'N/A'}</pre></dd>
+      <dt class="col-sm-4">Current Calamity:</dt><dd class="col-sm-8"><pre>${window.modalUtils.escapeHtml(settlement.calamity) || 'N/A'}</pre></dd>
+      <dt class="col-sm-4">Local Leader:</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(settlement.localLeader) || 'N/A'}</dd>
+      <dt class="col-sm-4">Noteworthy People:</dt><dd class="col-sm-8"><pre>${window.modalUtils.escapeHtml(settlement.people) || 'N/A'}</pre></dd>
+      <dt class="col-sm-4">Noteworthy Places:</dt><dd class="col-sm-8"><pre>${window.modalUtils.escapeHtml(settlement.places) || 'N/A'}</pre></dd>
+      <dt class="col-sm-4">GP Value of Most Expensive Item:</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(settlement.gpValue) || 'N/A'}</dd>
     </dl>`;
     let footer = `<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
       <button type="button" class="btn btn-primary" id="editSettlementFromViewBtn">Edit</button>`;
-    window.modalUtils.showModal(`View Settlement: ${escapeHtml(settlement.name)}`, html, footer);
+    window.modalUtils.showModal(`View Settlement: ${window.modalUtils.escapeHtml(settlement.name)}`, html, footer);
     document.getElementById('editSettlementFromViewBtn').onclick = () => {
       window.settlementTracker.renderSettlementFormModal(campaign, idx, true);
     };
@@ -201,7 +195,7 @@ window.settlementTracker = {
     let html = `<form id="settlement-form-modal">
       <div class="mb-2">
         <label class="form-label">Settlement Name</label>
-        <input class="form-control" name="name" value="${escapeHtml(settlement.name) || ''}" required />
+        <input class="form-control" name="name" value="${window.modalUtils.escapeHtml(settlement.name) || ''}" required />
       </div>
       <div class="mb-2">
         <label class="form-label">Size</label>
@@ -214,36 +208,36 @@ window.settlementTracker = {
       </div>
       <div class="mb-2">
         <label class="form-label">Defining Trait</label>
-        <textarea class="form-control" name="trait">${escapeHtml(settlement.trait) || ''}</textarea>
+        <textarea class="form-control" name="trait">${window.modalUtils.escapeHtml(settlement.trait) || ''}</textarea>
       </div>
       <div class="mb-2">
         <label class="form-label">Claim to Fame</label>
-        <textarea class="form-control" name="fame">${escapeHtml(settlement.fame) || ''}</textarea>
+        <textarea class="form-control" name="fame">${window.modalUtils.escapeHtml(settlement.fame) || ''}</textarea>
       </div>
       <div class="mb-2">
         <label class="form-label">Current Calamity</label>
-        <textarea class="form-control" name="calamity">${escapeHtml(settlement.calamity) || ''}</textarea>
+        <textarea class="form-control" name="calamity">${window.modalUtils.escapeHtml(settlement.calamity) || ''}</textarea>
       </div>
       <div class="mb-2">
         <label class="form-label">Local Leader</label>
-        <input class="form-control" name="localLeader" value="${escapeHtml(settlement.localLeader) || ''}" />
+        <input class="form-control" name="localLeader" value="${window.modalUtils.escapeHtml(settlement.localLeader) || ''}" />
       </div>
       <div class="mb-2">
         <label class="form-label">Noteworthy People</label>
-        <textarea class="form-control" name="people">${escapeHtml(settlement.people) || ''}</textarea>
+        <textarea class="form-control" name="people">${window.modalUtils.escapeHtml(settlement.people) || ''}</textarea>
       </div>
       <div class="mb-2">
         <label class="form-label">Noteworthy Places</label>
-        <textarea class="form-control" name="places">${escapeHtml(settlement.places) || ''}</textarea>
+        <textarea class="form-control" name="places">${window.modalUtils.escapeHtml(settlement.places) || ''}</textarea>
       </div>
       <div class="mb-2">
         <label class="form-label">GP Value of Most Expensive Item for Sale</label>
-        <input class="form-control" name="gpValue" value="${escapeHtml(settlement.gpValue) || ''}" type="number" min="0" />
+        <input class="form-control" name="gpValue" value="${window.modalUtils.escapeHtml(settlement.gpValue) || ''}" type="number" min="0" />
       </div>
     </form>`;
     let footer = `<button type="button" class="btn btn-secondary" id="cancelSettlementFormBtn">Cancel</button>
       <button type="button" class="btn btn-success" id="saveSettlementFormBtn">Save</button>`;
-    window.modalUtils.showModal(idx != null ? `Edit Settlement: ${escapeHtml(settlement.name)}` : 'Add Settlement', html, footer);
+    window.modalUtils.showModal(idx != null ? `Edit Settlement: ${window.modalUtils.escapeHtml(settlement.name)}` : 'Add Settlement', html, footer);
     document.getElementById('cancelSettlementFormBtn').onclick = () => {
       if (isEditFromView && idx != null) {
         window.settlementTracker.renderSettlementEntryView(entries[idx], campaign, idx);
@@ -283,3 +277,4 @@ window.settlementTracker = {
     };
   }
 };
+})();

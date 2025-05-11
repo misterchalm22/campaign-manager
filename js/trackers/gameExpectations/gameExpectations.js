@@ -1,11 +1,5 @@
+(function() {
 // Logic for Game Expectations tracker
-
-// Utility for escaping HTML (use window.modalUtils.escapeHtml if available)
-function escapeHtml(unsafe) {
-  if (window.modalUtils && window.modalUtils.escapeHtml) return window.modalUtils.escapeHtml(unsafe);
-  if (typeof unsafe !== 'string') return '';
-  return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-}
 
 window.gameExpectations = {
   getEntries: function(campaign) {
@@ -164,13 +158,13 @@ window.gameExpectations = {
       entries.forEach((entry, idx) => {
         html += `<div class="list-group-item">
           <div class="d-flex justify-content-between align-items-center">
-            <div><strong>${escapeHtml(entry.playerName) || '(No Player Name)'}</strong></div>
+            <div><strong>${window.modalUtils.escapeHtml(entry.playerName) || '(No Player Name)'}</strong></div>
             <div>
               <button class="btn btn-sm btn-info me-2" data-view="${idx}">View Details</button>
               <button class="btn btn-sm btn-danger" data-delete="${idx}">Delete</button>
             </div>
           </div>
-          <div class="small text-muted">Theme: ${escapeHtml(entry.gameTheme) || ''}</div>
+          <div class="small text-muted">Theme: ${window.modalUtils.escapeHtml(entry.gameTheme) || ''}</div>
         </div>`;
       });
       html += '</div>';
@@ -192,22 +186,22 @@ window.gameExpectations = {
   },
   renderGameExpectationsEntryView: function(entry, campaign, idx) {
     let html = `<dl class="row">
-      <dt class="col-sm-4">DM Name:</dt><dd class="col-sm-8">${escapeHtml(entry.dmName) || 'N/A'}</dd>
-      <dt class="col-sm-4">Player Name:</dt><dd class="col-sm-8">${escapeHtml(entry.playerName) || 'N/A'}</dd>
-      <dt class="col-sm-4">Game Theme and Flavor:</dt><dd class="col-sm-8"><pre>${escapeHtml(entry.gameTheme) || 'N/A'}</pre></dd>
+      <dt class="col-sm-4">DM Name:</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(entry.dmName) || 'N/A'}</dd>
+      <dt class="col-sm-4">Player Name:</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(entry.playerName) || 'N/A'}</dd>
+      <dt class="col-sm-4">Game Theme and Flavor:</dt><dd class="col-sm-8"><pre>${window.modalUtils.escapeHtml(entry.gameTheme) || 'N/A'}</pre></dd>
       <dt class="col-sm-4">Potentially Sensitive Elements:</dt><dd class="col-sm-8">`;
     if (entry.sensitive && entry.sensitive.length) {
-      html += '<ul>' + entry.sensitive.map(el => `<li>${escapeHtml(el.desc)} [${el.hardLimit ? 'Hard' : ''}${el.hardLimit && el.softLimit ? ', ' : ''}${el.softLimit ? 'Soft' : ''}]</li>`).join('') + '</ul>';
+      html += '<ul>' + entry.sensitive.map(el => `<li>${window.modalUtils.escapeHtml(el.desc)} [${el.hardLimit ? 'Hard' : ''}${el.hardLimit && el.softLimit ? ', ' : ''}${el.softLimit ? 'Soft' : ''}]</li>`).join('') + '</ul>';
     } else {
       html += 'N/A';
     }
     html += `</dd>
-      <dt class="col-sm-4">Player's Hopes and Expectations:</dt><dd class="col-sm-8"><pre>${escapeHtml(entry.hopes) || 'N/A'}</pre></dd>
-      <dt class="col-sm-4">At-the-Table Concerns:</dt><dd class="col-sm-8"><pre>${escapeHtml(entry.concerns) || 'N/A'}</pre></dd>
+      <dt class="col-sm-4">Player's Hopes and Expectations:</dt><dd class="col-sm-8"><pre>${window.modalUtils.escapeHtml(entry.hopes) || 'N/A'}</pre></dd>
+      <dt class="col-sm-4">At-the-Table Concerns:</dt><dd class="col-sm-8"><pre>${window.modalUtils.escapeHtml(entry.concerns) || 'N/A'}</pre></dd>
     </dl>`;
     let footer = `<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
       <button type="button" class="btn btn-primary" id="editGEFromViewBtn">Edit</button>`;
-    window.modalUtils.showModal(`View Game Expectation: ${escapeHtml(entry.playerName)}`, html, footer);
+    window.modalUtils.showModal(`View Game Expectation: ${window.modalUtils.escapeHtml(entry.playerName)}`, html, footer);
     document.getElementById('editGEFromViewBtn').onclick = () => {
       window.gameExpectations.renderGameExpectationsFormModal(campaign, idx, true);
     };
@@ -220,15 +214,15 @@ window.gameExpectations = {
     let html = `<form id="ge-form-modal">
       <div class="mb-2">
         <label class="form-label">DM Name</label>
-        <input class="form-control" name="dmName" value="${escapeHtml(entry.dmName) || ''}" />
+        <input class="form-control" name="dmName" value="${window.modalUtils.escapeHtml(entry.dmName) || ''}" />
       </div>
       <div class="mb-2">
         <label class="form-label">Player Name</label>
-        <input class="form-control" name="playerName" value="${escapeHtml(entry.playerName) || ''}" required />
+        <input class="form-control" name="playerName" value="${window.modalUtils.escapeHtml(entry.playerName) || ''}" required />
       </div>
       <div class="mb-2">
         <label class="form-label">Game Theme and Flavor</label>
-        <textarea class="form-control" name="gameTheme">${escapeHtml(entry.gameTheme) || ''}</textarea>
+        <textarea class="form-control" name="gameTheme">${window.modalUtils.escapeHtml(entry.gameTheme) || ''}</textarea>
       </div>
       <div class="mb-2">
         <label class="form-label">Potentially Sensitive Elements</label>
@@ -237,16 +231,16 @@ window.gameExpectations = {
       </div>
       <div class="mb-2">
         <label class="form-label">Player's Hopes and Expectations</label>
-        <textarea class="form-control" name="hopes">${escapeHtml(entry.hopes) || ''}</textarea>
+        <textarea class="form-control" name="hopes">${window.modalUtils.escapeHtml(entry.hopes) || ''}</textarea>
       </div>
       <div class="mb-2">
         <label class="form-label">At-the-Table Concerns</label>
-        <textarea class="form-control" name="concerns">${escapeHtml(entry.concerns) || ''}</textarea>
+        <textarea class="form-control" name="concerns">${window.modalUtils.escapeHtml(entry.concerns) || ''}</textarea>
       </div>
     </form>`;
     let footer = `<button type="button" class="btn btn-secondary" id="cancelGEFormBtn">Cancel</button>
       <button type="button" class="btn btn-success" id="saveGEFormBtn">Save</button>`;
-    window.modalUtils.showModal(idx != null ? `Edit Game Expectation: ${escapeHtml(entry.playerName)}` : 'Add Game Expectation', html, footer);
+    window.modalUtils.showModal(idx != null ? `Edit Game Expectation: ${window.modalUtils.escapeHtml(entry.playerName)}` : 'Add Game Expectation', html, footer);
     // Sensitive elements logic
     function renderSensitiveList() {
       const list = document.getElementById('sensitive-list-modal');
@@ -254,7 +248,7 @@ window.gameExpectations = {
       let sHtml = '';
       entry.sensitive.forEach((el, i) => {
         sHtml += `<div class="input-group mb-1">
-          <input class="form-control" name="sensitive-desc" value="${escapeHtml(el.desc) || ''}" placeholder="Element description" />
+          <input class="form-control" name="sensitive-desc" value="${window.modalUtils.escapeHtml(el.desc) || ''}" placeholder="Element description" />
           <div class="input-group-text">
             <input type="checkbox" name="hardLimit" ${el.hardLimit ? 'checked' : ''} /> Hard
           </div>
@@ -319,3 +313,4 @@ window.gameExpectations = {
     };
   }
 };
+})();

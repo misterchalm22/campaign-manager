@@ -1,11 +1,5 @@
+(function() {
 // DM's Character Tracker
-
-// Utility for escaping HTML (use window.modalUtils.escapeHtml if available)
-function escapeHtml(unsafe) {
-  if (window.modalUtils && window.modalUtils.escapeHtml) return window.modalUtils.escapeHtml(unsafe);
-  if (typeof unsafe !== 'string') return '';
-  return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-}
 
 window.dmCharacterTracker = {
   getEntries: function(campaign) {
@@ -29,13 +23,13 @@ window.dmCharacterTracker = {
       entries.forEach((char, idx) => {
         html += `<div class="list-group-item">
           <div class="d-flex justify-content-between align-items-center">
-            <div><strong>${escapeHtml(char.characterName) || '(No Name)'}</strong> <span class="text-muted small">${escapeHtml(char.playerName) || ''}</span></div>
+            <div><strong>${window.modalUtils.escapeHtml(char.characterName) || '(No Name)'}</strong> <span class="text-muted small">${window.modalUtils.escapeHtml(char.playerName) || ''}</span></div>
             <div>
               <button class="btn btn-sm btn-info me-2" data-view="${idx}">View Details</button>
               <button class="btn btn-sm btn-danger" data-delete="${idx}">Delete</button>
             </div>
           </div>
-          <div class="small text-muted">Class: ${escapeHtml(char.className) || ''} Level: ${escapeHtml(char.level) || ''}</div>
+          <div class="small text-muted">Class: ${window.modalUtils.escapeHtml(char.className) || ''} Level: ${window.modalUtils.escapeHtml(char.level) || ''}</div>
         </div>`;
       });
       html += '</div>';
@@ -57,26 +51,26 @@ window.dmCharacterTracker = {
   },
   renderDMCharacterEntryView: function(char, campaign, idx) {
     let html = `<dl class="row">
-      <dt class="col-sm-4">Character's Name:</dt><dd class="col-sm-8">${escapeHtml(char.characterName) || 'N/A'}</dd>
-      <dt class="col-sm-4">Player's Name:</dt><dd class="col-sm-8">${escapeHtml(char.playerName) || 'N/A'}</dd>
-      <dt class="col-sm-4">Player Motivation:</dt><dd class="col-sm-8">${(char.motivations && char.motivations.length) ? char.motivations.map(escapeHtml).join(', ') : 'N/A'}</dd>
-      <dt class="col-sm-4">Notes on Player Expectations:</dt><dd class="col-sm-8"><pre>${escapeHtml(char.playerExpectations) || 'N/A'}</pre></dd>
-      <dt class="col-sm-4">Class:</dt><dd class="col-sm-8">${escapeHtml(char.className) || 'N/A'}</dd>
-      <dt class="col-sm-4">Subclass:</dt><dd class="col-sm-8">${escapeHtml(char.subclass) || 'N/A'}</dd>
-      <dt class="col-sm-4">Level:</dt><dd class="col-sm-8">${escapeHtml(char.level) || 'N/A'}</dd>
-      <dt class="col-sm-4">Background:</dt><dd class="col-sm-8">${escapeHtml(char.background) || 'N/A'}</dd>
-      <dt class="col-sm-4">Species (Race):</dt><dd class="col-sm-8">${escapeHtml(char.species) || 'N/A'}</dd>
-      <dt class="col-sm-4">Alignment:</dt><dd class="col-sm-8">${escapeHtml(char.alignment) || 'N/A'}</dd>
-      <dt class="col-sm-4">Goals and Ambitions:</dt><dd class="col-sm-8"><pre>${escapeHtml(char.goals) || 'N/A'}</pre></dd>
-      <dt class="col-sm-4">Quirks and Whims:</dt><dd class="col-sm-8"><pre>${escapeHtml(char.quirks) || 'N/A'}</pre></dd>
-      <dt class="col-sm-4">Magic Items:</dt><dd class="col-sm-8"><pre>${escapeHtml(char.magicItems) || 'N/A'}</pre></dd>
-      <dt class="col-sm-4">Character Details:</dt><dd class="col-sm-8"><pre>${escapeHtml(char.details) || 'N/A'}</pre></dd>
-      <dt class="col-sm-4">Family, Friends, and Foes:</dt><dd class="col-sm-8"><pre>${escapeHtml(char.family) || 'N/A'}</pre></dd>
-      <dt class="col-sm-4">Adventure Ideas:</dt><dd class="col-sm-8"><pre>${escapeHtml(char.adventureIdeas) || 'N/A'}</pre></dd>
+      <dt class="col-sm-4">Character's Name:</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(char.characterName) || 'N/A'}</dd>
+      <dt class="col-sm-4">Player's Name:</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(char.playerName) || 'N/A'}</dd>
+      <dt class="col-sm-4">Player Motivation:</dt><dd class="col-sm-8">${(char.motivations && char.motivations.length) ? char.motivations.map(window.modalUtils.escapeHtml).join(', ') : 'N/A'}</dd>
+      <dt class="col-sm-4">Notes on Player Expectations:</dt><dd class="col-sm-8"><pre>${window.modalUtils.escapeHtml(char.playerExpectations) || 'N/A'}</pre></dd>
+      <dt class="col-sm-4">Class:</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(char.className) || 'N/A'}</dd>
+      <dt class="col-sm-4">Subclass:</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(char.subclass) || 'N/A'}</dd>
+      <dt class="col-sm-4">Level:</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(char.level) || 'N/A'}</dd>
+      <dt class="col-sm-4">Background:</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(char.background) || 'N/A'}</dd>
+      <dt class="col-sm-4">Species (Race):</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(char.species) || 'N/A'}</dd>
+      <dt class="col-sm-4">Alignment:</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(char.alignment) || 'N/A'}</dd>
+      <dt class="col-sm-4">Goals and Ambitions:</dt><dd class="col-sm-8"><pre>${window.modalUtils.escapeHtml(char.goals) || 'N/A'}</pre></dd>
+      <dt class="col-sm-4">Quirks and Whims:</dt><dd class="col-sm-8"><pre>${window.modalUtils.escapeHtml(char.quirks) || 'N/A'}</pre></dd>
+      <dt class="col-sm-4">Magic Items:</dt><dd class="col-sm-8"><pre>${window.modalUtils.escapeHtml(char.magicItems) || 'N/A'}</pre></dd>
+      <dt class="col-sm-4">Character Details:</dt><dd class="col-sm-8"><pre>${window.modalUtils.escapeHtml(char.details) || 'N/A'}</pre></dd>
+      <dt class="col-sm-4">Family, Friends, and Foes:</dt><dd class="col-sm-8"><pre>${window.modalUtils.escapeHtml(char.family) || 'N/A'}</pre></dd>
+      <dt class="col-sm-4">Adventure Ideas:</dt><dd class="col-sm-8"><pre>${window.modalUtils.escapeHtml(char.adventureIdeas) || 'N/A'}</pre></dd>
     </dl>`;
     let footer = `<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
       <button type="button" class="btn btn-primary" id="editDMCharFromViewBtn">Edit</button>`;
-    window.modalUtils.showModal(`View Character: ${escapeHtml(char.characterName)}`, html, footer);
+    window.modalUtils.showModal(`View Character: ${window.modalUtils.escapeHtml(char.characterName)}`, html, footer);
     document.getElementById('editDMCharFromViewBtn').onclick = () => {
       window.dmCharacterTracker.renderDMCharacterFormModal(campaign, idx, true);
     };
@@ -107,11 +101,11 @@ window.dmCharacterTracker = {
     let html = `<form id="dmchar-form-modal">
       <div class="mb-2">
         <label class="form-label">Character's Name</label>
-        <input class="form-control" name="characterName" value="${escapeHtml(char.characterName) || ''}" required />
+        <input class="form-control" name="characterName" value="${window.modalUtils.escapeHtml(char.characterName) || ''}" required />
       </div>
       <div class="mb-2">
         <label class="form-label">Player's Name</label>
-        <input class="form-control" name="playerName" value="${escapeHtml(char.playerName) || ''}" />
+        <input class="form-control" name="playerName" value="${window.modalUtils.escapeHtml(char.playerName) || ''}" />
       </div>
       <div class="mb-2">
         <label class="form-label">Player Motivation</label><br />
@@ -119,60 +113,60 @@ window.dmCharacterTracker = {
       </div>
       <div class="mb-2">
         <label class="form-label">Notes on Player Expectations</label>
-        <textarea class="form-control" name="playerExpectations">${escapeHtml(char.playerExpectations) || ''}</textarea>
+        <textarea class="form-control" name="playerExpectations">${window.modalUtils.escapeHtml(char.playerExpectations) || ''}</textarea>
       </div>
       <div class="mb-2">
         <label class="form-label">Class</label>
-        <input class="form-control" name="className" value="${escapeHtml(char.className) || ''}" />
+        <input class="form-control" name="className" value="${window.modalUtils.escapeHtml(char.className) || ''}" />
       </div>
       <div class="mb-2">
         <label class="form-label">Subclass</label>
-        <input class="form-control" name="subclass" value="${escapeHtml(char.subclass) || ''}" />
+        <input class="form-control" name="subclass" value="${window.modalUtils.escapeHtml(char.subclass) || ''}" />
       </div>
       <div class="mb-2">
         <label class="form-label">Level</label>
-        <input class="form-control" name="level" type="number" min="1" value="${escapeHtml(char.level) || ''}" />
+        <input class="form-control" name="level" type="number" min="1" value="${window.modalUtils.escapeHtml(char.level) || ''}" />
       </div>
       <div class="mb-2">
         <label class="form-label">Background</label>
-        <input class="form-control" name="background" value="${escapeHtml(char.background) || ''}" />
+        <input class="form-control" name="background" value="${window.modalUtils.escapeHtml(char.background) || ''}" />
       </div>
       <div class="mb-2">
         <label class="form-label">Species (Race)</label>
-        <input class="form-control" name="species" value="${escapeHtml(char.species) || ''}" />
+        <input class="form-control" name="species" value="${window.modalUtils.escapeHtml(char.species) || ''}" />
       </div>
       <div class="mb-2">
         <label class="form-label">Alignment</label>
-        <input class="form-control" name="alignment" value="${escapeHtml(char.alignment) || ''}" placeholder="e.g. LG, NG, N, CE" />
+        <input class="form-control" name="alignment" value="${window.modalUtils.escapeHtml(char.alignment) || ''}" placeholder="e.g. LG, NG, N, CE" />
       </div>
       <div class="mb-2">
         <label class="form-label">Goals and Ambitions</label>
-        <textarea class="form-control" name="goals">${escapeHtml(char.goals) || ''}</textarea>
+        <textarea class="form-control" name="goals">${window.modalUtils.escapeHtml(char.goals) || ''}</textarea>
       </div>
       <div class="mb-2">
         <label class="form-label">Quirks and Whims</label>
-        <textarea class="form-control" name="quirks">${escapeHtml(char.quirks) || ''}</textarea>
+        <textarea class="form-control" name="quirks">${window.modalUtils.escapeHtml(char.quirks) || ''}</textarea>
       </div>
       <div class="mb-2">
         <label class="form-label">Magic Items</label>
-        <textarea class="form-control" name="magicItems">${escapeHtml(char.magicItems) || ''}</textarea>
+        <textarea class="form-control" name="magicItems">${window.modalUtils.escapeHtml(char.magicItems) || ''}</textarea>
       </div>
       <div class="mb-2">
         <label class="form-label">Character Details</label>
-        <textarea class="form-control" name="details">${escapeHtml(char.details) || ''}</textarea>
+        <textarea class="form-control" name="details">${window.modalUtils.escapeHtml(char.details) || ''}</textarea>
       </div>
       <div class="mb-2">
         <label class="form-label">Family, Friends, and Foes</label>
-        <textarea class="form-control" name="family">${escapeHtml(char.family) || ''}</textarea>
+        <textarea class="form-control" name="family">${window.modalUtils.escapeHtml(char.family) || ''}</textarea>
       </div>
       <div class="mb-2">
         <label class="form-label">Adventure Ideas</label>
-        <textarea class="form-control" name="adventureIdeas">${escapeHtml(char.adventureIdeas) || ''}</textarea>
+        <textarea class="form-control" name="adventureIdeas">${window.modalUtils.escapeHtml(char.adventureIdeas) || ''}</textarea>
       </div>
     </form>`;
     let footer = `<button type="button" class="btn btn-secondary" id="cancelDMCharFormBtn">Cancel</button>
       <button type="button" class="btn btn-success" id="saveDMCharFormBtn">Save</button>`;
-    window.modalUtils.showModal(idx != null ? `Edit Character: ${escapeHtml(char.characterName)}` : 'Add Character', html, footer);
+    window.modalUtils.showModal(idx != null ? `Edit Character: ${window.modalUtils.escapeHtml(char.characterName)}` : 'Add Character', html, footer);
     document.getElementById('cancelDMCharFormBtn').onclick = () => {
       if (isEditFromView && idx != null) {
         window.dmCharacterTracker.renderDMCharacterEntryView(entries[idx], campaign, idx);
@@ -385,3 +379,4 @@ window.dmCharacterTracker = {
     };
   }
 };
+})();

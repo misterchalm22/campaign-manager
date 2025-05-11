@@ -1,11 +1,5 @@
+(function() {
 // Logic for Travel Planner tracker
-
-// Utility for escaping HTML (use window.modalUtils.escapeHtml if available)
-function escapeHtml(unsafe) {
-  if (window.modalUtils && window.modalUtils.escapeHtml) return window.modalUtils.escapeHtml(unsafe);
-  if (typeof unsafe !== 'string') return '';
-  return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-}
 
 window.travelPlanner = {
   getEntries: function(campaign) {
@@ -179,7 +173,7 @@ window.travelPlanner = {
       entries.forEach((journey, idx) => {
         html += `<div class="list-group-item">
           <div class="d-flex justify-content-between align-items-center">
-            <div><strong>${escapeHtml(journey.name) || '(No Name)'}</strong> <span class="text-muted small">${escapeHtml(journey.origin) || ''} → ${escapeHtml(journey.destination) || ''}</span></div>
+            <div><strong>${window.modalUtils.escapeHtml(journey.name) || '(No Name)'}</strong> <span class="text-muted small">${window.modalUtils.escapeHtml(journey.origin) || ''} → ${window.modalUtils.escapeHtml(journey.destination) || ''}</span></div>
             <div>
               <button class="btn btn-sm btn-info me-2" data-view="${idx}">View Details</button>
               <button class="btn btn-sm btn-danger" data-delete="${idx}">Delete</button>
@@ -207,24 +201,24 @@ window.travelPlanner = {
   },
   renderTravelPlannerEntryView: function(journey, campaign, idx) {
     let html = `<dl class="row">
-      <dt class="col-sm-4">Journey Name:</dt><dd class="col-sm-8">${escapeHtml(journey.name) || 'N/A'}</dd>
-      <dt class="col-sm-4">Origin:</dt><dd class="col-sm-8">${escapeHtml(journey.origin) || 'N/A'}</dd>
-      <dt class="col-sm-4">Destination:</dt><dd class="col-sm-8">${escapeHtml(journey.destination) || 'N/A'}</dd>
+      <dt class="col-sm-4">Journey Name:</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(journey.name) || 'N/A'}</dd>
+      <dt class="col-sm-4">Origin:</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(journey.origin) || 'N/A'}</dd>
+      <dt class="col-sm-4">Destination:</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(journey.destination) || 'N/A'}</dd>
       <dt class="col-sm-4">Stages:</dt><dd class="col-sm-8">`;
     if (journey.stages && journey.stages.length) {
       html += '<ol>' + journey.stages.map((stage, i) => `
         <li>
           <strong>Stage ${i+1}</strong><br/>
-          Start: ${escapeHtml(stage.start) || 'N/A'}<br/>
-          End: ${escapeHtml(stage.end) || 'N/A'}<br/>
-          Distance: ${escapeHtml(stage.distance) || 'N/A'}<br/>
-          Terrain: ${escapeHtml(stage.terrain) || 'N/A'}<br/>
-          Weather: ${escapeHtml(stage.weather) || 'N/A'}<br/>
-          Pace: ${escapeHtml(stage.pace) || 'N/A'}<br/>
-          Travel Time: ${escapeHtml(stage.travelTime) || ''} ${escapeHtml(stage.travelTimeUnit) || ''}<br/>
-          Narrative Notes: <pre>${escapeHtml(stage.narrative) || ''}</pre>
-          Challenges: <pre>${escapeHtml(stage.challenges) || ''}</pre>
-          Elapsed Time: ${escapeHtml(stage.elapsedTime) || 'N/A'}
+          Start: ${window.modalUtils.escapeHtml(stage.start) || 'N/A'}<br/>
+          End: ${window.modalUtils.escapeHtml(stage.end) || 'N/A'}<br/>
+          Distance: ${window.modalUtils.escapeHtml(stage.distance) || 'N/A'}<br/>
+          Terrain: ${window.modalUtils.escapeHtml(stage.terrain) || 'N/A'}<br/>
+          Weather: ${window.modalUtils.escapeHtml(stage.weather) || 'N/A'}<br/>
+          Pace: ${window.modalUtils.escapeHtml(stage.pace) || 'N/A'}<br/>
+          Travel Time: ${window.modalUtils.escapeHtml(stage.travelTime) || ''} ${window.modalUtils.escapeHtml(stage.travelTimeUnit) || ''}<br/>
+          Narrative Notes: <pre>${window.modalUtils.escapeHtml(stage.narrative) || ''}</pre>
+          Challenges: <pre>${window.modalUtils.escapeHtml(stage.challenges) || ''}</pre>
+          Elapsed Time: ${window.modalUtils.escapeHtml(stage.elapsedTime) || 'N/A'}
         </li>`).join('') + '</ol>';
     } else {
       html += 'N/A';
@@ -232,7 +226,7 @@ window.travelPlanner = {
     html += `</dd></dl>`;
     let footer = `<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
       <button type="button" class="btn btn-primary" id="editTravelFromViewBtn">Edit</button>`;
-    window.modalUtils.showModal(`View Journey: ${escapeHtml(journey.name)}`, html, footer);
+    window.modalUtils.showModal(`View Journey: ${window.modalUtils.escapeHtml(journey.name)}`, html, footer);
     document.getElementById('editTravelFromViewBtn').onclick = () => {
       window.travelPlanner.renderTravelPlannerFormModal(campaign, idx, true);
     };
@@ -245,15 +239,15 @@ window.travelPlanner = {
     let html = `<form id="travel-form-modal">
       <div class="mb-2">
         <label class="form-label">Journey Name</label>
-        <input class="form-control" name="name" value="${escapeHtml(journey.name) || ''}" required />
+        <input class="form-control" name="name" value="${window.modalUtils.escapeHtml(journey.name) || ''}" required />
       </div>
       <div class="mb-2">
         <label class="form-label">Origin</label>
-        <input class="form-control" name="origin" value="${escapeHtml(journey.origin) || ''}" />
+        <input class="form-control" name="origin" value="${window.modalUtils.escapeHtml(journey.origin) || ''}" />
       </div>
       <div class="mb-2">
         <label class="form-label">Destination</label>
-        <input class="form-control" name="destination" value="${escapeHtml(journey.destination) || ''}" />
+        <input class="form-control" name="destination" value="${window.modalUtils.escapeHtml(journey.destination) || ''}" />
       </div>
       <div class="mb-2">
         <label class="form-label">Stages</label>
@@ -263,7 +257,7 @@ window.travelPlanner = {
     </form>`;
     let footer = `<button type="button" class="btn btn-secondary" id="cancelTravelFormBtn">Cancel</button>
       <button type="button" class="btn btn-success" id="saveTravelFormBtn">Save</button>`;
-    window.modalUtils.showModal(idx != null ? `Edit Journey: ${escapeHtml(journey.name)}` : 'Add Journey', html, footer);
+    window.modalUtils.showModal(idx != null ? `Edit Journey: ${window.modalUtils.escapeHtml(journey.name)}` : 'Add Journey', html, footer);
     // Stages logic
     function renderStages() {
       const list = document.getElementById('stages-list-modal');
@@ -275,11 +269,11 @@ window.travelPlanner = {
             <strong>Stage ${i+1}</strong>
             <button type="button" class="btn btn-outline-danger btn-sm" data-remove-stage="${i}">Remove</button>
           </div>
-          <div class="mb-1"><label class="form-label">Start</label><input class="form-control" name="start" value="${escapeHtml(stage.start) || ''}" /></div>
-          <div class="mb-1"><label class="form-label">End</label><input class="form-control" name="end" value="${escapeHtml(stage.end) || ''}" /></div>
-          <div class="mb-1"><label class="form-label">Distance</label><input class="form-control" name="distance" value="${escapeHtml(stage.distance) || ''}" /></div>
-          <div class="mb-1"><label class="form-label">Terrain</label><input class="form-control" name="terrain" value="${escapeHtml(stage.terrain) || ''}" /></div>
-          <div class="mb-1"><label class="form-label">Weather</label><input class="form-control" name="weather" value="${escapeHtml(stage.weather) || ''}" /></div>
+          <div class="mb-1"><label class="form-label">Start</label><input class="form-control" name="start" value="${window.modalUtils.escapeHtml(stage.start) || ''}" /></div>
+          <div class="mb-1"><label class="form-label">End</label><input class="form-control" name="end" value="${window.modalUtils.escapeHtml(stage.end) || ''}" /></div>
+          <div class="mb-1"><label class="form-label">Distance</label><input class="form-control" name="distance" value="${window.modalUtils.escapeHtml(stage.distance) || ''}" /></div>
+          <div class="mb-1"><label class="form-label">Terrain</label><input class="form-control" name="terrain" value="${window.modalUtils.escapeHtml(stage.terrain) || ''}" /></div>
+          <div class="mb-1"><label class="form-label">Weather</label><input class="form-control" name="weather" value="${window.modalUtils.escapeHtml(stage.weather) || ''}" /></div>
           <div class="mb-1"><label class="form-label">Pace</label>
             <select class="form-select" name="pace">
               <option value="Fast"${stage.pace==="Fast"?" selected":""}>Fast</option>
@@ -287,15 +281,15 @@ window.travelPlanner = {
               <option value="Slow"${stage.pace==="Slow"?" selected":""}>Slow</option>
             </select>
           </div>
-          <div class="mb-1"><label class="form-label">Travel Time</label><input class="form-control" name="travelTime" value="${escapeHtml(stage.travelTime) || ''}" placeholder="e.g. 3" />
+          <div class="mb-1"><label class="form-label">Travel Time</label><input class="form-control" name="travelTime" value="${window.modalUtils.escapeHtml(stage.travelTime) || ''}" placeholder="e.g. 3" />
             <select class="form-select mt-1" name="travelTimeUnit">
               <option value="days"${stage.travelTimeUnit==="days"?" selected":""}>days</option>
               <option value="hrs"${stage.travelTimeUnit==="hrs"?" selected":""}>hrs</option>
             </select>
           </div>
-          <div class="mb-1"><label class="form-label">Narrative Notes</label><textarea class="form-control" name="narrative">${escapeHtml(stage.narrative) || ''}</textarea></div>
-          <div class="mb-1"><label class="form-label">Challenges</label><textarea class="form-control" name="challenges">${escapeHtml(stage.challenges) || ''}</textarea></div>
-          <div class="mb-1"><label class="form-label">Elapsed Time</label><input class="form-control" name="elapsedTime" value="${escapeHtml(stage.elapsedTime) || ''}" /></div>
+          <div class="mb-1"><label class="form-label">Narrative Notes</label><textarea class="form-control" name="narrative">${window.modalUtils.escapeHtml(stage.narrative) || ''}</textarea></div>
+          <div class="mb-1"><label class="form-label">Challenges</label><textarea class="form-control" name="challenges">${window.modalUtils.escapeHtml(stage.challenges) || ''}</textarea></div>
+          <div class="mb-1"><label class="form-label">Elapsed Time</label><input class="form-control" name="elapsedTime" value="${window.modalUtils.escapeHtml(stage.elapsedTime) || ''}" /></div>
         </div>`;
       });
       list.innerHTML = sHtml;
@@ -359,3 +353,4 @@ window.travelPlanner = {
     };
   }
 };
+})();

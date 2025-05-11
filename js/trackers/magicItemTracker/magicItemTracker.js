@@ -1,11 +1,5 @@
+(function() {
 // Magic Item Tracker
-
-// Utility for escaping HTML (use window.modalUtils.escapeHtml if available)
-function escapeHtml(unsafe) {
-  if (window.modalUtils && window.modalUtils.escapeHtml) return window.modalUtils.escapeHtml(unsafe);
-  if (typeof unsafe !== 'string') return '';
-  return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-}
 
 // Logic for Magic Item Tracker
 window.magicItemTracker = {
@@ -131,17 +125,17 @@ window.magicItemTracker = {
     </div>`;
     tracker.tiers.forEach((tier, tIdx) => {
       html += `<div class="card card-body mb-3">
-        <h4>${escapeHtml(tier.name)}</h4>`;
+        <h4>${window.modalUtils.escapeHtml(tier.name)}</h4>`;
       Object.keys(tier.rarities).forEach(rarity => {
         const items = tier.rarities[rarity] || [];
         html += `<div class="mb-2">
-          <strong>${escapeHtml(rarity)}</strong> <span class="text-muted small">(${items.length} item${items.length !== 1 ? 's' : ''})</span>
+          <strong>${window.modalUtils.escapeHtml(rarity)}</strong> <span class="text-muted small">(${items.length} item${items.length !== 1 ? 's' : ''})</span>
           <ul class="list-group">`;
         if (items.length === 0) {
           html += `<li class="list-group-item text-muted">No items</li>`;
         } else {
           items.forEach(item => {
-            html += `<li class="list-group-item">${escapeHtml(item)}</li>`;
+            html += `<li class="list-group-item">${window.modalUtils.escapeHtml(item)}</li>`;
           });
         }
         html += `</ul></div>`;
@@ -154,15 +148,15 @@ window.magicItemTracker = {
   renderMagicItemTrackerEntryView: function(tracker, campaign) {
     let html = '';
     tracker.tiers.forEach((tier, tIdx) => {
-      html += `<div class="mb-3"><h5>${escapeHtml(tier.name)}</h5>`;
+      html += `<div class="mb-3"><h5>${window.modalUtils.escapeHtml(tier.name)}</h5>`;
       Object.keys(tier.rarities).forEach(rarity => {
         const items = tier.rarities[rarity] || [];
-        html += `<div class="mb-2"><strong>${escapeHtml(rarity)}</strong><ul>`;
+        html += `<div class="mb-2"><strong>${window.modalUtils.escapeHtml(rarity)}</strong><ul>`;
         if (items.length === 0) {
           html += `<li class="text-muted">No items</li>`;
         } else {
           items.forEach(item => {
-            html += `<li>${escapeHtml(item)}</li>`;
+            html += `<li>${window.modalUtils.escapeHtml(item)}</li>`;
           });
         }
         html += `</ul></div>`;
@@ -182,10 +176,10 @@ window.magicItemTracker = {
       <h3>Edit Magic Item Tracker</h3>`;
     tracker.tiers.forEach((tier, tIdx) => {
       html += `<div class="mb-3 border p-2">
-        <h5>${escapeHtml(tier.name)}</h5>`;
+        <h5>${window.modalUtils.escapeHtml(tier.name)}</h5>`;
       Object.keys(tier.rarities).forEach(rarity => {
         html += `<div class="mb-2">
-          <label class="form-label"><strong>${escapeHtml(rarity)}</strong></label>
+          <label class="form-label"><strong>${window.modalUtils.escapeHtml(rarity)}</strong></label>
           <div id="tier${tIdx}-rarity-${rarity.replace(/\s/g, '')}-list-modal"></div>
           <button type="button" class="btn btn-sm btn-outline-primary mt-1" data-add="${tIdx}|${rarity}">Add Item</button>
         </div>`;
@@ -205,7 +199,7 @@ window.magicItemTracker = {
           let lHtml = '';
           tier.rarities[rarity].forEach((item, i) => {
             lHtml += `<div class="input-group mb-1">
-              <input class="form-control" value="${escapeHtml(item)}" data-item-input="${tIdx}|${rarity}|${i}" />
+              <input class="form-control" value="${window.modalUtils.escapeHtml(item)}" data-item-input="${tIdx}|${rarity}|${i}" />
               <button type="button" class="btn btn-outline-danger btn-sm" data-remove="${tIdx}|${rarity}|${i}">Remove</button>
             </div>`;
           });
@@ -255,3 +249,4 @@ window.magicItemTracker = {
     };
   }
 };
+})();
