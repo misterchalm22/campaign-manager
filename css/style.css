@@ -24,17 +24,120 @@ header {
 
 /* Modal read-only view styles */
 #genericModalBody dl.row dt {
-  font-weight: bold;
+  font-weight: bolder; /* Ensure it's very distinct */
+  margin-right: 0.5rem; /* Spacing from dd */
+  color: #333; /* Good contrast */
+}
+#genericModalBody dl.row dd {
+  line-height: 1.5; /* Improved readability */
+  margin-bottom: 1.25rem; /* Slightly larger bottom margin */
 }
 #genericModalBody dl.row dd pre {
   background-color: #f8f9fa;
-  padding: 0.5rem;
+  padding: 0.75rem; /* Slightly more padding */
   border-radius: 0.25rem;
   border: 1px solid #dee2e6;
   font-size: 0.9em;
   white-space: pre-wrap;
+  word-wrap: break-word; /* Ensure overflow prevention */
+}
+
+/* Styles for Form Elements within Modals */
+#genericModalBody form label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+#genericModalBody form input[type="text"],
+#genericModalBody form input[type="email"],
+#genericModalBody form input[type="password"],
+#genericModalBody form input[type="number"],
+#genericModalBody form textarea,
+#genericModalBody form select {
+  width: 100%;
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 0.25rem;
+  font-family: inherit; /* Ensure consistent font */
+  box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+
+#genericModalBody form textarea {
+  min-height: 80px; /* Provide a decent default size for textareas */
+  resize: vertical; /* Allow vertical resizing */
+}
+
+/* Ensure modal buttons have consistent styling if not covered by Bootstrap */
+#genericModalFooter button,
+#genericModalBody form button {
+  padding: 0.5rem 1rem;
+  margin-right: 0.5rem; /* Spacing between buttons */
+  border-radius: 0.25rem;
+  font-size: 0.95rem;
+}
+
+/* Specific button styling if needed, assuming Bootstrap classes handle most cases */
+#genericModalFooter button.btn-primary,
+#genericModalBody form button.btn-primary {
+  background-color: #007bff;
+  color: white;
+  border: 1px solid #007bff;
+}
+
+#genericModalFooter button.btn-secondary,
+#genericModalBody form button.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+  border: 1px solid #6c757d;
+}
+
+/* Styles for rendered Markdown content */
+.markdown-content {
+  background-color: #f8f9fa;
+  padding: 0.75rem; /* Match pre padding */
+  border-radius: 0.25rem;
+  border: 1px solid #dee2e6;
+  font-size: 0.9em;
+  line-height: 1.5; /* Improved readability */
+}
+
+.markdown-content p:last-child {
+  margin-bottom: 0;
+}
+
+.markdown-content pre {
+  background-color: #e9ecef; /* Slightly different for nested pre */
+  padding: 0.5rem;
+  border-radius: 0.2rem;
+  white-space: pre-wrap;
   word-wrap: break-word;
 }
-#genericModalBody dl.row dd {
+
+.markdown-content code {
+  font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.875em; /* Slightly smaller than surrounding text */
+  color: #d63384; /* Bootstrap's pink for code */
+  word-wrap: break-word;
+}
+
+.markdown-content blockquote {
+  font-style: italic;
+  color: #6c757d;
+  padding-left: 1rem;
+  border-left: 0.25rem solid #e9ecef;
+  margin-left: 0;
+}
+
+.markdown-content h1, .markdown-content h2, .markdown-content h3, .markdown-content h4, .markdown-content h5, .markdown-content h6 {
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+
+.markdown-content ul, .markdown-content ol {
+  padding-left: 2rem;
   margin-bottom: 1rem;
 }

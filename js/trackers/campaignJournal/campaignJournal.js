@@ -207,7 +207,21 @@ window.campaignJournal = {
     let footer = `<button type="button" class="btn btn-secondary" id="cancelJournalFormBtn">Cancel</button>
       <button type="button" class="btn btn-success" id="saveJournalFormBtn">Save</button>`;
     window.modalUtils.showModal(idx != null ? `Edit Session Log: Session ${window.modalUtils.escapeHtml(entry.sessionNumber)}` : 'Add Session Log', html, footer);
+
+    const form = document.getElementById('journal-form-modal');
+    const simpleMDEInstances = {
+      earlierEvents: new SimpleMDE({element: form.earlierEvents, spellChecker: false, status: false, toolbarTips: false}),
+      plannedSummary: new SimpleMDE({element: form.plannedSummary, spellChecker: false, status: false, toolbarTips: false}),
+      notes: new SimpleMDE({element: form.notes, spellChecker: false, status: false, toolbarTips: false})
+    };
+
     document.getElementById('cancelJournalFormBtn').onclick = () => {
+      // Clean up SimpleMDE instances
+      Object.values(simpleMDEInstances).forEach(sde => {
+        if (sde && sde.toTextArea) {
+          sde.toTextArea();
+        }
+      });
       if (isEditFromView && idx != null) {
         window.campaignJournal.renderCampaignJournalEntryView(entries[idx], campaign, idx);
       } else {
@@ -215,16 +229,22 @@ window.campaignJournal = {
       }
     };
     document.getElementById('saveJournalFormBtn').onclick = () => {
-      const form = document.getElementById('journal-form-modal');
+      // const form = document.getElementById('journal-form-modal'); // Already declared above
       const newEntry = {
         sessionNumber: form.sessionNumber.value.trim(),
         sessionDate: form.sessionDate.value.trim(),
         sessionTitle: form.sessionTitle.value.trim(),
-        earlierEvents: form.earlierEvents.value.trim(),
-        plannedSummary: form.plannedSummary.value.trim(),
-        notes: form.notes.value.trim()
+        earlierEvents: simpleMDEInstances.earlierEvents.value().trim(),
+        plannedSummary: simpleMDEInstances.plannedSummary.value().trim(),
+        notes: simpleMDEInstances.notes.value().trim()
       };
       if (!newEntry.sessionNumber) {
+        // Clean up SimpleMDE instances before showing alert and returning
+        Object.values(simpleMDEInstances).forEach(sde => {
+          if (sde && sde.toTextArea) {
+            sde.toTextArea();
+          }
+        });
         alert('Session Number is required.');
         return;
       }
@@ -234,6 +254,12 @@ window.campaignJournal = {
         entries.push(newEntry);
       }
       window.campaignJournal.saveEntries(campaign, entries);
+      // Clean up SimpleMDE instances before hiding modal
+      Object.values(simpleMDEInstances).forEach(sde => {
+        if (sde && sde.toTextArea) {
+          sde.toTextArea();
+        }
+      });
       window.modalUtils.hideModal();
       // Refresh list view
       const mainContent = document.getElementById('main-content');

@@ -223,7 +223,22 @@ window.npcTracker.renderNPCFormModal = function(campaign, idx, isEditFromView = 
   let footer = `<button type="button" class="btn btn-secondary" id="cancelNPCFormBtn">Cancel</button>
     <button type="button" class="btn btn-success" id="saveNPCFormBtn">Save</button>`;
   window.modalUtils.showModal(idx != null ? `Edit NPC: ${window.modalUtils.escapeHtml(npc.name)}` : 'Add NPC', html, footer);
+
+  const form = document.getElementById('npc-form-modal');
+  const simpleMDEInstances = {
+    alterations: new SimpleMDE({element: form.alterations, spellChecker: false, status: false, toolbarTips: false}),
+    personality: new SimpleMDE({element: form.personality, spellChecker: false, status: false, toolbarTips: false}),
+    appearance: new SimpleMDE({element: form.appearance, spellChecker: false, status: false, toolbarTips: false}),
+    secret: new SimpleMDE({element: form.secret, spellChecker: false, status: false, toolbarTips: false})
+  };
+
   document.getElementById('cancelNPCFormBtn').onclick = () => {
+    // Clean up SimpleMDE instances
+    Object.values(simpleMDEInstances).forEach(sde => {
+      if (sde && sde.toTextArea) {
+        sde.toTextArea();
+      }
+    });
     if (isEditFromView && idx != null) {
       window.npcTracker.renderNPCEntryView(entries[idx], campaign, idx);
     } else {
@@ -231,18 +246,24 @@ window.npcTracker.renderNPCFormModal = function(campaign, idx, isEditFromView = 
     }
   };
   document.getElementById('saveNPCFormBtn').onclick = () => {
-    const form = document.getElementById('npc-form-modal');
+    // const form = document.getElementById('npc-form-modal'); // Already declared above
     const newNPC = {
       name: form.name.value.trim(),
       statBlock: form.statBlock.value.trim(),
       mmPage: form.mmPage.value.trim(),
-      alterations: form.alterations.value.trim(),
+      alterations: simpleMDEInstances.alterations.value().trim(),
       alignment: form.alignment.value.trim(),
-      personality: form.personality.value.trim(),
-      appearance: form.appearance.value.trim(),
-      secret: form.secret.value.trim()
+      personality: simpleMDEInstances.personality.value().trim(),
+      appearance: simpleMDEInstances.appearance.value().trim(),
+      secret: simpleMDEInstances.secret.value().trim()
     };
     if (!newNPC.name) {
+      // Clean up SimpleMDE instances before showing alert and returning
+      Object.values(simpleMDEInstances).forEach(sde => {
+        if (sde && sde.toTextArea) {
+          sde.toTextArea();
+        }
+      });
       alert('NPC Name is required.');
       return;
     }
@@ -252,6 +273,12 @@ window.npcTracker.renderNPCFormModal = function(campaign, idx, isEditFromView = 
       entries.push(newNPC);
     }
     window.npcTracker.saveEntries(campaign, entries);
+    // Clean up SimpleMDE instances before hiding modal
+    Object.values(simpleMDEInstances).forEach(sde => {
+      if (sde && sde.toTextArea) {
+        sde.toTextArea();
+      }
+    });
     window.modalUtils.hideModal();
     // Refresh list view
     const mainContent = document.getElementById('main-content');
