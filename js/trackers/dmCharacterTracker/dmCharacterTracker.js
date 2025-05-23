@@ -8,375 +8,293 @@ window.dmCharacterTracker = {
   saveEntries: function(campaign, entries) {
     campaign.trackers = campaign.trackers || {};
     campaign.trackers.dmCharacters = entries;
-    window.dataManager.saveCampaignsToLocalStorage(allCampaigns);
+    window.dataManager.saveCampaignsToLocalStorage(allCampaigns); // Assuming 'allCampaigns' is globally available
   },
-  renderDMCharacterListView: function(container, campaign) {
+
+  // Main list view
+  renderDMCharacterTrackerListView: function(container, campaign) {
     const entries = this.getEntries(campaign);
     let html = `<div class="d-flex justify-content-between align-items-center mb-3">
       <h2>DM's Character Tracker</h2>
-      <button class="btn btn-primary" id="add-dmchar-btn">Add Character</button>
+      <button class="btn btn-primary" id="add-dm-character-btn">Add DM Character</button>
     </div>`;
     if (entries.length === 0) {
-      html += '<div class="alert alert-info">No DM characters yet.</div>';
+      html += '<div class="alert alert-info">No DM-controlled characters yet. Add one to get started!</div>';
     } else {
       html += '<div class="list-group mb-3">';
       entries.forEach((char, idx) => {
         html += `<div class="list-group-item">
           <div class="d-flex justify-content-between align-items-center">
-            <div><strong>${window.modalUtils.escapeHtml(char.characterName) || '(No Name)'}</strong> <span class="text-muted small">${window.modalUtils.escapeHtml(char.playerName) || ''}</span></div>
             <div>
-              <button class="btn btn-sm btn-info me-2" data-view="${idx}">View Details</button>
-              <button class="btn btn-sm btn-danger" data-delete="${idx}">Delete</button>
+              <strong>${window.modalUtils.escapeHtml(char.characterName) || '(Unnamed Character)'}</strong>
+              <span class="text-muted small ms-2">(${window.modalUtils.escapeHtml(char.playerName) || 'DM Controlled'})</span>
+            </div>
+            <div>
+              <button class="btn btn-sm btn-info me-2" data-view-idx="${idx}">View Details</button>
+              <button class="btn btn-sm btn-danger" data-delete-idx="${idx}">Delete</button>
             </div>
           </div>
-          <div class="small text-muted">Class: ${window.modalUtils.escapeHtml(char.className) || ''} Level: ${window.modalUtils.escapeHtml(char.level) || ''}</div>
+          <div class="small text-muted mt-1">
+            Class: ${window.modalUtils.escapeHtml(char.className) || 'N/A'} | 
+            Level: ${window.modalUtils.escapeHtml(char.level) || 'N/A'} | 
+            Species: ${window.modalUtils.escapeHtml(char.species) || 'N/A'}
+          </div>
         </div>`;
       });
       html += '</div>';
     }
     container.innerHTML = html;
-    document.getElementById('add-dmchar-btn').onclick = () => this.renderDMCharacterFormModal(campaign, null);
-    container.querySelectorAll('[data-view]').forEach(btn => {
-      btn.onclick = () => this.renderDMCharacterEntryView(entries[parseInt(btn.getAttribute('data-view'))], campaign, parseInt(btn.getAttribute('data-view')));
-    });
-    container.querySelectorAll('[data-delete]').forEach(btn => {
+
+    document.getElementById('add-dm-character-btn').onclick = () => {
+      this.renderDMCharacterFormModal(container, campaign, null, false);
+    };
+
+    container.querySelectorAll('[data-view-idx]').forEach(btn => {
       btn.onclick = () => {
-        if (confirm('Delete this character?')) {
-          entries.splice(parseInt(btn.getAttribute('data-delete')), 1);
-          this.saveEntries(campaign, entries);
-          this.renderDMCharacterListView(container, campaign);
+        const idx = parseInt(btn.getAttribute('data-view-idx'));
+        this.renderDMCharacterEntryView(container, campaign, idx);
+      };
+    });
+
+    container.querySelectorAll('[data-delete-idx]').forEach(btn => {
+      btn.onclick = () => {
+        const idx = parseInt(btn.getAttribute('data-delete-idx'));
+        const charToDelete = entries[idx]; // Get reference before modifying array
+        if (confirm(`Are you sure you want to delete the character: "${window.modalUtils.escapeHtml(charToDelete.characterName)}"?`)) {
+          let currentEntries = this.getEntries(campaign); // Re-fetch for safety
+          currentEntries.splice(idx, 1);
+          this.saveEntries(campaign, currentEntries);
+          this.renderDMCharacterTrackerListView(container, campaign); 
         }
       };
     });
   },
-  renderDMCharacterEntryView: function(char, campaign, idx) {
-    let html = `<dl class="row">
-      <dt class="col-sm-4">Character's Name:</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(char.characterName) || 'N/A'}</dd>
-      <dt class="col-sm-4">Player's Name:</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(char.playerName) || 'N/A'}</dd>
-      <dt class="col-sm-4">Player Motivation:</dt><dd class="col-sm-8">${(char.motivations && char.motivations.length) ? char.motivations.map(window.modalUtils.escapeHtml).join(', ') : 'N/A'}</dd>
-      <dt class="col-sm-4">Notes on Player Expectations:</dt><dd class="col-sm-8"><pre>${window.modalUtils.escapeHtml(char.playerExpectations) || 'N/A'}</pre></dd>
-      <dt class="col-sm-4">Class:</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(char.className) || 'N/A'}</dd>
-      <dt class="col-sm-4">Subclass:</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(char.subclass) || 'N/A'}</dd>
-      <dt class="col-sm-4">Level:</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(char.level) || 'N/A'}</dd>
-      <dt class="col-sm-4">Background:</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(char.background) || 'N/A'}</dd>
-      <dt class="col-sm-4">Species (Race):</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(char.species) || 'N/A'}</dd>
-      <dt class="col-sm-4">Alignment:</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(char.alignment) || 'N/A'}</dd>
-      <dt class="col-sm-4">Goals and Ambitions:</dt><dd class="col-sm-8"><pre>${window.modalUtils.escapeHtml(char.goals) || 'N/A'}</pre></dd>
-      <dt class="col-sm-4">Quirks and Whims:</dt><dd class="col-sm-8"><pre>${window.modalUtils.escapeHtml(char.quirks) || 'N/A'}</pre></dd>
-      <dt class="col-sm-4">Magic Items:</dt><dd class="col-sm-8"><pre>${window.modalUtils.escapeHtml(char.magicItems) || 'N/A'}</pre></dd>
-      <dt class="col-sm-4">Character Details:</dt><dd class="col-sm-8"><pre>${window.modalUtils.escapeHtml(char.details) || 'N/A'}</pre></dd>
-      <dt class="col-sm-4">Family, Friends, and Foes:</dt><dd class="col-sm-8"><pre>${window.modalUtils.escapeHtml(char.family) || 'N/A'}</pre></dd>
-      <dt class="col-sm-4">Adventure Ideas:</dt><dd class="col-sm-8"><pre>${window.modalUtils.escapeHtml(char.adventureIdeas) || 'N/A'}</pre></dd>
-    </dl>`;
-    let footer = `<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-      <button type="button" class="btn btn-primary" id="editDMCharFromViewBtn">Edit</button>`;
-    window.modalUtils.showModal(`View Character: ${window.modalUtils.escapeHtml(char.characterName)}`, html, footer);
-    document.getElementById('editDMCharFromViewBtn').onclick = () => {
-      window.dmCharacterTracker.renderDMCharacterFormModal(campaign, idx, true);
-    };
-  },
-  renderDMCharacterFormModal: function(campaign, idx, isEditFromView = false) {
+
+  // Read-only view for a single DM character (modal)
+  renderDMCharacterEntryView: function(listContainer, campaign, idx) {
     const entries = this.getEntries(campaign);
-    const motivations = [
+    const char = entries[idx];
+
+    if (!char) {
+      console.error("DM Character not found for view at index:", idx);
+      window.modalUtils.hideModal();
+      window.modalUtils.showModal("Error", "<p>Could not find the selected DM character.</p>", `<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>`);
+      this.renderDMCharacterTrackerListView(listContainer, campaign);
+      return;
+    }
+    
+    const motivationsHtml = (char.motivations && char.motivations.length) 
+        ? char.motivations.map(m => `<span class="badge bg-secondary me-1">${window.modalUtils.escapeHtml(m)}</span>`).join('') 
+        : 'N/A';
+
+    let contentHtml = `<dl class="row">
+      <dt class="col-sm-3">Character Name:</dt><dd class="col-sm-9">${window.modalUtils.escapeHtml(char.characterName) || 'N/A'}</dd>
+      <dt class="col-sm-3">Player Name:</dt><dd class="col-sm-9">${window.modalUtils.escapeHtml(char.playerName) || 'DM Controlled'}</dd>
+      <dt class="col-sm-3">Class:</dt><dd class="col-sm-9">${window.modalUtils.escapeHtml(char.className) || 'N/A'}</dd>
+      <dt class="col-sm-3">Subclass:</dt><dd class="col-sm-9">${window.modalUtils.escapeHtml(char.subclass) || 'N/A'}</dd>
+      <dt class="col-sm-3">Level:</dt><dd class="col-sm-9">${window.modalUtils.escapeHtml(char.level) || 'N/A'}</dd>
+      <dt class="col-sm-3">Species (Race):</dt><dd class="col-sm-9">${window.modalUtils.escapeHtml(char.species) || 'N/A'}</dd>
+      <dt class="col-sm-3">Background:</dt><dd class="col-sm-9">${window.modalUtils.escapeHtml(char.background) || 'N/A'}</dd>
+      <dt class="col-sm-3">Alignment:</dt><dd class="col-sm-9">${window.modalUtils.escapeHtml(char.alignment) || 'N/A'}</dd>
+      <dt class="col-sm-3">Motivations:</dt><dd class="col-sm-9">${motivationsHtml}</dd>
+      <dt class="col-sm-12 mt-2">Player Expectations:</dt><dd class="col-sm-12"><pre>${window.modalUtils.escapeHtml(char.playerExpectations) || 'N/A'}</pre></dd>
+      <dt class="col-sm-12 mt-2">Goals & Ambitions:</dt><dd class="col-sm-12"><pre>${window.modalUtils.escapeHtml(char.goals) || 'N/A'}</pre></dd>
+      <dt class="col-sm-12 mt-2">Quirks & Whims:</dt><dd class="col-sm-12"><pre>${window.modalUtils.escapeHtml(char.quirks) || 'N/A'}</pre></dd>
+      <dt class="col-sm-12 mt-2">Magic Items:</dt><dd class="col-sm-12"><pre>${window.modalUtils.escapeHtml(char.magicItems) || 'N/A'}</pre></dd>
+      <dt class="col-sm-12 mt-2">Character Details:</dt><dd class="col-sm-12"><pre>${window.modalUtils.escapeHtml(char.details) || 'N/A'}</pre></dd>
+      <dt class="col-sm-12 mt-2">Family, Friends & Foes:</dt><dd class="col-sm-12"><pre>${window.modalUtils.escapeHtml(char.family) || 'N/A'}</pre></dd>
+      <dt class="col-sm-12 mt-2">Adventure Ideas:</dt><dd class="col-sm-12"><pre>${window.modalUtils.escapeHtml(char.adventureIdeas) || 'N/A'}</pre></dd>
+    </dl>`;
+    
+    let footerHtml = `<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      <button type="button" class="btn btn-primary" id="editDMCharacterFromViewBtn">Edit</button>`;
+    
+    window.modalUtils.showModal(`View DM Character: ${window.modalUtils.escapeHtml(char.characterName)}`, contentHtml, footerHtml);
+    
+    const editButton = document.getElementById('editDMCharacterFromViewBtn');
+    if (editButton) {
+      editButton.onclick = () => {
+        this.renderDMCharacterFormModal(listContainer, campaign, idx, true);
+      };
+    }
+  },
+
+  // Form modal for adding/editing a DM character
+  renderDMCharacterFormModal: function(listContainer, campaign, idx, isEditFromView = false) {
+    const entries = this.getEntries(campaign);
+    const isEditMode = idx !== null && idx !== undefined;
+    let charToEdit;
+     const motivationsList = [
       'Acting', 'Exploring', 'Fighting', 'Instigating', 'Optimizing', 'Problem-Solving', 'Socializing', 'Storytelling'
     ];
-    const char = idx != null ? {...entries[idx]} : {
-      characterName: '',
-      playerName: '',
-      motivations: [],
-      playerExpectations: '',
-      className: '',
-      subclass: '',
-      level: '',
-      background: '',
-      species: '',
-      alignment: '',
-      goals: '',
-      quirks: '',
-      magicItems: '',
-      details: '',
-      family: '',
-      adventureIdeas: ''
-    };
-    let html = `<form id="dmchar-form-modal">
-      <div class="mb-2">
-        <label class="form-label">Character's Name</label>
-        <input class="form-control" name="characterName" value="${window.modalUtils.escapeHtml(char.characterName) || ''}" required />
+
+    if (isEditMode) {
+      if (idx < 0 || idx >= entries.length) {
+        console.error("DM Character index out of bounds for edit:", idx);
+        window.modalUtils.hideModal();
+        window.modalUtils.showModal("Error", "<p>Could not find DM character to edit.</p>", `<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>`);
+        this.renderDMCharacterTrackerListView(listContainer, campaign);
+        return;
+      }
+      charToEdit = {...entries[idx]}; // Create a copy to edit
+      if (!charToEdit.motivations) charToEdit.motivations = []; // Ensure motivations is an array
+    } else {
+      charToEdit = { characterName: '', playerName: '', motivations: [], playerExpectations: '', className: '', subclass: '', level: '1', background: '', species: '', alignment: '', goals: '', quirks: '', magicItems: '', details: '', family: '', adventureIdeas: '' };
+    }
+    
+    const modalTitle = isEditMode ? `Edit DM Character: ${window.modalUtils.escapeHtml(charToEdit.characterName)}` : 'Add New DM Character';
+
+    let motivationsCheckboxesHtml = motivationsList.map(m => `
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" name="motivations" value="${m}" id="motivation-${m}" ${charToEdit.motivations.includes(m) ? 'checked' : ''}>
+        <label class="form-check-label" for="motivation-${m}">${m}</label>
+      </div>`).join('');
+
+    let formHtml = `<form id="dm-character-form" novalidate>
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="dmc-characterName" class="form-label">Character's Name</label>
+          <input type="text" class="form-control" id="dmc-characterName" name="characterName" value="${window.modalUtils.escapeHtml(charToEdit.characterName)}" required />
+          <div class="invalid-feedback">Character Name is required.</div>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label for="dmc-playerName" class="form-label">Player's Name (or "DM")</label>
+          <input type="text" class="form-control" id="dmc-playerName" name="playerName" value="${window.modalUtils.escapeHtml(charToEdit.playerName)}" />
+        </div>
       </div>
-      <div class="mb-2">
-        <label class="form-label">Player's Name</label>
-        <input class="form-control" name="playerName" value="${window.modalUtils.escapeHtml(char.playerName) || ''}" />
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="dmc-className" class="form-label">Class</label>
+          <input type="text" class="form-control" id="dmc-className" name="className" value="${window.modalUtils.escapeHtml(charToEdit.className)}" />
+        </div>
+        <div class="col-md-3 mb-3">
+          <label for="dmc-subclass" class="form-label">Subclass</label>
+          <input type="text" class="form-control" id="dmc-subclass" name="subclass" value="${window.modalUtils.escapeHtml(charToEdit.subclass)}" />
+        </div>
+        <div class="col-md-3 mb-3">
+          <label for="dmc-level" class="form-label">Level</label>
+          <input type="number" class="form-control" id="dmc-level" name="level" value="${window.modalUtils.escapeHtml(charToEdit.level)}" min="1" />
+        </div>
       </div>
-      <div class="mb-2">
-        <label class="form-label">Player Motivation</label><br />
-        ${motivations.map(m => `<label class="form-check form-check-inline"><input class="form-check-input" type="checkbox" name="motivations" value="${m}"${char.motivations && char.motivations.includes(m) ? ' checked' : ''}> ${m}</label>`).join(' ')}
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="dmc-species" class="form-label">Species (Race)</label>
+          <input type="text" class="form-control" id="dmc-species" name="species" value="${window.modalUtils.escapeHtml(charToEdit.species)}" />
+        </div>
+        <div class="col-md-6 mb-3">
+          <label for="dmc-background" class="form-label">Background</label>
+          <input type="text" class="form-control" id="dmc-background" name="background" value="${window.modalUtils.escapeHtml(charToEdit.background)}" />
+        </div>
       </div>
-      <div class="mb-2">
-        <label class="form-label">Notes on Player Expectations</label>
-        <textarea class="form-control" name="playerExpectations">${window.modalUtils.escapeHtml(char.playerExpectations) || ''}</textarea>
+       <div class="mb-3">
+          <label for="dmc-alignment" class="form-label">Alignment</label>
+          <input type="text" class="form-control" id="dmc-alignment" name="alignment" value="${window.modalUtils.escapeHtml(charToEdit.alignment)}" placeholder="e.g. LG, N, CE" />
+        </div>
+      <div class="mb-3">
+        <label class="form-label">Player Motivation(s)</label>
+        <div>${motivationsCheckboxesHtml}</div>
       </div>
-      <div class="mb-2">
-        <label class="form-label">Class</label>
-        <input class="form-control" name="className" value="${window.modalUtils.escapeHtml(char.className) || ''}" />
+      <div class="mb-3">
+        <label for="dmc-playerExpectations" class="form-label">Player Expectations Notes</label>
+        <textarea class="form-control" id="dmc-playerExpectations" name="playerExpectations" rows="2">${window.modalUtils.escapeHtml(charToEdit.playerExpectations)}</textarea>
       </div>
-      <div class="mb-2">
-        <label class="form-label">Subclass</label>
-        <input class="form-control" name="subclass" value="${window.modalUtils.escapeHtml(char.subclass) || ''}" />
+      <div class="mb-3">
+        <label for="dmc-goals" class="form-label">Goals & Ambitions</label>
+        <textarea class="form-control" id="dmc-goals" name="goals" rows="3">${window.modalUtils.escapeHtml(charToEdit.goals)}</textarea>
       </div>
-      <div class="mb-2">
-        <label class="form-label">Level</label>
-        <input class="form-control" name="level" type="number" min="1" value="${window.modalUtils.escapeHtml(char.level) || ''}" />
+      <div class="mb-3">
+        <label for="dmc-quirks" class="form-label">Quirks & Whims</label>
+        <textarea class="form-control" id="dmc-quirks" name="quirks" rows="2">${window.modalUtils.escapeHtml(charToEdit.quirks)}</textarea>
       </div>
-      <div class="mb-2">
-        <label class="form-label">Background</label>
-        <input class="form-control" name="background" value="${window.modalUtils.escapeHtml(char.background) || ''}" />
+      <div class="mb-3">
+        <label for="dmc-magicItems" class="form-label">Magic Items</label>
+        <textarea class="form-control" id="dmc-magicItems" name="magicItems" rows="3">${window.modalUtils.escapeHtml(charToEdit.magicItems)}</textarea>
       </div>
-      <div class="mb-2">
-        <label class="form-label">Species (Race)</label>
-        <input class="form-control" name="species" value="${window.modalUtils.escapeHtml(char.species) || ''}" />
+      <div class="mb-3">
+        <label for="dmc-details" class="form-label">Character Details (Appearance, Backstory Snippets)</label>
+        <textarea class="form-control" id="dmc-details" name="details" rows="4">${window.modalUtils.escapeHtml(charToEdit.details)}</textarea>
       </div>
-      <div class="mb-2">
-        <label class="form-label">Alignment</label>
-        <input class="form-control" name="alignment" value="${window.modalUtils.escapeHtml(char.alignment) || ''}" placeholder="e.g. LG, NG, N, CE" />
+      <div class="mb-3">
+        <label for="dmc-family" class="form-label">Family, Friends & Foes</label>
+        <textarea class="form-control" id="dmc-family" name="family" rows="3">${window.modalUtils.escapeHtml(charToEdit.family)}</textarea>
       </div>
-      <div class="mb-2">
-        <label class="form-label">Goals and Ambitions</label>
-        <textarea class="form-control" name="goals">${window.modalUtils.escapeHtml(char.goals) || ''}</textarea>
-      </div>
-      <div class="mb-2">
-        <label class="form-label">Quirks and Whims</label>
-        <textarea class="form-control" name="quirks">${window.modalUtils.escapeHtml(char.quirks) || ''}</textarea>
-      </div>
-      <div class="mb-2">
-        <label class="form-label">Magic Items</label>
-        <textarea class="form-control" name="magicItems">${window.modalUtils.escapeHtml(char.magicItems) || ''}</textarea>
-      </div>
-      <div class="mb-2">
-        <label class="form-label">Character Details</label>
-        <textarea class="form-control" name="details">${window.modalUtils.escapeHtml(char.details) || ''}</textarea>
-      </div>
-      <div class="mb-2">
-        <label class="form-label">Family, Friends, and Foes</label>
-        <textarea class="form-control" name="family">${window.modalUtils.escapeHtml(char.family) || ''}</textarea>
-      </div>
-      <div class="mb-2">
-        <label class="form-label">Adventure Ideas</label>
-        <textarea class="form-control" name="adventureIdeas">${window.modalUtils.escapeHtml(char.adventureIdeas) || ''}</textarea>
+      <div class="mb-3">
+        <label for="dmc-adventureIdeas" class="form-label">Adventure Ideas / Plot Hooks</label>
+        <textarea class="form-control" id="dmc-adventureIdeas" name="adventureIdeas" rows="3">${window.modalUtils.escapeHtml(charToEdit.adventureIdeas)}</textarea>
       </div>
     </form>`;
-    let footer = `<button type="button" class="btn btn-secondary" id="cancelDMCharFormBtn">Cancel</button>
-      <button type="button" class="btn btn-success" id="saveDMCharFormBtn">Save</button>`;
-    window.modalUtils.showModal(idx != null ? `Edit Character: ${window.modalUtils.escapeHtml(char.characterName)}` : 'Add Character', html, footer);
-    document.getElementById('cancelDMCharFormBtn').onclick = () => {
-      if (isEditFromView && idx != null) {
-        window.dmCharacterTracker.renderDMCharacterEntryView(entries[idx], campaign, idx);
+    
+    let footerHtml = `<button type="button" class="btn btn-secondary" id="cancelDMCharacterFormBtn">Cancel</button>
+      <button type="button" class="btn btn-success" id="saveDMCharacterFormBtn">Save</button>`;
+      
+    window.modalUtils.showModal(modalTitle, formHtml, footerHtml);
+
+    const form = document.getElementById('dm-character-form');
+    const nameInput = form.querySelector('#dmc-characterName');
+
+    document.getElementById('saveDMCharacterFormBtn').onclick = () => {
+      const charName = nameInput.value.trim();
+      if (!charName) {
+        nameInput.classList.add('is-invalid');
+        form.classList.add('was-validated');
+        return;
+      }
+      nameInput.classList.remove('is-invalid');
+      form.classList.remove('was-validated');
+
+      const selectedMotivations = Array.from(form.querySelectorAll('input[name="motivations"]:checked')).map(cb => cb.value);
+
+      const updatedCharData = {
+        characterName: charName,
+        playerName: form.querySelector('#dmc-playerName').value.trim(),
+        className: form.querySelector('#dmc-className').value.trim(),
+        subclass: form.querySelector('#dmc-subclass').value.trim(),
+        level: form.querySelector('#dmc-level').value.trim(),
+        species: form.querySelector('#dmc-species').value.trim(),
+        background: form.querySelector('#dmc-background').value.trim(),
+        alignment: form.querySelector('#dmc-alignment').value.trim(),
+        motivations: selectedMotivations,
+        playerExpectations: form.querySelector('#dmc-playerExpectations').value.trim(),
+        goals: form.querySelector('#dmc-goals').value.trim(),
+        quirks: form.querySelector('#dmc-quirks').value.trim(),
+        magicItems: form.querySelector('#dmc-magicItems').value.trim(),
+        details: form.querySelector('#dmc-details').value.trim(),
+        family: form.querySelector('#dmc-family').value.trim(),
+        adventureIdeas: form.querySelector('#dmc-adventureIdeas').value.trim()
+      };
+
+      let currentEntries = this.getEntries(campaign);
+      if (isEditMode) {
+        currentEntries[idx] = updatedCharData;
+      } else {
+        currentEntries.push(updatedCharData);
+      }
+      this.saveEntries(campaign, currentEntries);
+      window.modalUtils.hideModal();
+      this.renderDMCharacterTrackerListView(listContainer, campaign); 
+    };
+
+    document.getElementById('cancelDMCharacterFormBtn').onclick = () => {
+      if (isEditFromView && isEditMode) {
+         const latestEntries = this.getEntries(campaign);
+         if (idx < latestEntries.length) { // Check if entry still exists
+            this.renderDMCharacterEntryView(listContainer, campaign, idx);
+         } else {
+            window.modalUtils.hideModal();
+            this.renderDMCharacterTrackerListView(listContainer, campaign);
+         }
       } else {
         window.modalUtils.hideModal();
       }
     };
-    document.getElementById('saveDMCharFormBtn').onclick = () => {
-      const form = document.getElementById('dmchar-form-modal');
-      const newChar = {
-        characterName: form.characterName.value.trim(),
-        playerName: form.playerName.value.trim(),
-        motivations: Array.from(form.querySelectorAll('input[name="motivations"]:checked')).map(cb => cb.value),
-        playerExpectations: form.playerExpectations.value.trim(),
-        className: form.className.value.trim(),
-        subclass: form.subclass.value.trim(),
-        level: form.level.value.trim(),
-        background: form.background.value.trim(),
-        species: form.species.value.trim(),
-        alignment: form.alignment.value.trim(),
-        goals: form.goals.value.trim(),
-        quirks: form.quirks.value.trim(),
-        magicItems: form.magicItems.value.trim(),
-        details: form.details.value.trim(),
-        family: form.family.value.trim(),
-        adventureIdeas: form.adventureIdeas.value.trim()
-      };
-      if (!newChar.characterName) {
-        alert('Character Name is required.');
-        return;
-      }
-      if (idx != null) {
-        entries[idx] = newChar;
-      } else {
-        entries.push(newChar);
-      }
-      window.dmCharacterTracker.saveEntries(campaign, entries);
-      window.modalUtils.hideModal();
-      // Refresh list view
-      const mainContent = document.getElementById('main-content');
-      if (mainContent) {
-        window.dmCharacterTracker.renderDMCharacterListView(mainContent, campaign);
-      }
-    };
-  },
-  renderDMCharacterList: function(container, campaign) {
-    const entries = this.getEntries(campaign);
-    let html = `<div class="d-flex justify-content-between align-items-center mb-3">
-      <h2>DM's Character Tracker</h2>
-      <button class="btn btn-primary" id="add-dmchar-btn">Add Character</button>
-    </div>`;
-    if (entries.length === 0) {
-      html += '<div class="alert alert-info">No DM characters yet.</div>';
-    } else {
-      html += '<div class="list-group mb-3">';
-      entries.forEach((char, idx) => {
-        html += `<div class="list-group-item">
-          <div class="d-flex justify-content-between align-items-center">
-            <div><strong>${char.characterName || '(No Name)'}</strong> <span class="text-muted small">${char.playerName || ''}</span></div>
-            <div>
-              <button class="btn btn-sm btn-secondary me-2" data-edit="${idx}">Edit</button>
-              <button class="btn btn-sm btn-danger" data-delete="${idx}">Delete</button>
-            </div>
-          </div>
-          <div class="small text-muted">Class: ${char.className || ''} Level: ${char.level || ''}</div>
-        </div>`;
-      });
-      html += '</div>';
-    }
-    container.innerHTML = html + `<div id="dmchar-form-area"></div>`;
-    document.getElementById('add-dmchar-btn').onclick = () => this.renderDMCharacterForm(container, campaign);
-    container.querySelectorAll('[data-edit]').forEach(btn => {
-      btn.onclick = () => this.renderDMCharacterForm(container, campaign, parseInt(btn.getAttribute('data-edit')));
-    });
-    container.querySelectorAll('[data-delete]').forEach(btn => {
-      btn.onclick = () => {
-        if (confirm('Delete this character?')) {
-          entries.splice(parseInt(btn.getAttribute('data-delete')), 1);
-          this.saveEntries(campaign, entries);
-          this.renderDMCharacterList(container, campaign);
-        }
-      };
-    });
-  },
-  renderDMCharacterForm: function(container, campaign, idx) {
-    const entries = this.getEntries(campaign);
-    const motivations = [
-      'Acting', 'Exploring', 'Fighting', 'Instigating', 'Optimizing', 'Problem-Solving', 'Socializing', 'Storytelling'
-    ];
-    const char = idx != null ? {...entries[idx]} : {
-      characterName: '',
-      playerName: '',
-      motivations: [],
-      playerExpectations: '',
-      className: '',
-      subclass: '',
-      level: '',
-      background: '',
-      species: '',
-      alignment: '',
-      goals: '',
-      quirks: '',
-      magicItems: '',
-      details: '',
-      family: '',
-      adventureIdeas: ''
-    };
-    let html = `<form class="card card-body mb-3" id="dmchar-form">
-      <div class="mb-2">
-        <label class="form-label">Character's Name</label>
-        <input class="form-control" name="characterName" value="${char.characterName || ''}" required />
-      </div>
-      <div class="mb-2">
-        <label class="form-label">Player's Name</label>
-        <input class="form-control" name="playerName" value="${char.playerName || ''}" />
-      </div>
-      <div class="mb-2">
-        <label class="form-label">Player Motivation</label><br />
-        ${motivations.map(m => `<label class="form-check form-check-inline"><input class="form-check-input" type="checkbox" name="motivations" value="${m}"${char.motivations && char.motivations.includes(m) ? ' checked' : ''}> ${m}</label>`).join(' ')}
-      </div>
-      <div class="mb-2">
-        <label class="form-label">Notes on Player Expectations</label>
-        <textarea class="form-control" name="playerExpectations">${char.playerExpectations || ''}</textarea>
-      </div>
-      <div class="mb-2">
-        <label class="form-label">Class</label>
-        <input class="form-control" name="className" value="${char.className || ''}" />
-      </div>
-      <div class="mb-2">
-        <label class="form-label">Subclass</label>
-        <input class="form-control" name="subclass" value="${char.subclass || ''}" />
-      </div>
-      <div class="mb-2">
-        <label class="form-label">Level</label>
-        <input class="form-control" name="level" type="number" min="1" value="${char.level || ''}" />
-      </div>
-      <div class="mb-2">
-        <label class="form-label">Background</label>
-        <input class="form-control" name="background" value="${char.background || ''}" />
-      </div>
-      <div class="mb-2">
-        <label class="form-label">Species (Race)</label>
-        <input class="form-control" name="species" value="${char.species || ''}" />
-      </div>
-      <div class="mb-2">
-        <label class="form-label">Alignment</label>
-        <input class="form-control" name="alignment" value="${char.alignment || ''}" placeholder="e.g. LG, NG, N, CE" />
-      </div>
-      <div class="mb-2">
-        <label class="form-label">Goals and Ambitions</label>
-        <textarea class="form-control" name="goals">${char.goals || ''}</textarea>
-      </div>
-      <div class="mb-2">
-        <label class="form-label">Quirks and Whims</label>
-        <textarea class="form-control" name="quirks">${char.quirks || ''}</textarea>
-      </div>
-      <div class="mb-2">
-        <label class="form-label">Magic Items</label>
-        <textarea class="form-control" name="magicItems">${char.magicItems || ''}</textarea>
-      </div>
-      <div class="mb-2">
-        <label class="form-label">Character Details</label>
-        <textarea class="form-control" name="details">${char.details || ''}</textarea>
-      </div>
-      <div class="mb-2">
-        <label class="form-label">Family, Friends, and Foes</label>
-        <textarea class="form-control" name="family">${char.family || ''}</textarea>
-      </div>
-      <div class="mb-2">
-        <label class="form-label">Adventure Ideas</label>
-        <textarea class="form-control" name="adventureIdeas">${char.adventureIdeas || ''}</textarea>
-      </div>
-      <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-success">Save</button>
-        <button type="button" class="btn btn-secondary" id="cancel-dmchar-btn">Cancel</button>
-      </div>
-    </form>`;
-    document.getElementById('dmchar-form-area').innerHTML = html;
-    document.getElementById('cancel-dmchar-btn').onclick = () => {
-      this.renderDMCharacterList(container, campaign);
-    };
-    document.getElementById('dmchar-form').onsubmit = (e) => {
-      e.preventDefault();
-      const form = e.target;
-      const newChar = {
-        characterName: form.characterName.value,
-        playerName: form.playerName.value,
-        motivations: Array.from(form.querySelectorAll('input[name="motivations"]:checked')).map(cb => cb.value),
-        playerExpectations: form.playerExpectations.value,
-        className: form.className.value,
-        subclass: form.subclass.value,
-        level: form.level.value,
-        background: form.background.value,
-        species: form.species.value,
-        alignment: form.alignment.value,
-        goals: form.goals.value,
-        quirks: form.quirks.value,
-        magicItems: form.magicItems.value,
-        details: form.details.value,
-        family: form.family.value,
-        adventureIdeas: form.adventureIdeas.value
-      };
-      if (idx != null) {
-        entries[idx] = newChar;
-      } else {
-        entries.push(newChar);
-      }
-      this.saveEntries(campaign, entries);
-      this.renderDMCharacterList(container, campaign);
-    };
   }
 };
+
+// Register with main UI rendering system
+window.ui = window.ui || {};
+window.ui.renderTrackerViews = window.ui.renderTrackerViews || {};
+window.ui.renderTrackerViews["DM's Character Tracker"] = function(container, campaign) {
+  window.dmCharacterTracker.renderDMCharacterTrackerListView(container, campaign);
+};
+
 })();

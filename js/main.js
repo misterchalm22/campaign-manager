@@ -47,6 +47,13 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize app
   window.dataManager = window.dataManager || {};
   window.ui = window.ui || {};
+
+  // Initialize modal system
+  if (window.modalUtils) {
+    window.modalUtils.initModal(); // Bootstrap should be loaded by now
+  } else {
+    console.warn('modalUtils not ready for initModal in main.js');
+  }
   
   // Load campaigns and render UI
   allCampaigns = window.dataManager.loadCampaignsFromLocalStorage();

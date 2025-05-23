@@ -1,9 +1,6 @@
 (function() {
 // Bastion Tracker Module
 
-// Logic for Bastion Tracker
-// Placeholder for tracker-specific functions
-
 window.bastionTracker = {
   getEntries: function(campaign) {
     return (campaign.trackers && campaign.trackers.bastions) || [];
@@ -11,315 +8,287 @@ window.bastionTracker = {
   saveEntries: function(campaign, entries) {
     campaign.trackers = campaign.trackers || {};
     campaign.trackers.bastions = entries;
-    window.dataManager.saveCampaignsToLocalStorage(allCampaigns);
+    window.dataManager.saveCampaignsToLocalStorage(allCampaigns); // Assuming 'allCampaigns' is globally available
   },
-  renderBastionList: function(container, campaign) {
+
+  renderBastionTrackerListView: function(container, campaign) {
     const entries = this.getEntries(campaign);
     let html = `<div class="d-flex justify-content-between align-items-center mb-3">
       <h2>Bastion Tracker</h2>
-      <button class="btn btn-primary" id="add-bastion-btn">Add Bastion</button>
+      <button class="btn btn-primary" id="add-bastion-entry-btn">Add Bastion</button>
     </div>`;
     if (entries.length === 0) {
-      html += '<div class="alert alert-info">No bastions yet.</div>';
+      html += '<div class="alert alert-info">No bastions recorded yet. Add one to get started!</div>';
     } else {
       html += '<div class="list-group mb-3">';
       entries.forEach((bastion, idx) => {
         html += `<div class="list-group-item">
           <div class="d-flex justify-content-between align-items-center">
-            <div><strong>${bastion.bastionName || '(No Name)'} </strong> <span class="text-muted small">(${bastion.characterName || ''})</span></div>
             <div>
-              <button class="btn btn-sm btn-secondary me-2" data-edit="${idx}">Edit</button>
-              <button class="btn btn-sm btn-danger" data-delete="${idx}">Delete</button>
+              <strong>${window.modalUtils.escapeHtml(bastion.bastionName) || '(Unnamed Bastion)'}</strong>
+              <span class="text-muted small ms-2">(${window.modalUtils.escapeHtml(bastion.characterName) || 'N/A'})</span>
+            </div>
+            <div>
+              <button class="btn btn-sm btn-info me-2" data-view-idx="${idx}">View Details</button>
+              <button class="btn btn-sm btn-danger" data-delete-idx="${idx}">Delete</button>
             </div>
           </div>
-          <div class="small text-muted">Level: ${bastion.level || ''}</div>
-        </div>`;
-      });
-      html += '</div>';
-    }
-    container.innerHTML = html + `<div id="bastion-form-area"></div>`;
-    document.getElementById('add-bastion-btn').onclick = () => this.renderBastionForm(container, campaign);
-    container.querySelectorAll('[data-edit]').forEach(btn => {
-      btn.onclick = () => this.renderBastionForm(container, campaign, parseInt(btn.getAttribute('data-edit')));
-    });
-    container.querySelectorAll('[data-delete]').forEach(btn => {
-      btn.onclick = () => {
-        if (confirm('Delete this bastion?')) {
-          entries.splice(parseInt(btn.getAttribute('data-delete')), 1);
-          this.saveEntries(campaign, entries);
-          this.renderBastionList(container, campaign);
-        }
-      };
-    });
-  },
-  renderBastionForm: function(container, campaign, idx) {
-    const entries = this.getEntries(campaign);
-    const bastion = idx != null ? {...entries[idx], facilities: [...(entries[idx].facilities||[])]} : {
-      bastionName: '', characterName: '', level: '', facilities: [], basicFacilities: '', defenders: ''
-    };
-    let html = `<form class="card card-body mb-3" id="bastion-form">
-      <div class="mb-2">
-        <label class="form-label">Bastion's Name</label>
-        <input class="form-control" name="bastionName" value="${bastion.bastionName || ''}" required />
-      </div>
-      <div class="mb-2">
-        <label class="form-label">Character's Name</label>
-        <input class="form-control" name="characterName" value="${bastion.characterName || ''}" required />
-      </div>
-      <div class="mb-2">
-        <label class="form-label">Level</label>
-        <input class="form-control" name="level" type="number" min="1" value="${bastion.level || ''}" />
-      </div>
-      <div class="mb-2">
-        <label class="form-label">Special Facilities</label>
-        <div id="facilities-list"></div>
-        <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="add-facility-btn">Add Facility</button>
-      </div>
-      <div class="mb-2">
-        <label class="form-label">Basic Facilities</label>
-        <textarea class="form-control" name="basicFacilities">${bastion.basicFacilities || ''}</textarea>
-      </div>
-      <div class="mb-2">
-        <label class="form-label">Bastion Defenders</label>
-        <textarea class="form-control" name="defenders">${bastion.defenders || ''}</textarea>
-      </div>
-      <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-success">Save</button>
-        <button type="button" class="btn btn-secondary" id="cancel-bastion-btn">Cancel</button>
-      </div>
-    </form>`;
-    document.getElementById('bastion-form-area').innerHTML = html;
-    // Render facilities
-    function renderFacilities() {
-      const list = document.getElementById('facilities-list');
-      if (!bastion.facilities) bastion.facilities = [];
-      let fHtml = '';
-      bastion.facilities.forEach((fac, i) => {
-        fHtml += `<div class="card card-body mb-2">
-          <div class="d-flex justify-content-between align-items-center mb-1">
-            <strong>Facility ${i+1}</strong>
-            <button type="button" class="btn btn-outline-danger btn-sm" data-remove-facility="${i}">Remove</button>
-          </div>
-          <div class="mb-1"><label class="form-label">Facility Name/Type</label><input class="form-control" name="facilityName" value="${fac.facilityName || ''}" /></div>
-          <div class="mb-1"><label class="form-label">Space</label><input class="form-control" name="space" value="${fac.space || ''}" /></div>
-          <div class="mb-1"><label class="form-label">Order</label><input class="form-control" name="order" value="${fac.order || ''}" /></div>
-          <div class="mb-1"><label class="form-label">Hirelings</label><textarea class="form-control" name="hirelings">${fac.hirelings || ''}</textarea></div>
-          <div class="mb-1"><label class="form-label">Notes</label><textarea class="form-control" name="notes">${fac.notes || ''}</textarea></div>
-        </div>`;
-      });
-      list.innerHTML = fHtml;
-      list.querySelectorAll('[data-remove-facility]').forEach(btn => {
-        btn.onclick = () => {
-          bastion.facilities.splice(parseInt(btn.getAttribute('data-remove-facility')), 1);
-          renderFacilities();
-        };
-      });
-      // Update facility values
-      list.querySelectorAll('.card').forEach((card, i) => {
-        card.querySelector('input[name="facilityName"]').oninput = e => { bastion.facilities[i].facilityName = e.target.value; };
-        card.querySelector('input[name="space"]').oninput = e => { bastion.facilities[i].space = e.target.value; };
-        card.querySelector('input[name="order"]').oninput = e => { bastion.facilities[i].order = e.target.value; };
-        card.querySelector('textarea[name="hirelings"]').oninput = e => { bastion.facilities[i].hirelings = e.target.value; };
-        card.querySelector('textarea[name="notes"]').oninput = e => { bastion.facilities[i].notes = e.target.value; };
-      });
-    }
-    renderFacilities();
-    document.getElementById('add-facility-btn').onclick = () => {
-      bastion.facilities.push({ facilityName: '', space: '', order: '', hirelings: '', notes: '' });
-      renderFacilities();
-    };
-    document.getElementById('cancel-bastion-btn').onclick = () => {
-      this.renderBastionList(container, campaign);
-    };
-    document.getElementById('bastion-form').onsubmit = (e) => {
-      e.preventDefault();
-      const form = e.target;
-      const newBastion = {
-        bastionName: form.bastionName.value,
-        characterName: form.characterName.value,
-        level: form.level.value,
-        facilities: bastion.facilities,
-        basicFacilities: form.basicFacilities.value,
-        defenders: form.defenders.value
-      };
-      if (idx != null) {
-        entries[idx] = newBastion;
-      } else {
-        entries.push(newBastion);
-      }
-      this.saveEntries(campaign, entries);
-      this.renderBastionList(container, campaign);
-    };
-  },
-  renderBastionListView: function(container, campaign) {
-    const entries = this.getEntries(campaign);
-    let html = `<div class="d-flex justify-content-between align-items-center mb-3">
-      <h2>Bastion Tracker</h2>
-      <button class="btn btn-primary" id="add-bastion-btn">Add Bastion</button>
-    </div>`;
-    if (entries.length === 0) {
-      html += '<div class="alert alert-info">No bastions yet.</div>';
-    } else {
-      html += '<div class="list-group mb-3">';
-      entries.forEach((bastion, idx) => {
-        html += `<div class="list-group-item">
-          <div class="d-flex justify-content-between align-items-center">
-            <div><strong>${window.modalUtils.escapeHtml(bastion.bastionName) || '(No Name)'} </strong> <span class="text-muted small">(${window.modalUtils.escapeHtml(bastion.characterName) || ''})</span></div>
-            <div>
-              <button class="btn btn-sm btn-info me-2" data-view="${idx}">View Details</button>
-              <button class="btn btn-sm btn-danger" data-delete="${idx}">Delete</button>
-            </div>
-          </div>
-          <div class="small text-muted">Level: ${window.modalUtils.escapeHtml(bastion.level) || ''}</div>
+          <div class="small text-muted mt-1">Level: ${window.modalUtils.escapeHtml(bastion.level) || 'N/A'} | Facilities: ${bastion.facilities ? bastion.facilities.length : 0} special</div>
         </div>`;
       });
       html += '</div>';
     }
     container.innerHTML = html;
-    document.getElementById('add-bastion-btn').onclick = () => this.renderBastionFormModal(campaign, null);
-    container.querySelectorAll('[data-view]').forEach(btn => {
-      btn.onclick = () => this.renderBastionEntryView(entries[parseInt(btn.getAttribute('data-view'))], campaign, parseInt(btn.getAttribute('data-view')));
-    });
-    container.querySelectorAll('[data-delete]').forEach(btn => {
+
+    document.getElementById('add-bastion-entry-btn').onclick = () => {
+      this.renderBastionFormModal(container, campaign, null, false);
+    };
+
+    container.querySelectorAll('[data-view-idx]').forEach(btn => {
       btn.onclick = () => {
-        if (confirm('Delete this bastion?')) {
-          entries.splice(parseInt(btn.getAttribute('data-delete')), 1);
-          this.saveEntries(campaign, entries);
-          this.renderBastionListView(container, campaign);
+        const idx = parseInt(btn.getAttribute('data-view-idx'));
+        this.renderBastionEntryView(container, campaign, idx);
+      };
+    });
+
+    container.querySelectorAll('[data-delete-idx]').forEach(btn => {
+      btn.onclick = () => {
+        const idx = parseInt(btn.getAttribute('data-delete-idx'));
+        const bastionToDelete = entries[idx];
+        if (confirm(`Are you sure you want to delete the bastion: "${window.modalUtils.escapeHtml(bastionToDelete.bastionName)}"?`)) {
+          let currentEntries = this.getEntries(campaign);
+          currentEntries.splice(idx, 1);
+          this.saveEntries(campaign, currentEntries);
+          this.renderBastionTrackerListView(container, campaign); 
         }
       };
     });
   },
-  renderBastionEntryView: function(bastion, campaign, idx) {
-    let html = `<dl class="row">
-      <dt class="col-sm-4">Bastion's Name:</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(bastion.bastionName) || 'N/A'}</dd>
-      <dt class="col-sm-4">Character's Name:</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(bastion.characterName) || 'N/A'}</dd>
-      <dt class="col-sm-4">Level:</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(bastion.level) || 'N/A'}</dd>
-      <dt class="col-sm-4">Special Facilities:</dt><dd class="col-sm-8">`;
-    if (bastion.facilities && bastion.facilities.length) {
-      html += '<ul>' + bastion.facilities.map((fac, i) => `<li><strong>${window.modalUtils.escapeHtml(fac.facilityName) || 'Facility ' + (i+1)}</strong><br/>Space: ${window.modalUtils.escapeHtml(fac.space) || 'N/A'}<br/>Order: ${window.modalUtils.escapeHtml(fac.order) || 'N/A'}<br/>Hirelings: <pre>${window.modalUtils.escapeHtml(fac.hirelings) || 'N/A'}</pre>Notes: <pre>${window.modalUtils.escapeHtml(fac.notes) || 'N/A'}</pre></li>`).join('') + '</ul>';
-    } else {
-      html += 'N/A';
-    }
-    html += `</dd>
-      <dt class="col-sm-4">Basic Facilities:</dt><dd class="col-sm-8"><pre>${window.modalUtils.escapeHtml(bastion.basicFacilities) || 'N/A'}</pre></dd>
-      <dt class="col-sm-4">Bastion Defenders:</dt><dd class="col-sm-8"><pre>${window.modalUtils.escapeHtml(bastion.defenders) || 'N/A'}</pre></dd>
-    </dl>`;
-    let footer = `<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-      <button type="button" class="btn btn-primary" id="editBastionFromViewBtn">Edit</button>`;
-    window.modalUtils.showModal(`View Bastion: ${window.modalUtils.escapeHtml(bastion.bastionName)}`, html, footer);
-    document.getElementById('editBastionFromViewBtn').onclick = () => {
-      window.bastionTracker.renderBastionFormModal(campaign, idx, true);
-    };
-  },
-  renderBastionFormModal: function(campaign, idx, isEditFromView = false) {
+
+  renderBastionEntryView: function(listContainer, campaign, idx) {
     const entries = this.getEntries(campaign);
-    const bastion = idx != null ? {...entries[idx], facilities: [...(entries[idx].facilities||[])]} : {
-      bastionName: '', characterName: '', level: '', facilities: [], basicFacilities: '', defenders: ''
-    };
-    let html = `<form id="bastion-form-modal">
-      <div class="mb-2">
-        <label class="form-label">Bastion's Name</label>
-        <input class="form-control" name="bastionName" value="${window.modalUtils.escapeHtml(bastion.bastionName) || ''}" required />
-      </div>
-      <div class="mb-2">
-        <label class="form-label">Character's Name</label>
-        <input class="form-control" name="characterName" value="${window.modalUtils.escapeHtml(bastion.characterName) || ''}" required />
-      </div>
-      <div class="mb-2">
-        <label class="form-label">Level</label>
-        <input class="form-control" name="level" type="number" min="1" value="${window.modalUtils.escapeHtml(bastion.level) || ''}" />
-      </div>
-      <div class="mb-2">
-        <label class="form-label">Special Facilities</label>
-        <div id="facilities-list-modal"></div>
-        <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="add-facility-btn-modal">Add Facility</button>
-      </div>
-      <div class="mb-2">
-        <label class="form-label">Basic Facilities</label>
-        <textarea class="form-control" name="basicFacilities">${window.modalUtils.escapeHtml(bastion.basicFacilities) || ''}</textarea>
-      </div>
-      <div class="mb-2">
-        <label class="form-label">Bastion Defenders</label>
-        <textarea class="form-control" name="defenders">${window.modalUtils.escapeHtml(bastion.defenders) || ''}</textarea>
-      </div>
-    </form>`;
-    let footer = `<button type="button" class="btn btn-secondary" id="cancelBastionFormBtn">Cancel</button>
-      <button type="button" class="btn btn-success" id="saveBastionFormBtn">Save</button>`;
-    window.modalUtils.showModal(idx != null ? `Edit Bastion: ${window.modalUtils.escapeHtml(bastion.bastionName)}` : 'Add Bastion', html, footer);
-    // Facilities logic
-    function renderFacilities() {
-      const list = document.getElementById('facilities-list-modal');
-      if (!bastion.facilities) bastion.facilities = [];
-      let fHtml = '';
-      bastion.facilities.forEach((fac, i) => {
-        fHtml += `<div class="card card-body mb-2">
-          <div class="d-flex justify-content-between align-items-center mb-1">
-            <strong>Facility ${i+1}</strong>
-            <button type="button" class="btn btn-outline-danger btn-sm" data-remove-facility="${i}">Remove</button>
-          </div>
-          <div class="mb-1"><label class="form-label">Facility Name/Type</label><input class="form-control" name="facilityName" value="${window.modalUtils.escapeHtml(fac.facilityName) || ''}" /></div>
-          <div class="mb-1"><label class="form-label">Space</label><input class="form-control" name="space" value="${window.modalUtils.escapeHtml(fac.space) || ''}" /></div>
-          <div class="mb-1"><label class="form-label">Order</label><input class="form-control" name="order" value="${window.modalUtils.escapeHtml(fac.order) || ''}" /></div>
-          <div class="mb-1"><label class="form-label">Hirelings</label><textarea class="form-control" name="hirelings">${window.modalUtils.escapeHtml(fac.hirelings) || ''}</textarea></div>
-          <div class="mb-1"><label class="form-label">Notes</label><textarea class="form-control" name="notes">${window.modalUtils.escapeHtml(fac.notes) || ''}</textarea></div>
-        </div>`;
-      });
-      list.innerHTML = fHtml;
-      list.querySelectorAll('[data-remove-facility]').forEach(btn => {
-        btn.onclick = () => {
-          bastion.facilities.splice(parseInt(btn.getAttribute('data-remove-facility')), 1);
-          renderFacilities();
-        };
-      });
-      // Update facility values
-      list.querySelectorAll('.card').forEach((card, i) => {
-        card.querySelector('input[name="facilityName"]').oninput = e => { bastion.facilities[i].facilityName = e.target.value; };
-        card.querySelector('input[name="space"]').oninput = e => { bastion.facilities[i].space = e.target.value; };
-        card.querySelector('input[name="order"]').oninput = e => { bastion.facilities[i].order = e.target.value; };
-        card.querySelector('textarea[name="hirelings"]').oninput = e => { bastion.facilities[i].hirelings = e.target.value; };
-        card.querySelector('textarea[name="notes"]').oninput = e => { bastion.facilities[i].notes = e.target.value; };
-      });
+    const bastion = entries[idx];
+
+    if (!bastion) {
+      console.error("Bastion not found for view at index:", idx);
+      window.modalUtils.hideModal();
+      window.modalUtils.showModal("Error", "<p>Could not find the selected bastion.</p>", `<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>`);
+      this.renderBastionTrackerListView(listContainer, campaign);
+      return;
     }
-    renderFacilities();
-    document.getElementById('add-facility-btn-modal').onclick = () => {
-      bastion.facilities.push({ facilityName: '', space: '', order: '', hirelings: '', notes: '' });
-      renderFacilities();
+
+    let facilitiesHtml = '<p>No special facilities defined.</p>';
+    if (bastion.facilities && bastion.facilities.length > 0) {
+      facilitiesHtml = '<ul class="list-group mt-2">';
+      bastion.facilities.forEach(fac => {
+        facilitiesHtml += `
+          <li class="list-group-item">
+            <h6 class="mb-1">${window.modalUtils.escapeHtml(fac.facilityName) || 'Unnamed Facility'}</h6>
+            <small>Space: ${window.modalUtils.escapeHtml(fac.space) || 'N/A'} | Order: ${window.modalUtils.escapeHtml(fac.order) || 'N/A'}</small>
+            <p class="mb-1 mt-1"><strong>Hirelings:</strong> <pre class="mb-0 small">${window.modalUtils.escapeHtml(fac.hirelings) || 'N/A'}</pre></p>
+            <p class="mb-0"><strong>Notes:</strong> <pre class="mb-0 small">${window.modalUtils.escapeHtml(fac.notes) || 'N/A'}</pre></p>
+          </li>`;
+      });
+      facilitiesHtml += '</ul>';
+    }
+
+    let contentHtml = `<dl class="row">
+      <dt class="col-sm-3">Bastion Name:</dt><dd class="col-sm-9">${window.modalUtils.escapeHtml(bastion.bastionName) || 'N/A'}</dd>
+      <dt class="col-sm-3">Character:</dt><dd class="col-sm-9">${window.modalUtils.escapeHtml(bastion.characterName) || 'N/A'}</dd>
+      <dt class="col-sm-3">Level:</dt><dd class="col-sm-9">${window.modalUtils.escapeHtml(bastion.level) || 'N/A'}</dd>
+      <dt class="col-sm-12 mt-2">Basic Facilities:</dt><dd class="col-sm-12"><pre>${window.modalUtils.escapeHtml(bastion.basicFacilities) || 'N/A'}</pre></dd>
+      <dt class="col-sm-12 mt-2">Defenders:</dt><dd class="col-sm-12"><pre>${window.modalUtils.escapeHtml(bastion.defenders) || 'N/A'}</pre></dd>
+      <dt class="col-sm-12 mt-2">Special Facilities:</dt><dd class="col-sm-12">${facilitiesHtml}</dd>
+    </dl>`;
+    
+    let footerHtml = `<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      <button type="button" class="btn btn-primary" id="editBastionFromViewBtn">Edit</button>`;
+    
+    window.modalUtils.showModal(`View Bastion: ${window.modalUtils.escapeHtml(bastion.bastionName)}`, contentHtml, footerHtml, 'modal-lg');
+    
+    const editButton = document.getElementById('editBastionFromViewBtn');
+    if (editButton) {
+      editButton.onclick = () => {
+        this.renderBastionFormModal(listContainer, campaign, idx, true);
+      };
+    }
+  },
+
+  renderBastionFormModal: function(listContainer, campaign, idx, isEditFromView = false) {
+    const entries = this.getEntries(campaign);
+    const isEditMode = idx !== null && idx !== undefined;
+    let bastionToEdit;
+
+    if (isEditMode) {
+      if (idx < 0 || idx >= entries.length) {
+        console.error("Bastion index out of bounds for edit:", idx);
+        window.modalUtils.hideModal();
+        window.modalUtils.showModal("Error", "<p>Could not find bastion to edit.</p>", `<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>`);
+        this.renderBastionTrackerListView(listContainer, campaign);
+        return;
+      }
+      bastionToEdit = JSON.parse(JSON.stringify(entries[idx])); // Deep copy for editing
+      if (!bastionToEdit.facilities) bastionToEdit.facilities = [];
+    } else {
+      bastionToEdit = { bastionName: '', characterName: '', level: '1', facilities: [], basicFacilities: '', defenders: '' };
+    }
+    
+    const modalTitle = isEditMode ? `Edit Bastion: ${window.modalUtils.escapeHtml(bastionToEdit.bastionName)}` : 'Add New Bastion';
+
+    const renderFacilitySubForm = (facility, facilityIndex) => `
+      <div class="card mb-2 facility-entry" data-facility-index="${facilityIndex}">
+        <div class="card-body">
+          <h6 class="card-title">Special Facility ${facilityIndex + 1}</h6>
+          <div class="row">
+            <div class="col-md-6 mb-2">
+              <label class="form-label">Name/Type</label>
+              <input type="text" class="form-control facility-name" value="${window.modalUtils.escapeHtml(facility.facilityName || '')}">
+            </div>
+            <div class="col-md-3 mb-2">
+              <label class="form-label">Space</label>
+              <input type="text" class="form-control facility-space" value="${window.modalUtils.escapeHtml(facility.space || '')}" placeholder="e.g., 1">
+            </div>
+            <div class="col-md-3 mb-2">
+              <label class="form-label">Order Built</label>
+              <input type="number" class="form-control facility-order" value="${window.modalUtils.escapeHtml(facility.order || '')}" min="0">
+            </div>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Hirelings</label>
+            <textarea class="form-control facility-hirelings" rows="2">${window.modalUtils.escapeHtml(facility.hirelings || '')}</textarea>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Notes</label>
+            <textarea class="form-control facility-notes" rows="2">${window.modalUtils.escapeHtml(facility.notes || '')}</textarea>
+          </div>
+          <button type="button" class="btn btn-sm btn-outline-danger remove-facility-btn mt-1">Remove Facility</button>
+        </div>
+      </div>`;
+
+    let facilitiesFormHtml = '<div id="facilities-form-area">';
+    bastionToEdit.facilities.forEach((facility, facilityIndex) => {
+      facilitiesFormHtml += renderFacilitySubForm(facility, facilityIndex);
+    });
+    facilitiesFormHtml += '</div>';
+
+    let formHtml = `<form id="bastion-entry-form" novalidate>
+      <div class="row">
+        <div class="col-md-8 mb-3">
+          <label for="bastion-name" class="form-label">Bastion's Name</label>
+          <input type="text" class="form-control" id="bastion-name" name="bastionName" value="${window.modalUtils.escapeHtml(bastionToEdit.bastionName)}" required />
+          <div class="invalid-feedback">Bastion Name is required.</div>
+        </div>
+        <div class="col-md-4 mb-3">
+          <label for="bastion-level" class="form-label">Level</label>
+          <input type="number" class="form-control" id="bastion-level" name="level" value="${window.modalUtils.escapeHtml(bastionToEdit.level)}" min="1" />
+        </div>
+      </div>
+      <div class="mb-3">
+        <label for="bastion-characterName" class="form-label">Character's Name (Owner)</label>
+        <input type="text" class="form-control" id="bastion-characterName" name="characterName" value="${window.modalUtils.escapeHtml(bastionToEdit.characterName)}" />
+      </div>
+      <div class="mb-3">
+        <label for="bastion-basicFacilities" class="form-label">Basic Facilities (e.g., Walls, Gate)</label>
+        <textarea class="form-control" id="bastion-basicFacilities" name="basicFacilities" rows="3">${window.modalUtils.escapeHtml(bastionToEdit.basicFacilities)}</textarea>
+      </div>
+      <div class="mb-3">
+        <label for="bastion-defenders" class="form-label">Bastion Defenders (e.g., Guards, Traps)</label>
+        <textarea class="form-control" id="bastion-defenders" name="defenders" rows="3">${window.modalUtils.escapeHtml(bastionToEdit.defenders)}</textarea>
+      </div>
+      <hr>
+      <h5>Special Facilities</h5>
+      ${facilitiesFormHtml}
+      <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="add-facility-to-form-btn">Add Special Facility</button>
+    </form>`;
+    
+    let footerHtml = `<button type="button" class="btn btn-secondary" id="cancelBastionFormBtn">Cancel</button>
+      <button type="button" class="btn btn-success" id="saveBastionFormBtn">Save</button>`;
+      
+    window.modalUtils.showModal(modalTitle, formHtml, footerHtml, 'modal-lg');
+
+    const form = document.getElementById('bastion-entry-form');
+    const nameInput = form.querySelector('#bastion-name');
+    const facilitiesArea = document.getElementById('facilities-form-area');
+
+    const updateFacilityEventListeners = () => {
+      facilitiesArea.querySelectorAll('.remove-facility-btn').forEach(btn => {
+        const newBtn = btn.cloneNode(true); // Avoid duplicate listeners
+        btn.parentNode.replaceChild(newBtn, btn);
+        newBtn.onclick = (e) => e.target.closest('.facility-entry').remove();
+      });
     };
+    
+    document.getElementById('add-facility-to-form-btn').onclick = () => {
+      const newFacilityIndex = facilitiesArea.children.length;
+      const newFacilityHtml = renderFacilitySubForm({ facilityName: '', space: '', order: '', hirelings: '', notes: '' }, newFacilityIndex);
+      facilitiesArea.insertAdjacentHTML('beforeend', newFacilityHtml);
+      updateFacilityEventListeners();
+    };
+    
+    updateFacilityEventListeners(); // Initial setup
+
+    document.getElementById('saveBastionFormBtn').onclick = () => {
+      const bastionName = nameInput.value.trim();
+      if (!bastionName) {
+        nameInput.classList.add('is-invalid');
+        form.classList.add('was-validated');
+        return;
+      }
+      nameInput.classList.remove('is-invalid');
+      form.classList.remove('was-validated');
+
+      const collectedFacilities = [];
+      facilitiesArea.querySelectorAll('.facility-entry').forEach(el => {
+        collectedFacilities.push({
+          facilityName: el.querySelector('.facility-name').value.trim(),
+          space: el.querySelector('.facility-space').value.trim(),
+          order: el.querySelector('.facility-order').value.trim(),
+          hirelings: el.querySelector('.facility-hirelings').value.trim(),
+          notes: el.querySelector('.facility-notes').value.trim()
+        });
+      });
+
+      const updatedBastionData = {
+        bastionName: bastionName,
+        characterName: form.querySelector('#bastion-characterName').value.trim(),
+        level: form.querySelector('#bastion-level').value.trim(),
+        basicFacilities: form.querySelector('#bastion-basicFacilities').value.trim(),
+        defenders: form.querySelector('#bastion-defenders').value.trim(),
+        facilities: collectedFacilities
+      };
+
+      let currentEntries = this.getEntries(campaign);
+      if (isEditMode) {
+        currentEntries[idx] = updatedBastionData;
+      } else {
+        currentEntries.push(updatedBastionData);
+      }
+      this.saveEntries(campaign, currentEntries);
+      window.modalUtils.hideModal();
+      this.renderBastionTrackerListView(listContainer, campaign); 
+    };
+
     document.getElementById('cancelBastionFormBtn').onclick = () => {
-      if (isEditFromView && idx != null) {
-        window.bastionTracker.renderBastionEntryView(entries[idx], campaign, idx);
+      if (isEditFromView && isEditMode) {
+         const latestEntries = this.getEntries(campaign);
+         if (idx < latestEntries.length) {
+            this.renderBastionEntryView(listContainer, campaign, idx);
+         } else {
+            window.modalUtils.hideModal();
+            this.renderBastionTrackerListView(listContainer, campaign);
+         }
       } else {
         window.modalUtils.hideModal();
       }
     };
-    document.getElementById('saveBastionFormBtn').onclick = () => {
-      const form = document.getElementById('bastion-form-modal');
-      const newBastion = {
-        bastionName: form.bastionName.value.trim(),
-        characterName: form.characterName.value.trim(),
-        level: form.level.value.trim(),
-        facilities: bastion.facilities,
-        basicFacilities: form.basicFacilities.value.trim(),
-        defenders: form.defenders.value.trim()
-      };
-      if (!newBastion.bastionName) {
-        alert('Bastion Name is required.');
-        return;
-      }
-      if (idx != null) {
-        entries[idx] = newBastion;
-      } else {
-        entries.push(newBastion);
-      }
-      window.bastionTracker.saveEntries(campaign, entries);
-      window.modalUtils.hideModal();
-      // Refresh list view
-      const mainContent = document.getElementById('main-content');
-      if (mainContent) {
-        window.bastionTracker.renderBastionListView(mainContent, campaign);
-      }
-    };
   }
-} // <-- Add this closing brace to end the object
+}; // Fixed: Added closing brace for window.bastionTracker object
+
+// Register with main UI rendering system
+window.ui = window.ui || {};
+window.ui.renderTrackerViews = window.ui.renderTrackerViews || {};
+window.ui.renderTrackerViews['Bastion Tracker'] = function(container, campaign) {
+  window.bastionTracker.renderBastionTrackerListView(container, campaign);
+};
+
 })();

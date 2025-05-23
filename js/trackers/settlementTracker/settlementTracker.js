@@ -9,272 +9,233 @@ window.settlementTracker = {
   saveEntries: function(campaign, entries) {
     campaign.trackers = campaign.trackers || {};
     campaign.trackers.settlements = entries;
-    window.dataManager.saveCampaignsToLocalStorage(allCampaigns);
+    window.dataManager.saveCampaignsToLocalStorage(allCampaigns); // Assuming 'allCampaigns' is globally available
   },
-  renderSettlementList: function(container, campaign) {
+
+  renderSettlementTrackerListView: function(container, campaign) {
     const entries = this.getEntries(campaign);
     let html = `<div class="d-flex justify-content-between align-items-center mb-3">
       <h2>Settlement Tracker</h2>
       <button class="btn btn-primary" id="add-settlement-btn">Add Settlement</button>
     </div>`;
     if (entries.length === 0) {
-      html += '<div class="alert alert-info">No settlements yet.</div>';
+      html += '<div class="alert alert-info">No settlements yet. Add one to get started!</div>';
     } else {
       html += '<div class="list-group mb-3">';
       entries.forEach((settlement, idx) => {
         html += `<div class="list-group-item">
           <div class="d-flex justify-content-between align-items-center">
-            <div><strong>${settlement.name || '(No Name)'}</strong> <span class="text-muted small">${settlement.size || ''}</span></div>
             <div>
-              <button class="btn btn-sm btn-secondary me-2" data-edit="${idx}">Edit</button>
-              <button class="btn btn-sm btn-danger" data-delete="${idx}">Delete</button>
+              <strong>${window.modalUtils.escapeHtml(settlement.name) || '(Unnamed Settlement)'}</strong>
+              <span class="text-muted small ms-2">(${window.modalUtils.escapeHtml(settlement.size) || 'N/A'})</span>
             </div>
-          </div>
-          <div class="small text-muted">Leader: ${settlement.localLeader || ''}</div>
-        </div>`;
-      });
-      html += '</div>';
-    }
-    container.innerHTML = html + `<div id="settlement-form-area"></div>`;
-    document.getElementById('add-settlement-btn').onclick = () => this.renderSettlementForm(container, campaign);
-    container.querySelectorAll('[data-edit]').forEach(btn => {
-      btn.onclick = () => this.renderSettlementForm(container, campaign, parseInt(btn.getAttribute('data-edit')));
-    });
-    container.querySelectorAll('[data-delete]').forEach(btn => {
-      btn.onclick = () => {
-        if (confirm('Delete this settlement?')) {
-          entries.splice(parseInt(btn.getAttribute('data-delete')), 1);
-          this.saveEntries(campaign, entries);
-          this.renderSettlementList(container, campaign);
-        }
-      };
-    });
-  },
-  renderSettlementForm: function(container, campaign, idx) {
-    const entries = this.getEntries(campaign);
-    const settlement = idx != null ? {...entries[idx]} : {
-      name: '', size: '', trait: '', fame: '', calamity: '', localLeader: '', people: '', places: '', gpValue: ''
-    };
-    let html = `<form class="card card-body mb-3" id="settlement-form">
-      <div class="mb-2">
-        <label class="form-label">Settlement Name</label>
-        <input class="form-control" name="name" value="${settlement.name || ''}" required />
-      </div>
-      <div class="mb-2">
-        <label class="form-label">Size</label>
-        <select class="form-select" name="size" required>
-          <option value="">Select size</option>
-          <option value="Village (Pop up to 500)"${settlement.size==="Village (Pop up to 500)"?" selected":""}>Village (Pop up to 500)</option>
-          <option value="Town (Pop. 501-5,000)"${settlement.size==="Town (Pop. 501-5,000)"?" selected":""}>Town (Pop. 501-5,000)</option>
-          <option value="City (Pop. 5,001+)"${settlement.size==="City (Pop. 5,001+)"?" selected":""}>City (Pop. 5,001+)</option>
-        </select>
-      </div>
-      <div class="mb-2">
-        <label class="form-label">Defining Trait</label>
-        <textarea class="form-control" name="trait">${settlement.trait || ''}</textarea>
-      </div>
-      <div class="mb-2">
-        <label class="form-label">Claim to Fame</label>
-        <textarea class="form-control" name="fame">${settlement.fame || ''}</textarea>
-      </div>
-      <div class="mb-2">
-        <label class="form-label">Current Calamity</label>
-        <textarea class="form-control" name="calamity">${settlement.calamity || ''}</textarea>
-      </div>
-      <div class="mb-2">
-        <label class="form-label">Local Leader</label>
-        <input class="form-control" name="localLeader" value="${settlement.localLeader || ''}" />
-      </div>
-      <div class="mb-2">
-        <label class="form-label">Noteworthy People</label>
-        <textarea class="form-control" name="people">${settlement.people || ''}</textarea>
-      </div>
-      <div class="mb-2">
-        <label class="form-label">Noteworthy Places</label>
-        <textarea class="form-control" name="places">${settlement.places || ''}</textarea>
-      </div>
-      <div class="mb-2">
-        <label class="form-label">GP Value of Most Expensive Item for Sale</label>
-        <input class="form-control" name="gpValue" value="${settlement.gpValue || ''}" type="number" min="0" />
-      </div>
-      <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-success">Save</button>
-        <button type="button" class="btn btn-secondary" id="cancel-settlement-btn">Cancel</button>
-      </div>
-    </form>`;
-    document.getElementById('settlement-form-area').innerHTML = html;
-    document.getElementById('cancel-settlement-btn').onclick = () => {
-      this.renderSettlementList(container, campaign);
-    };
-    document.getElementById('settlement-form').onsubmit = (e) => {
-      e.preventDefault();
-      const form = e.target;
-      const newSettlement = {
-        name: form.name.value,
-        size: form.size.value,
-        trait: form.trait.value,
-        fame: form.fame.value,
-        calamity: form.calamity.value,
-        localLeader: form.localLeader.value,
-        people: form.people.value,
-        places: form.places.value,
-        gpValue: form.gpValue.value
-      };
-      if (idx != null) {
-        entries[idx] = newSettlement;
-      } else {
-        entries.push(newSettlement);
-      }
-      this.saveEntries(campaign, entries);
-      this.renderSettlementList(container, campaign);
-    };
-  },
-  renderSettlementListView: function(container, campaign) {
-    const entries = this.getEntries(campaign);
-    let html = `<div class="d-flex justify-content-between align-items-center mb-3">
-      <h2>Settlement Tracker</h2>
-      <button class="btn btn-primary" id="add-settlement-btn">Add Settlement</button>
-    </div>`;
-    if (entries.length === 0) {
-      html += '<div class="alert alert-info">No settlements yet.</div>';
-    } else {
-      html += '<div class="list-group mb-3">';
-      entries.forEach((settlement, idx) => {
-        html += `<div class="list-group-item">
-          <div class="d-flex justify-content-between align-items-center">
-            <div><strong>${window.modalUtils.escapeHtml(settlement.name) || '(No Name)'}</strong> <span class="text-muted small">${window.modalUtils.escapeHtml(settlement.size) || ''}</span></div>
             <div>
               <button class="btn btn-sm btn-info me-2" data-view="${idx}">View Details</button>
               <button class="btn btn-sm btn-danger" data-delete="${idx}">Delete</button>
             </div>
           </div>
-          <div class="small text-muted">Leader: ${window.modalUtils.escapeHtml(settlement.localLeader) || ''}</div>
+          <div class="small text-muted mt-1">Leader: ${window.modalUtils.escapeHtml(settlement.localLeader) || 'N/A'}</div>
+          <div class="small text-muted mt-1">Trait: ${window.modalUtils.escapeHtml(settlement.trait ? settlement.trait.substring(0,100) + (settlement.trait.length > 100 ? '...' : '') : 'N/A')}</div>
         </div>`;
       });
       html += '</div>';
     }
-    container.innerHTML = html;
-    document.getElementById('add-settlement-btn').onclick = () => this.renderSettlementFormModal(campaign, null);
+    container.innerHTML = html; // This is the listContainer
+
+    document.getElementById('add-settlement-btn').onclick = () => {
+      this.renderSettlementFormModal(container, campaign, null, false);
+    };
+
     container.querySelectorAll('[data-view]').forEach(btn => {
-      btn.onclick = () => this.renderSettlementEntryView(entries[parseInt(btn.getAttribute('data-view'))], campaign, parseInt(btn.getAttribute('data-view')));
+      btn.onclick = () => {
+        const idx = parseInt(btn.getAttribute('data-view'));
+        this.renderSettlementEntryView(container, campaign, idx);
+      };
     });
+
     container.querySelectorAll('[data-delete]').forEach(btn => {
       btn.onclick = () => {
-        if (confirm('Delete this settlement?')) {
-          entries.splice(parseInt(btn.getAttribute('data-delete')), 1);
-          this.saveEntries(campaign, entries);
-          this.renderSettlementListView(container, campaign);
+        const idx = parseInt(btn.getAttribute('data-delete'));
+        const settlementToDelete = entries[idx];
+        if (confirm(`Are you sure you want to delete the settlement: "${window.modalUtils.escapeHtml(settlementToDelete.name)}"?`)) {
+          let currentEntries = this.getEntries(campaign);
+          currentEntries.splice(idx, 1);
+          this.saveEntries(campaign, currentEntries);
+          this.renderSettlementTrackerListView(container, campaign); 
         }
       };
     });
   },
-  renderSettlementEntryView: function(settlement, campaign, idx) {
-    let html = `<dl class="row">
-      <dt class="col-sm-4">Settlement Name:</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(settlement.name) || 'N/A'}</dd>
+
+  renderSettlementEntryView: function(listContainer, campaign, idx) {
+    const entries = this.getEntries(campaign);
+    const settlement = entries[idx];
+
+    if (!settlement) {
+      console.error("Settlement not found for view at index:", idx);
+      window.modalUtils.hideModal();
+      window.modalUtils.showModal("Error", "<p>Could not find the selected settlement.</p>", `<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>`);
+      this.renderSettlementTrackerListView(listContainer, campaign);
+      return;
+    }
+
+    let contentHtml = `<dl class="row">
+      <dt class="col-sm-4">Name:</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(settlement.name) || 'N/A'}</dd>
       <dt class="col-sm-4">Size:</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(settlement.size) || 'N/A'}</dd>
+      <dt class="col-sm-4">Local Leader:</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(settlement.localLeader) || 'N/A'}</dd>
+      <dt class="col-sm-4">GP Value of Item for Sale:</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(settlement.gpValue) || 'N/A'}</dd>
       <dt class="col-sm-4">Defining Trait:</dt><dd class="col-sm-8"><pre>${window.modalUtils.escapeHtml(settlement.trait) || 'N/A'}</pre></dd>
       <dt class="col-sm-4">Claim to Fame:</dt><dd class="col-sm-8"><pre>${window.modalUtils.escapeHtml(settlement.fame) || 'N/A'}</pre></dd>
       <dt class="col-sm-4">Current Calamity:</dt><dd class="col-sm-8"><pre>${window.modalUtils.escapeHtml(settlement.calamity) || 'N/A'}</pre></dd>
-      <dt class="col-sm-4">Local Leader:</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(settlement.localLeader) || 'N/A'}</dd>
       <dt class="col-sm-4">Noteworthy People:</dt><dd class="col-sm-8"><pre>${window.modalUtils.escapeHtml(settlement.people) || 'N/A'}</pre></dd>
       <dt class="col-sm-4">Noteworthy Places:</dt><dd class="col-sm-8"><pre>${window.modalUtils.escapeHtml(settlement.places) || 'N/A'}</pre></dd>
-      <dt class="col-sm-4">GP Value of Most Expensive Item:</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(settlement.gpValue) || 'N/A'}</dd>
     </dl>`;
-    let footer = `<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+    
+    let footerHtml = `<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
       <button type="button" class="btn btn-primary" id="editSettlementFromViewBtn">Edit</button>`;
-    window.modalUtils.showModal(`View Settlement: ${window.modalUtils.escapeHtml(settlement.name)}`, html, footer);
-    document.getElementById('editSettlementFromViewBtn').onclick = () => {
-      window.settlementTracker.renderSettlementFormModal(campaign, idx, true);
-    };
+    
+    window.modalUtils.showModal(`View Settlement: ${window.modalUtils.escapeHtml(settlement.name)}`, contentHtml, footerHtml);
+    
+    const editButton = document.getElementById('editSettlementFromViewBtn');
+    if (editButton) {
+      editButton.onclick = () => {
+        this.renderSettlementFormModal(listContainer, campaign, idx, true);
+      };
+    }
   },
-  renderSettlementFormModal: function(campaign, idx, isEditFromView = false) {
+
+  renderSettlementFormModal: function(listContainer, campaign, idx, isEditFromView = false) {
     const entries = this.getEntries(campaign);
-    const settlement = idx != null ? {...entries[idx]} : {
-      name: '', size: '', trait: '', fame: '', calamity: '', localLeader: '', people: '', places: '', gpValue: ''
-    };
-    let html = `<form id="settlement-form-modal">
-      <div class="mb-2">
-        <label class="form-label">Settlement Name</label>
-        <input class="form-control" name="name" value="${window.modalUtils.escapeHtml(settlement.name) || ''}" required />
+    const isEditMode = idx !== null && idx !== undefined;
+    let settlementToEdit;
+
+    if (isEditMode) {
+      if (idx < 0 || idx >= entries.length) {
+        console.error("Settlement index out of bounds for edit:", idx);
+        window.modalUtils.hideModal();
+        window.modalUtils.showModal("Error", "<p>Could not find settlement to edit.</p>", `<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>`);
+        this.renderSettlementTrackerListView(listContainer, campaign);
+        return;
+      }
+      settlementToEdit = {...entries[idx]};
+    } else {
+      settlementToEdit = { name: '', size: '', trait: '', fame: '', calamity: '', localLeader: '', people: '', places: '', gpValue: '' };
+    }
+    
+    const modalTitle = isEditMode ? `Edit Settlement: ${window.modalUtils.escapeHtml(settlementToEdit.name)}` : 'Add New Settlement';
+
+    let formHtml = `<form id="settlement-form-modal" novalidate>
+      <div class="mb-3">
+        <label for="settlement-name" class="form-label">Name</label>
+        <input type="text" class="form-control" id="settlement-name" name="name" value="${window.modalUtils.escapeHtml(settlementToEdit.name)}" required />
+        <div class="invalid-feedback">Name is required.</div>
       </div>
-      <div class="mb-2">
-        <label class="form-label">Size</label>
-        <select class="form-select" name="size" required>
-          <option value="">Select size</option>
-          <option value="Village (Pop up to 500)"${settlement.size==="Village (Pop up to 500)"?" selected":""}>Village (Pop up to 500)</option>
-          <option value="Town (Pop. 501-5,000)"${settlement.size==="Town (Pop. 501-5,000)"?" selected":""}>Town (Pop. 501-5,000)</option>
-          <option value="City (Pop. 5,001+)"${settlement.size==="City (Pop. 5,001+)"?" selected":""}>City (Pop. 5,001+)</option>
-        </select>
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="settlement-size" class="form-label">Size</label>
+          <select class="form-select" id="settlement-size" name="size">
+            <option value="">Select size...</option>
+            <option value="Hamlet (Pop. <100)" ${settlementToEdit.size === "Hamlet (Pop. <100)" ? "selected" : ""}>Hamlet (Pop. &lt;100)</option>
+            <option value="Village (Pop. 100-1k)" ${settlementToEdit.size === "Village (Pop. 100-1k)" ? "selected" : ""}>Village (Pop. 100-1k)</option>
+            <option value="Town (Pop. 1k-6k)" ${settlementToEdit.size === "Town (Pop. 1k-6k)" ? "selected" : ""}>Town (Pop. 1k-6k)</option>
+            <option value="City (Pop. 6k-25k)" ${settlementToEdit.size === "City (Pop. 6k-25k)" ? "selected" : ""}>City (Pop. 6k-25k)</option>
+            <option value="Metropolis (Pop. >25k)" ${settlementToEdit.size === "Metropolis (Pop. >25k)" ? "selected" : ""}>Metropolis (Pop. &gt;25k)</option>
+          </select>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label for="settlement-localLeader" class="form-label">Local Leader</label>
+          <input type="text" class="form-control" id="settlement-localLeader" name="localLeader" value="${window.modalUtils.escapeHtml(settlementToEdit.localLeader)}" />
+        </div>
       </div>
-      <div class="mb-2">
-        <label class="form-label">Defining Trait</label>
-        <textarea class="form-control" name="trait">${window.modalUtils.escapeHtml(settlement.trait) || ''}</textarea>
+      <div class="mb-3">
+        <label for="settlement-trait" class="form-label">Defining Trait</label>
+        <textarea class="form-control" id="settlement-trait" name="trait" rows="2">${window.modalUtils.escapeHtml(settlementToEdit.trait)}</textarea>
       </div>
-      <div class="mb-2">
-        <label class="form-label">Claim to Fame</label>
-        <textarea class="form-control" name="fame">${window.modalUtils.escapeHtml(settlement.fame) || ''}</textarea>
+      <div class="mb-3">
+        <label for="settlement-fame" class="form-label">Claim to Fame</label>
+        <textarea class="form-control" id="settlement-fame" name="fame" rows="2">${window.modalUtils.escapeHtml(settlementToEdit.fame)}</textarea>
       </div>
-      <div class="mb-2">
-        <label class="form-label">Current Calamity</label>
-        <textarea class="form-control" name="calamity">${window.modalUtils.escapeHtml(settlement.calamity) || ''}</textarea>
+      <div class="mb-3">
+        <label for="settlement-calamity" class="form-label">Current Calamity</label>
+        <textarea class="form-control" id="settlement-calamity" name="calamity" rows="2">${window.modalUtils.escapeHtml(settlementToEdit.calamity)}</textarea>
       </div>
-      <div class="mb-2">
-        <label class="form-label">Local Leader</label>
-        <input class="form-control" name="localLeader" value="${window.modalUtils.escapeHtml(settlement.localLeader) || ''}" />
+      <div class="mb-3">
+        <label for="settlement-people" class="form-label">Noteworthy People (use newlines for list)</label>
+        <textarea class="form-control" id="settlement-people" name="people" rows="3">${window.modalUtils.escapeHtml(settlementToEdit.people)}</textarea>
       </div>
-      <div class="mb-2">
-        <label class="form-label">Noteworthy People</label>
-        <textarea class="form-control" name="people">${window.modalUtils.escapeHtml(settlement.people) || ''}</textarea>
+      <div class="mb-3">
+        <label for="settlement-places" class="form-label">Noteworthy Places (use newlines for list)</label>
+        <textarea class="form-control" id="settlement-places" name="places" rows="3">${window.modalUtils.escapeHtml(settlementToEdit.places)}</textarea>
       </div>
-      <div class="mb-2">
-        <label class="form-label">Noteworthy Places</label>
-        <textarea class="form-control" name="places">${window.modalUtils.escapeHtml(settlement.places) || ''}</textarea>
-      </div>
-      <div class="mb-2">
-        <label class="form-label">GP Value of Most Expensive Item for Sale</label>
-        <input class="form-control" name="gpValue" value="${window.modalUtils.escapeHtml(settlement.gpValue) || ''}" type="number" min="0" />
+      <div class="mb-3">
+        <label for="settlement-gpValue" class="form-label">GP Value of Most Expensive Item for Sale</label>
+        <input type="number" class="form-control" id="settlement-gpValue" name="gpValue" value="${window.modalUtils.escapeHtml(settlementToEdit.gpValue)}" min="0" />
       </div>
     </form>`;
-    let footer = `<button type="button" class="btn btn-secondary" id="cancelSettlementFormBtn">Cancel</button>
+    
+    let footerHtml = `<button type="button" class="btn btn-secondary" id="cancelSettlementFormBtn">Cancel</button>
       <button type="button" class="btn btn-success" id="saveSettlementFormBtn">Save</button>`;
-    window.modalUtils.showModal(idx != null ? `Edit Settlement: ${window.modalUtils.escapeHtml(settlement.name)}` : 'Add Settlement', html, footer);
+      
+    window.modalUtils.showModal(modalTitle, formHtml, footerHtml);
+
+    const form = document.getElementById('settlement-form-modal');
+    const nameInput = form.querySelector('#settlement-name');
+
+    document.getElementById('saveSettlementFormBtn').onclick = () => {
+      const newName = nameInput.value.trim();
+      if (!newName) {
+        nameInput.classList.add('is-invalid');
+        form.classList.add('was-validated');
+        // alert('Settlement Name is required.'); // Requirement, but Bootstrap validation is cleaner
+        return;
+      }
+      nameInput.classList.remove('is-invalid');
+      form.classList.remove('was-validated');
+
+      const updatedSettlementData = {
+        name: newName,
+        size: form.querySelector('#settlement-size').value,
+        trait: form.querySelector('#settlement-trait').value.trim(),
+        fame: form.querySelector('#settlement-fame').value.trim(),
+        calamity: form.querySelector('#settlement-calamity').value.trim(),
+        localLeader: form.querySelector('#settlement-localLeader').value.trim(),
+        people: form.querySelector('#settlement-people').value.trim(), // Stays as text block
+        places: form.querySelector('#settlement-places').value.trim(), // Stays as text block
+        gpValue: form.querySelector('#settlement-gpValue').value.trim()
+      };
+
+      let currentEntries = this.getEntries(campaign);
+      if (isEditMode) {
+        currentEntries[idx] = updatedSettlementData;
+      } else {
+        currentEntries.push(updatedSettlementData);
+      }
+      this.saveEntries(campaign, currentEntries);
+      window.modalUtils.hideModal();
+      this.renderSettlementTrackerListView(listContainer, campaign); 
+    };
+
     document.getElementById('cancelSettlementFormBtn').onclick = () => {
-      if (isEditFromView && idx != null) {
-        window.settlementTracker.renderSettlementEntryView(entries[idx], campaign, idx);
+      if (isEditFromView && isEditMode) {
+        const latestEntries = this.getEntries(campaign); // Re-fetch in case of race conditions
+        if (idx < latestEntries.length) {
+           this.renderSettlementEntryView(listContainer, campaign, idx);
+        } else { // Should not happen if idx was valid
+           window.modalUtils.hideModal();
+           this.renderSettlementTrackerListView(listContainer, campaign);
+        }
       } else {
         window.modalUtils.hideModal();
       }
     };
-    document.getElementById('saveSettlementFormBtn').onclick = () => {
-      const form = document.getElementById('settlement-form-modal');
-      const newSettlement = {
-        name: form.name.value.trim(),
-        size: form.size.value.trim(),
-        trait: form.trait.value.trim(),
-        fame: form.fame.value.trim(),
-        calamity: form.calamity.value.trim(),
-        localLeader: form.localLeader.value.trim(),
-        people: form.people.value.trim(),
-        places: form.places.value.trim(),
-        gpValue: form.gpValue.value.trim()
-      };
-      if (!newSettlement.name) {
-        alert('Settlement Name is required.');
-        return;
-      }
-      if (idx != null) {
-        entries[idx] = newSettlement;
-      } else {
-        entries.push(newSettlement);
-      }
-      window.settlementTracker.saveEntries(campaign, entries);
-      window.modalUtils.hideModal();
-      // Refresh list view
-      const mainContent = document.getElementById('main-content');
-      if (mainContent) {
-        window.settlementTracker.renderSettlementListView(mainContent, campaign);
-      }
-    };
   }
 };
+
+// Register with main UI rendering system
+window.ui = window.ui || {};
+window.ui.renderTrackerViews = window.ui.renderTrackerViews || {};
+window.ui.renderTrackerViews['Settlement Tracker'] = function(container, campaign) {
+  window.settlementTracker.renderSettlementTrackerListView(container, campaign);
+};
+
 })();

@@ -1,10 +1,9 @@
 (function() {
 // Magic Item Tracker
 
-// Logic for Magic Item Tracker
 window.magicItemTracker = {
-  getTracker: function(campaign) {
-    return (campaign.trackers && campaign.trackers.magicItemTracker) || {
+  getTrackerData: function(campaign) { // Renamed for clarity from generic 'getTracker'
+    return (campaign.trackers && campaign.trackers.magicItemTrackerData) || { // Data key changed for clarity
       tiers: [
         { name: 'Levels 1-4', rarities: { Common: [], Uncommon: [], Rare: [], 'Very Rare': [], Legendary: [] } },
         { name: 'Levels 5-10', rarities: { Common: [], Uncommon: [], Rare: [], 'Very Rare': [], Legendary: [] } },
@@ -13,240 +12,143 @@ window.magicItemTracker = {
       ]
     };
   },
-  saveTracker: function(campaign, tracker) {
+  saveTrackerData: function(campaign, trackerData) { // Renamed for clarity
     campaign.trackers = campaign.trackers || {};
-    campaign.trackers.magicItemTracker = tracker;
-    window.dataManager.saveCampaignsToLocalStorage(allCampaigns);
+    campaign.trackers.magicItemTrackerData = trackerData; // Data key changed for clarity
+    window.dataManager.saveCampaignsToLocalStorage(allCampaigns); // Assuming 'allCampaigns' is globally available
   },
-  renderMagicItemTracker: function(container, campaign) {
-    const tracker = this.getTracker(campaign);
+
+  // Main view function (replaces old renderMagicItemTracker and renderMagicItemTrackerListView)
+  renderMagicItemTrackerView: function(container, campaign) {
+    const trackerData = this.getTrackerData(campaign);
     let html = `<div class="d-flex justify-content-between align-items-center mb-3">
       <h2>Magic Item Tracker</h2>
-      <button class="btn btn-primary" id="edit-magic-items-btn">Edit</button>
+      <button class="btn btn-primary" id="edit-magic-item-tracker-btn">Edit Items</button>
     </div>`;
-    tracker.tiers.forEach((tier, tIdx) => {
-      html += `<div class="card card-body mb-3">
-        <h4>${tier.name}</h4>`;
+
+    trackerData.tiers.forEach((tier) => {
+      html += `<div class="card mb-3">
+        <div class="card-header"><h4>${window.modalUtils.escapeHtml(tier.name)}</h4></div>
+        <div class="card-body">`;
       Object.keys(tier.rarities).forEach(rarity => {
         const items = tier.rarities[rarity] || [];
-        html += `<div class="mb-2">
-          <strong>${rarity}</strong> <span class="text-muted small">(${items.length} item${items.length !== 1 ? 's' : ''})</span>
-          <ul class="list-group">`;
+        html += `<div class="mb-3">
+          <h5>${window.modalUtils.escapeHtml(rarity)} 
+            <span class="badge bg-secondary rounded-pill">${items.length}</span>
+          </h5>`;
         if (items.length === 0) {
-          html += `<li class="list-group-item text-muted">No items</li>`;
+          html += `<p class="text-muted">No ${window.modalUtils.escapeHtml(rarity.toLowerCase())} items recorded for this tier.</p>`;
         } else {
+          html += '<ul class="list-group">';
           items.forEach(item => {
-            html += `<li class="list-group-item">${item}</li>`;
-          });
-        }
-        html += `</ul></div>`;
-      });
-      html += `</div>`;
-    });
-    container.innerHTML = html + `<div id="magic-item-form-area"></div>`;
-    document.getElementById('edit-magic-items-btn').onclick = () => this.renderMagicItemForm(container, campaign);
-  },
-  renderMagicItemForm: function(container, campaign) {
-    const tracker = JSON.parse(JSON.stringify(this.getTracker(campaign)));
-    let html = `<form class="card card-body mb-3" id="magic-item-form">
-      <h3>Edit Magic Item Tracker</h3>`;
-    tracker.tiers.forEach((tier, tIdx) => {
-      html += `<div class="mb-3 border p-2">
-        <h5>${tier.name}</h5>`;
-      Object.keys(tier.rarities).forEach(rarity => {
-        html += `<div class="mb-2">
-          <label class="form-label"><strong>${rarity}</strong></label>
-          <div id="tier${tIdx}-rarity-${rarity.replace(/\s/g, '')}-list"></div>
-          <button type="button" class="btn btn-sm btn-outline-primary mt-1" data-add="${tIdx}|${rarity}">Add Item</button>
-        </div>`;
-      });
-      html += `</div>`;
-    });
-    html += `<div class="d-flex gap-2">
-      <button type="submit" class="btn btn-success">Save</button>
-      <button type="button" class="btn btn-secondary" id="cancel-magic-item-btn">Cancel</button>
-    </div></form>`;
-    document.getElementById('magic-item-form-area').innerHTML = html;
-    // Render item lists
-    tracker.tiers.forEach((tier, tIdx) => {
-      Object.keys(tier.rarities).forEach(rarity => {
-        const listId = `tier${tIdx}-rarity-${rarity.replace(/\s/g, '')}-list`;
-        const listDiv = document.getElementById(listId);
-        function renderList() {
-          let lHtml = '';
-          tier.rarities[rarity].forEach((item, i) => {
-            lHtml += `<div class="input-group mb-1">
-              <input class="form-control" value="${item}" data-item-input="${tIdx}|${rarity}|${i}" />
-              <button type="button" class="btn btn-outline-danger btn-sm" data-remove="${tIdx}|${rarity}|${i}">Remove</button>
-            </div>`;
-          });
-          listDiv.innerHTML = lHtml;
-          // Remove handlers
-          listDiv.querySelectorAll('[data-remove]').forEach(btn => {
-            btn.onclick = () => {
-              const [tierIdx, rar, idx] = btn.getAttribute('data-remove').split('|');
-              tracker.tiers[tierIdx].rarities[rar].splice(idx, 1);
-              renderList();
-            };
-          });
-          // Input handlers
-          listDiv.querySelectorAll('[data-item-input]').forEach(input => {
-            input.oninput = e => {
-              const [tierIdx, rar, idx] = input.getAttribute('data-item-input').split('|');
-              tracker.tiers[tierIdx].rarities[rar][idx] = e.target.value;
-            };
-          });
-        }
-        renderList();
-        // Add handler
-        const addBtn = container.querySelector(`[data-add="${tIdx}|${rarity}"]`);
-        if (addBtn) {
-          addBtn.onclick = () => {
-            tier.rarities[rarity].push('');
-            renderList();
-          };
-        }
-      });
-    });
-    document.getElementById('cancel-magic-item-btn').onclick = () => {
-      this.renderMagicItemTracker(container, campaign);
-    };
-    document.getElementById('magic-item-form').onsubmit = (e) => {
-      e.preventDefault();
-      this.saveTracker(campaign, tracker);
-      this.renderMagicItemTracker(container, campaign);
-    };
-  },
-  renderMagicItemTrackerListView: function(container, campaign) {
-    const tracker = this.getTracker(campaign);
-    let html = `<div class="d-flex justify-content-between align-items-center mb-3">
-      <h2>Magic Item Tracker</h2>
-      <button class="btn btn-primary" id="edit-magic-items-btn">Edit</button>
-    </div>`;
-    tracker.tiers.forEach((tier, tIdx) => {
-      html += `<div class="card card-body mb-3">
-        <h4>${window.modalUtils.escapeHtml(tier.name)}</h4>`;
-      Object.keys(tier.rarities).forEach(rarity => {
-        const items = tier.rarities[rarity] || [];
-        html += `<div class="mb-2">
-          <strong>${window.modalUtils.escapeHtml(rarity)}</strong> <span class="text-muted small">(${items.length} item${items.length !== 1 ? 's' : ''})</span>
-          <ul class="list-group">`;
-        if (items.length === 0) {
-          html += `<li class="list-group-item text-muted">No items</li>`;
-        } else {
-          items.forEach(item => {
+            // For now, items are just strings. If they become objects, this needs to change.
             html += `<li class="list-group-item">${window.modalUtils.escapeHtml(item)}</li>`;
           });
+          html += '</ul>';
         }
-        html += `</ul></div>`;
+        html += `</div>`;
       });
-      html += `</div>`;
+      html += `</div></div>`; // Close card-body and card
     });
+    
     container.innerHTML = html;
-    document.getElementById('edit-magic-items-btn').onclick = () => this.renderMagicItemTrackerFormModal(campaign);
-  },
-  renderMagicItemTrackerEntryView: function(tracker, campaign) {
-    let html = '';
-    tracker.tiers.forEach((tier, tIdx) => {
-      html += `<div class="mb-3"><h5>${window.modalUtils.escapeHtml(tier.name)}</h5>`;
-      Object.keys(tier.rarities).forEach(rarity => {
-        const items = tier.rarities[rarity] || [];
-        html += `<div class="mb-2"><strong>${window.modalUtils.escapeHtml(rarity)}</strong><ul>`;
-        if (items.length === 0) {
-          html += `<li class="text-muted">No items</li>`;
-        } else {
-          items.forEach(item => {
-            html += `<li>${window.modalUtils.escapeHtml(item)}</li>`;
-          });
-        }
-        html += `</ul></div>`;
-      });
-      html += `</div>`;
-    });
-    let footer = `<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-      <button type="button" class="btn btn-primary" id="editMagicItemsFromViewBtn">Edit</button>`;
-    window.modalUtils.showModal('View Magic Item Tracker', html, footer);
-    document.getElementById('editMagicItemsFromViewBtn').onclick = () => {
-      window.magicItemTracker.renderMagicItemTrackerFormModal(campaign, true);
+
+    document.getElementById('edit-magic-item-tracker-btn').onclick = () => {
+      this.renderMagicItemFormModal(container, campaign);
     };
   },
-  renderMagicItemTrackerFormModal: function(campaign, isEditFromView = false) {
-    const tracker = JSON.parse(JSON.stringify(this.getTracker(campaign)));
-    let html = `<form id="magic-item-form-modal">
-      <h3>Edit Magic Item Tracker</h3>`;
-    tracker.tiers.forEach((tier, tIdx) => {
-      html += `<div class="mb-3 border p-2">
-        <h5>${window.modalUtils.escapeHtml(tier.name)}</h5>`;
+
+  // Form Modal for editing all magic items
+  renderMagicItemFormModal: function(viewContainer, campaign) {
+    // Deep clone the tracker data to avoid modifying the original object directly during form interaction
+    const trackerDataToEdit = JSON.parse(JSON.stringify(this.getTrackerData(campaign))); 
+
+    let formHtml = `<form id="magic-item-tracker-edit-form" class="container-fluid">`;
+    trackerDataToEdit.tiers.forEach((tier, tierIndex) => {
+      formHtml += `<fieldset class="mb-4 p-3 border rounded">
+        <legend class="h5">${window.modalUtils.escapeHtml(tier.name)}</legend>`;
       Object.keys(tier.rarities).forEach(rarity => {
-        html += `<div class="mb-2">
-          <label class="form-label"><strong>${window.modalUtils.escapeHtml(rarity)}</strong></label>
-          <div id="tier${tIdx}-rarity-${rarity.replace(/\s/g, '')}-list-modal"></div>
-          <button type="button" class="btn btn-sm btn-outline-primary mt-1" data-add="${tIdx}|${rarity}">Add Item</button>
+        formHtml += `<div class="mb-3">
+          <label class="form-label fw-bold">${window.modalUtils.escapeHtml(rarity)}</label>
+          <div id="form-tier${tierIndex}-rarity-${rarity.replace(/\s+/g, '')}-list" class="list-of-items-in-form">`;
+        
+        (tier.rarities[rarity] || []).forEach((item, itemIndex) => {
+          formHtml += `
+            <div class="input-group mb-2 item-entry">
+              <input type="text" class="form-control item-name-input" value="${window.modalUtils.escapeHtml(item)}" data-tier-index="${tierIndex}" data-rarity="${rarity}" data-item-index="${itemIndex}">
+              <button class="btn btn-outline-danger remove-item-btn" type="button">Remove</button>
+            </div>`;
+        });
+        formHtml += `</div>
+          <button type="button" class="btn btn-sm btn-outline-primary add-item-btn" data-tier-index="${tierIndex}" data-rarity="${rarity}">+ Add ${window.modalUtils.escapeHtml(rarity)} Item</button>
         </div>`;
       });
-      html += `</div>`;
+      formHtml += `</fieldset>`;
     });
-    html += `</form>`;
-    let footer = `<button type="button" class="btn btn-secondary" id="cancelMagicItemFormBtn">Cancel</button>
-      <button type="button" class="btn btn-success" id="saveMagicItemFormBtn">Save</button>`;
-    window.modalUtils.showModal('Edit Magic Item Tracker', html, footer);
-    // Render item lists
-    tracker.tiers.forEach((tier, tIdx) => {
-      Object.keys(tier.rarities).forEach(rarity => {
-        const listId = `tier${tIdx}-rarity-${rarity.replace(/\s/g, '')}-list-modal`;
-        const listDiv = document.getElementById(listId);
-        function renderList() {
-          let lHtml = '';
-          tier.rarities[rarity].forEach((item, i) => {
-            lHtml += `<div class="input-group mb-1">
-              <input class="form-control" value="${window.modalUtils.escapeHtml(item)}" data-item-input="${tIdx}|${rarity}|${i}" />
-              <button type="button" class="btn btn-outline-danger btn-sm" data-remove="${tIdx}|${rarity}|${i}">Remove</button>
-            </div>`;
-          });
-          listDiv.innerHTML = lHtml;
-          // Remove handlers
-          listDiv.querySelectorAll('[data-remove]').forEach(btn => {
-            btn.onclick = () => {
-              const [tierIdx, rar, idx] = btn.getAttribute('data-remove').split('|');
-              tracker.tiers[tierIdx].rarities[rar].splice(idx, 1);
-              renderList();
-            };
-          });
-          // Input handlers
-          listDiv.querySelectorAll('[data-item-input]').forEach(input => {
-            input.oninput = e => {
-              const [tierIdx, rar, idx] = input.getAttribute('data-item-input').split('|');
-              tracker.tiers[tierIdx].rarities[rar][idx] = e.target.value;
-            };
-          });
-        }
-        renderList();
-        // Add handler
-        const addBtn = document.querySelector(`[data-add="${tIdx}|${rarity}"]`);
-        if (addBtn) {
-          addBtn.onclick = () => {
-            tier.rarities[rarity].push('');
-            renderList();
-          };
-        }
+    formHtml += `</form>`;
+
+    const modalTitle = 'Edit Magic Item Distribution';
+    const footerHtml = `
+      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+      <button type="button" class="btn btn-success" id="save-magic-item-tracker-btn">Save Changes</button>`;
+
+    window.modalUtils.showModal(modalTitle, formHtml, footerHtml, 'modal-xl'); // Use a larger modal
+
+    // Event delegation for dynamically added/removed items
+    const formElement = document.getElementById('magic-item-tracker-edit-form');
+    formElement.addEventListener('click', function(event) {
+      if (event.target.classList.contains('add-item-btn')) {
+        const tierIndex = event.target.dataset.tierIndex;
+        const rarity = event.target.dataset.rarity;
+        const listContainerId = `form-tier${tierIndex}-rarity-${rarity.replace(/\s+/g, '')}-list`;
+        const listContainer = document.getElementById(listContainerId);
+        const newItemIndex = listContainer.children.length;
+
+        const newItemHtml = `
+          <div class="input-group mb-2 item-entry">
+            <input type="text" class="form-control item-name-input" value="" data-tier-index="${tierIndex}" data-rarity="${rarity}" data-item-index="${newItemIndex}">
+            <button class="btn btn-outline-danger remove-item-btn" type="button">Remove</button>
+          </div>`;
+        listContainer.insertAdjacentHTML('beforeend', newItemHtml);
+      }
+      if (event.target.classList.contains('remove-item-btn')) {
+        event.target.closest('.item-entry').remove();
+        // Note: Re-indexing data-item-index after removal is complex and might not be necessary if data is collected by iterating inputs.
+      }
+    });
+    
+    document.getElementById('save-magic-item-tracker-btn').onclick = () => {
+      const updatedTrackerData = { tiers: [] };
+      trackerDataToEdit.tiers.forEach((originalTier, tierIndex) => {
+        const newTier = { name: originalTier.name, rarities: {} };
+        Object.keys(originalTier.rarities).forEach(rarity => {
+          newTier.rarities[rarity] = [];
+          const listContainerId = `form-tier${tierIndex}-rarity-${rarity.replace(/\s+/g, '')}-list`;
+          const listContainer = document.getElementById(listContainerId);
+          if (listContainer) {
+            listContainer.querySelectorAll('.item-name-input').forEach(inputElement => {
+              const itemName = inputElement.value.trim();
+              if (itemName) { // Only save non-empty item names
+                newTier.rarities[rarity].push(itemName);
+              }
+            });
+          }
+        });
+        updatedTrackerData.tiers.push(newTier);
       });
-    });
-    document.getElementById('cancelMagicItemFormBtn').onclick = () => {
-      if (isEditFromView) {
-        window.magicItemTracker.renderMagicItemTrackerEntryView(tracker, campaign);
-      } else {
-        window.modalUtils.hideModal();
-      }
-    };
-    document.getElementById('saveMagicItemFormBtn').onclick = () => {
-      window.magicItemTracker.saveTracker(campaign, tracker);
+
+      this.saveTrackerData(campaign, updatedTrackerData);
       window.modalUtils.hideModal();
-      // Refresh list view
-      const mainContent = document.getElementById('main-content');
-      if (mainContent) {
-        window.magicItemTracker.renderMagicItemTrackerListView(mainContent, campaign);
-      }
+      this.renderMagicItemTrackerView(viewContainer, campaign); // Refresh the main view
     };
   }
 };
+
+// Register with main UI rendering system
+window.ui = window.ui || {};
+window.ui.renderTrackerViews = window.ui.renderTrackerViews || {};
+window.ui.renderTrackerViews['Magic Item Tracker'] = function(container, campaign) {
+  window.magicItemTracker.renderMagicItemTrackerView(container, campaign);
+};
+
 })();
