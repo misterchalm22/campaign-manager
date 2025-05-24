@@ -45,5 +45,14 @@ window.modalUtils = {
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;");
+  },
+
+  renderMarkdown: function(markdownString) {
+    if (markdownString === null || typeof markdownString === 'undefined' || markdownString.trim() === '') {
+      return '<div class="markdown-content">&nbsp;</div>';
+    }
+    // Assuming marked.parse() is available globally
+    const parsedHtml = marked.parse(markdownString);
+    return '<div class="markdown-content">' + parsedHtml + '</div>';
   }
 };

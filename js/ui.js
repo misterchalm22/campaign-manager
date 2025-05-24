@@ -3,7 +3,13 @@ window.ui = {
   renderCampaignSelector: function(campaignNames, selectedCampaign) {
     const selector = document.getElementById('campaign-selector');
     if (!selector) return;
-    let html = '<select id="campaign-selector-dropdown"><option value="">Select Campaign</option>';
+    let html = '<label for="campaign-selector-dropdown" class="form-label visually-hidden">Select Campaign</label>'; // Added label for accessibility
+    html += '<select id="campaign-selector-dropdown" class="form-select">'; // Added form-select
+    if (!selectedCampaign && campaignNames.length > 0) { // Auto-select first campaign if none selected
+        html += '<option value="" disabled selected>Select a Campaign</option>';
+    } else {
+        html += '<option value="" disabled>Select a Campaign</option>';
+    }
     for (const name of campaignNames) {
       html += `<option value="${name}"${selectedCampaign === name ? ' selected' : ''}>${name}</option>`;
     }

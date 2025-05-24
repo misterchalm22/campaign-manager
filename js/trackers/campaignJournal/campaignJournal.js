@@ -157,9 +157,9 @@ window.campaignJournal = {
       <dt class="col-sm-4">Session Number:</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(entry.sessionNumber) || 'N/A'}</dd>
       <dt class="col-sm-4">Session Date:</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(entry.sessionDate) || 'N/A'}</dd>
       <dt class="col-sm-4">Session/Adventure Title:</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(entry.sessionTitle) || 'N/A'}</dd>
-      <dt class="col-sm-4">Important Events from Earlier Sessions:</dt><dd class="col-sm-8"><pre>${window.modalUtils.escapeHtml(entry.earlierEvents) || 'N/A'}</pre></dd>
-      <dt class="col-sm-4">Planned Summary for This Session:</dt><dd class="col-sm-8"><pre>${window.modalUtils.escapeHtml(entry.plannedSummary) || 'N/A'}</pre></dd>
-      <dt class="col-sm-4">Additional Notes:</dt><dd class="col-sm-8"><pre>${window.modalUtils.escapeHtml(entry.notes) || 'N/A'}</pre></dd>
+      <dt class="col-sm-4">Important Events from Earlier Sessions:</dt><dd class="col-sm-8">${(entry.earlierEvents && entry.earlierEvents.trim() !== '') ? window.modalUtils.renderMarkdown(entry.earlierEvents) : '<div class="markdown-content">N/A</div>'}</dd>
+      <dt class="col-sm-4">Planned Summary for This Session:</dt><dd class="col-sm-8">${(entry.plannedSummary && entry.plannedSummary.trim() !== '') ? window.modalUtils.renderMarkdown(entry.plannedSummary) : '<div class="markdown-content">N/A</div>'}</dd>
+      <dt class="col-sm-4">Additional Notes:</dt><dd class="col-sm-8">${(entry.notes && entry.notes.trim() !== '') ? window.modalUtils.renderMarkdown(entry.notes) : '<div class="markdown-content">N/A</div>'}</dd>
     </dl>`;
     let footer = `<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
       <button type="button" class="btn btn-primary" id="editJournalFromViewBtn">Edit</button>`;
@@ -179,27 +179,27 @@ window.campaignJournal = {
       notes: ''
     };
     let html = `<form id="journal-form-modal">
-      <div class="mb-2">
+      <div class="mb-3">
         <label class="form-label">Session Number</label>
         <input class="form-control" name="sessionNumber" type="number" min="1" value="${window.modalUtils.escapeHtml(entry.sessionNumber) || ''}" required />
       </div>
-      <div class="mb-2">
+      <div class="mb-3">
         <label class="form-label">Session Date</label>
         <input class="form-control" name="sessionDate" type="date" value="${window.modalUtils.escapeHtml(entry.sessionDate) || ''}" />
       </div>
-      <div class="mb-2">
+      <div class="mb-3">
         <label class="form-label">Session/Adventure Title</label>
         <input class="form-control" name="sessionTitle" value="${window.modalUtils.escapeHtml(entry.sessionTitle) || ''}" />
       </div>
-      <div class="mb-2">
+      <div class="mb-3">
         <label class="form-label">Important Events from Earlier Sessions</label>
         <textarea class="form-control" name="earlierEvents">${window.modalUtils.escapeHtml(entry.earlierEvents) || ''}</textarea>
       </div>
-      <div class="mb-2">
+      <div class="mb-3">
         <label class="form-label">Planned Summary for This Session</label>
         <textarea class="form-control" name="plannedSummary">${window.modalUtils.escapeHtml(entry.plannedSummary) || ''}</textarea>
       </div>
-      <div class="mb-2">
+      <div class="mb-3">
         <label class="form-label">Additional Notes</label>
         <textarea class="form-control" name="notes">${window.modalUtils.escapeHtml(entry.notes) || ''}</textarea>
       </div>
@@ -207,7 +207,21 @@ window.campaignJournal = {
     let footer = `<button type="button" class="btn btn-secondary" id="cancelJournalFormBtn">Cancel</button>
       <button type="button" class="btn btn-success" id="saveJournalFormBtn">Save</button>`;
     window.modalUtils.showModal(idx != null ? `Edit Session Log: Session ${window.modalUtils.escapeHtml(entry.sessionNumber)}` : 'Add Session Log', html, footer);
+
+    const form = document.getElementById('journal-form-modal');
+    const simpleMDEInstances = {
+      earlierEvents: new SimpleMDE({element: form.earlierEvents, spellChecker: false, status: false, toolbarTips: false}),
+      plannedSummary: new SimpleMDE({element: form.plannedSummary, spellChecker: false, status: false, toolbarTips: false}),
+      notes: new SimpleMDE({element: form.notes, spellChecker: false, status: false, toolbarTips: false})
+    };
+
     document.getElementById('cancelJournalFormBtn').onclick = () => {
+      // Clean up SimpleMDE instances
+      Object.values(simpleMDEInstances).forEach(sde => {
+        if (sde && sde.toTextArea) {
+          sde.toTextArea();
+        }
+      });
       if (isEditFromView && idx != null) {
         window.campaignJournal.renderCampaignJournalEntryView(entries[idx], campaign, idx);
       } else {
@@ -215,16 +229,22 @@ window.campaignJournal = {
       }
     };
     document.getElementById('saveJournalFormBtn').onclick = () => {
-      const form = document.getElementById('journal-form-modal');
+      // const form = document.getElementById('journal-form-modal'); // Already declared above
       const newEntry = {
         sessionNumber: form.sessionNumber.value.trim(),
         sessionDate: form.sessionDate.value.trim(),
         sessionTitle: form.sessionTitle.value.trim(),
-        earlierEvents: form.earlierEvents.value.trim(),
-        plannedSummary: form.plannedSummary.value.trim(),
-        notes: form.notes.value.trim()
+        earlierEvents: simpleMDEInstances.earlierEvents.value().trim(),
+        plannedSummary: simpleMDEInstances.plannedSummary.value().trim(),
+        notes: simpleMDEInstances.notes.value().trim()
       };
       if (!newEntry.sessionNumber) {
+        // Clean up SimpleMDE instances before showing alert and returning
+        Object.values(simpleMDEInstances).forEach(sde => {
+          if (sde && sde.toTextArea) {
+            sde.toTextArea();
+          }
+        });
         alert('Session Number is required.');
         return;
       }
@@ -234,6 +254,12 @@ window.campaignJournal = {
         entries.push(newEntry);
       }
       window.campaignJournal.saveEntries(campaign, entries);
+      // Clean up SimpleMDE instances before hiding modal
+      Object.values(simpleMDEInstances).forEach(sde => {
+        if (sde && sde.toTextArea) {
+          sde.toTextArea();
+        }
+      });
       window.modalUtils.hideModal();
       // Refresh list view
       const mainContent = document.getElementById('main-content');
