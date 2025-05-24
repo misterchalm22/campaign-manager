@@ -1,36 +1,19 @@
 /* Main styles for TTRPG Campaign Tracker */
 body {
   font-family: 'Inter', sans-serif;
-  margin: 0;
-  background: #f8fafc;
-  color: #222;
-}
-header {
-  background: #2d3748;
-  color: #fff;
-  padding: 1rem;
-}
-#tracker-nav {
-  background: #e2e8f0;
-  padding: 1rem;
-  min-width: 200px;
-  float: left;
-  height: 100vh;
-}
-#main-content {
-  margin-left: 220px;
-  padding: 2rem;
+  background: #f8fafc; /* Kept as per instruction for desired customization */
+  color: #222; /* Kept as per instruction for desired customization */
 }
 
 /* Modal read-only view styles */
 #genericModalBody dl.row dt {
-  font-weight: bolder; /* Ensure it's very distinct */
+  font-weight: 600; /* Harmonizing with Bootstrap's bold */
   margin-right: 0.5rem; /* Spacing from dd */
   color: #333; /* Good contrast */
 }
 #genericModalBody dl.row dd {
   line-height: 1.5; /* Improved readability */
-  margin-bottom: 1.25rem; /* Slightly larger bottom margin */
+  margin-bottom: 1.25rem; /* Slightly larger bottom margin - specific choice */
 }
 #genericModalBody dl.row dd pre {
   background-color: #f8f9fa;
@@ -43,56 +26,14 @@ header {
 }
 
 /* Styles for Form Elements within Modals */
-#genericModalBody form label {
-  display: block;
-  font-weight: bold;
-  margin-bottom: 0.5rem;
-  color: #333;
-}
-
-#genericModalBody form input[type="text"],
-#genericModalBody form input[type="email"],
-#genericModalBody form input[type="password"],
-#genericModalBody form input[type="number"],
-#genericModalBody form textarea,
-#genericModalBody form select {
-  width: 100%;
-  padding: 0.5rem;
-  margin-bottom: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 0.25rem;
-  font-family: inherit; /* Ensure consistent font */
-  box-sizing: border-box; /* Include padding and border in the element's total width and height */
-}
+/* Rules for generic form elements removed as they are handled by Bootstrap form-control/form-select */
 
 #genericModalBody form textarea {
   min-height: 80px; /* Provide a decent default size for textareas */
   resize: vertical; /* Allow vertical resizing */
 }
 
-/* Ensure modal buttons have consistent styling if not covered by Bootstrap */
-#genericModalFooter button,
-#genericModalBody form button {
-  padding: 0.5rem 1rem;
-  margin-right: 0.5rem; /* Spacing between buttons */
-  border-radius: 0.25rem;
-  font-size: 0.95rem;
-}
-
-/* Specific button styling if needed, assuming Bootstrap classes handle most cases */
-#genericModalFooter button.btn-primary,
-#genericModalBody form button.btn-primary {
-  background-color: #007bff;
-  color: white;
-  border: 1px solid #007bff;
-}
-
-#genericModalFooter button.btn-secondary,
-#genericModalBody form button.btn-secondary {
-  background-color: #6c757d;
-  color: white;
-  border: 1px solid #6c757d;
-}
+/* Button styles removed as they are handled by Bootstrap .btn and .btn-* classes */
 
 /* Styles for rendered Markdown content */
 .markdown-content {

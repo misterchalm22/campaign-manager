@@ -193,11 +193,11 @@ window.settlementTracker = {
       name: '', size: '', trait: '', fame: '', calamity: '', localLeader: '', people: '', places: '', gpValue: ''
     };
     let html = `<form id="settlement-form-modal">
-      <div class="mb-2">
+      <div class="mb-3">
         <label class="form-label">Settlement Name</label>
         <input class="form-control" name="name" value="${window.modalUtils.escapeHtml(settlement.name) || ''}" required />
       </div>
-      <div class="mb-2">
+      <div class="mb-3">
         <label class="form-label">Size</label>
         <select class="form-select" name="size" required>
           <option value="">Select size</option>
@@ -206,31 +206,31 @@ window.settlementTracker = {
           <option value="City (Pop. 5,001+)"${settlement.size==="City (Pop. 5,001+)"?" selected":""}>City (Pop. 5,001+)</option>
         </select>
       </div>
-      <div class="mb-2">
+      <div class="mb-3">
         <label class="form-label">Defining Trait</label>
         <textarea class="form-control" name="trait">${window.modalUtils.escapeHtml(settlement.trait) || ''}</textarea>
       </div>
-      <div class="mb-2">
+      <div class="mb-3">
         <label class="form-label">Claim to Fame</label>
         <textarea class="form-control" name="fame">${window.modalUtils.escapeHtml(settlement.fame) || ''}</textarea>
       </div>
-      <div class="mb-2">
+      <div class="mb-3">
         <label class="form-label">Current Calamity</label>
         <textarea class="form-control" name="calamity">${window.modalUtils.escapeHtml(settlement.calamity) || ''}</textarea>
       </div>
-      <div class="mb-2">
+      <div class="mb-3">
         <label class="form-label">Local Leader</label>
         <input class="form-control" name="localLeader" value="${window.modalUtils.escapeHtml(settlement.localLeader) || ''}" />
       </div>
-      <div class="mb-2">
+      <div class="mb-3">
         <label class="form-label">Noteworthy People</label>
         <textarea class="form-control" name="people">${window.modalUtils.escapeHtml(settlement.people) || ''}</textarea>
       </div>
-      <div class="mb-2">
+      <div class="mb-3">
         <label class="form-label">Noteworthy Places</label>
         <textarea class="form-control" name="places">${window.modalUtils.escapeHtml(settlement.places) || ''}</textarea>
       </div>
-      <div class="mb-2">
+      <div class="mb-3">
         <label class="form-label">GP Value of Most Expensive Item for Sale</label>
         <input class="form-control" name="gpValue" value="${window.modalUtils.escapeHtml(settlement.gpValue) || ''}" type="number" min="0" />
       </div>

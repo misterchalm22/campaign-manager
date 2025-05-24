@@ -157,9 +157,9 @@ window.campaignJournal = {
       <dt class="col-sm-4">Session Number:</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(entry.sessionNumber) || 'N/A'}</dd>
       <dt class="col-sm-4">Session Date:</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(entry.sessionDate) || 'N/A'}</dd>
       <dt class="col-sm-4">Session/Adventure Title:</dt><dd class="col-sm-8">${window.modalUtils.escapeHtml(entry.sessionTitle) || 'N/A'}</dd>
-      <dt class="col-sm-4">Important Events from Earlier Sessions:</dt><dd class="col-sm-8"><pre>${window.modalUtils.escapeHtml(entry.earlierEvents) || 'N/A'}</pre></dd>
-      <dt class="col-sm-4">Planned Summary for This Session:</dt><dd class="col-sm-8"><pre>${window.modalUtils.escapeHtml(entry.plannedSummary) || 'N/A'}</pre></dd>
-      <dt class="col-sm-4">Additional Notes:</dt><dd class="col-sm-8"><pre>${window.modalUtils.escapeHtml(entry.notes) || 'N/A'}</pre></dd>
+      <dt class="col-sm-4">Important Events from Earlier Sessions:</dt><dd class="col-sm-8">${(entry.earlierEvents && entry.earlierEvents.trim() !== '') ? window.modalUtils.renderMarkdown(entry.earlierEvents) : '<div class="markdown-content">N/A</div>'}</dd>
+      <dt class="col-sm-4">Planned Summary for This Session:</dt><dd class="col-sm-8">${(entry.plannedSummary && entry.plannedSummary.trim() !== '') ? window.modalUtils.renderMarkdown(entry.plannedSummary) : '<div class="markdown-content">N/A</div>'}</dd>
+      <dt class="col-sm-4">Additional Notes:</dt><dd class="col-sm-8">${(entry.notes && entry.notes.trim() !== '') ? window.modalUtils.renderMarkdown(entry.notes) : '<div class="markdown-content">N/A</div>'}</dd>
     </dl>`;
     let footer = `<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
       <button type="button" class="btn btn-primary" id="editJournalFromViewBtn">Edit</button>`;
@@ -179,27 +179,27 @@ window.campaignJournal = {
       notes: ''
     };
     let html = `<form id="journal-form-modal">
-      <div class="mb-2">
+      <div class="mb-3">
         <label class="form-label">Session Number</label>
         <input class="form-control" name="sessionNumber" type="number" min="1" value="${window.modalUtils.escapeHtml(entry.sessionNumber) || ''}" required />
       </div>
-      <div class="mb-2">
+      <div class="mb-3">
         <label class="form-label">Session Date</label>
         <input class="form-control" name="sessionDate" type="date" value="${window.modalUtils.escapeHtml(entry.sessionDate) || ''}" />
       </div>
-      <div class="mb-2">
+      <div class="mb-3">
         <label class="form-label">Session/Adventure Title</label>
         <input class="form-control" name="sessionTitle" value="${window.modalUtils.escapeHtml(entry.sessionTitle) || ''}" />
       </div>
-      <div class="mb-2">
+      <div class="mb-3">
         <label class="form-label">Important Events from Earlier Sessions</label>
         <textarea class="form-control" name="earlierEvents">${window.modalUtils.escapeHtml(entry.earlierEvents) || ''}</textarea>
       </div>
-      <div class="mb-2">
+      <div class="mb-3">
         <label class="form-label">Planned Summary for This Session</label>
         <textarea class="form-control" name="plannedSummary">${window.modalUtils.escapeHtml(entry.plannedSummary) || ''}</textarea>
       </div>
-      <div class="mb-2">
+      <div class="mb-3">
         <label class="form-label">Additional Notes</label>
         <textarea class="form-control" name="notes">${window.modalUtils.escapeHtml(entry.notes) || ''}</textarea>
       </div>

@@ -218,28 +218,28 @@ window.bastionTracker = {
       bastionName: '', characterName: '', level: '', facilities: [], basicFacilities: '', defenders: ''
     };
     let html = `<form id="bastion-form-modal">
-      <div class="mb-2">
+      <div class="mb-3">
         <label class="form-label">Bastion's Name</label>
         <input class="form-control" name="bastionName" value="${window.modalUtils.escapeHtml(bastion.bastionName) || ''}" required />
       </div>
-      <div class="mb-2">
+      <div class="mb-3">
         <label class="form-label">Character's Name</label>
         <input class="form-control" name="characterName" value="${window.modalUtils.escapeHtml(bastion.characterName) || ''}" required />
       </div>
-      <div class="mb-2">
+      <div class="mb-3">
         <label class="form-label">Level</label>
         <input class="form-control" name="level" type="number" min="1" value="${window.modalUtils.escapeHtml(bastion.level) || ''}" />
       </div>
-      <div class="mb-2">
+      <div class="mb-3">
         <label class="form-label">Special Facilities</label>
         <div id="facilities-list-modal"></div>
         <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="add-facility-btn-modal">Add Facility</button>
       </div>
-      <div class="mb-2">
+      <div class="mb-3">
         <label class="form-label">Basic Facilities</label>
         <textarea class="form-control" name="basicFacilities">${window.modalUtils.escapeHtml(bastion.basicFacilities) || ''}</textarea>
       </div>
-      <div class="mb-2">
+      <div class="mb-3">
         <label class="form-label">Bastion Defenders</label>
         <textarea class="form-control" name="defenders">${window.modalUtils.escapeHtml(bastion.defenders) || ''}</textarea>
       </div>

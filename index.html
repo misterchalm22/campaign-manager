@@ -11,22 +11,28 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
 </head>
 <body>
-  <header>
-    <h1>TTRPG Campaign Tracker</h1>
-    <div id="campaign-selector"></div>
-    <div id="campaign-actions">
-      <button id="create-campaign-btn">New Campaign</button>
-      <button id="delete-campaign-btn">Delete Campaign</button>
-      <button id="export-campaigns-btn">Export Data</button>
-      <input type="file" id="import-campaigns-input" style="display:none" accept="application/json" />
-      <button id="import-campaigns-btn">Import Data</button>
+  <header class="container-fluid pt-3 pb-2 mb-3 border-bottom">
+    <div class="d-flex justify-content-between align-items-center">
+      <h1 class="h2">TTRPG Campaign Tracker</h1>
+      <div id="campaign-actions" class="btn-toolbar mb-2 mb-md-0" role="toolbar" aria-label="Campaign actions">
+        <div class="btn-group me-2" role="group" aria-label="Campaign management">
+          <button id="create-campaign-btn" class="btn btn-primary">New Campaign</button>
+          <button id="delete-campaign-btn" class="btn btn-danger">Delete Campaign</button>
+        </div>
+        <div class="btn-group" role="group" aria-label="Data management">
+          <button id="export-campaigns-btn" class="btn btn-secondary">Export Data</button>
+          <input type="file" id="import-campaigns-input" class="d-none" accept="application/json" />
+          <button id="import-campaigns-btn" class="btn btn-secondary">Import Data</button>
+        </div>
+      </div>
     </div>
-    <div id="campaign-message"></div>
+    <div id="campaign-selector" class="mt-2"></div>
+    <div id="campaign-message" class="mt-2"></div>
   </header>
-  <nav id="tracker-nav">
+  <nav id="tracker-nav" class="p-3 col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
     <!-- Tracker navigation will be rendered here -->
   </nav>
-  <main id="main-content">
+  <main id="main-content" class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-3">
     <!-- Main content area for tracker UIs -->
   </main>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
