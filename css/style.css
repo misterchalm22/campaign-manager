@@ -1,48 +1,194 @@
+:root {
+  --global-text-color: #333;
+  --global-bg-color: #f8fafc;
+  --global-border-color: #dee2e6;
+  --global-link-color: #0d6efd; /* Standard Bootstrap link blue */
+  --global-link-hover-color: #0a58ca; /* Darker blue for hover */
+  --font-family-sans-serif: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
 /* Main styles for TTRPG Campaign Tracker */
 body {
-  font-family: 'Inter', sans-serif;
-  background: #f8fafc; /* Kept as per instruction for desired customization */
-  color: #222; /* Kept as per instruction for desired customization */
+  font-family: var(--font-family-sans-serif);
+  background-color: var(--global-bg-color);
+  color: var(--global-text-color);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  font-size: 1rem; /* Default font size */
+  line-height: 1.6; /* Improved readability */
+  -webkit-font-smoothing: antialiased; /* Smoother fonts on WebKit */
+  -moz-osx-font-smoothing: grayscale; /* Smoother fonts on Firefox */
+}
+
+/* Global Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-family: inherit; /* Use body's font family */
+  font-weight: 700; /* Bolder headings by default */
+  line-height: 1.2;
+  color: #111; /* Slightly darker for headings */
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+h1 { font-size: 2.25rem; } /* Adjusted sizes for a nice hierarchy */
+h2 { font-size: 1.875rem; }
+h3 { font-size: 1.5rem; }
+h4 { font-size: 1.25rem; }
+h5 { font-size: 1.125rem; }
+h6 { font-size: 1rem; }
+
+p {
+  margin-bottom: 1rem;
+}
+
+a {
+  color: var(--global-link-color);
+  text-decoration: none; /* Cleaner look, hover provides affordance */
+  transition: color 0.15s ease-in-out, text-decoration-color 0.15s ease-in-out;
+}
+
+a:hover {
+  color: var(--global-link-hover-color);
+  text-decoration: underline;
+  text-decoration-thickness: 1px; /* Subtle underline */
+}
+
+a:focus-visible { /* Modern focus styling for accessibility */
+  outline: 2px solid var(--global-link-color);
+  outline-offset: 2px;
+  border-radius: 0.125rem; /* Slight rounding on the outline */
+}
+
+
+/* Header styles */
+header {
+  padding-bottom: 1rem !important; 
+  border-bottom: 1px solid var(--global-border-color) !important; /* Use variable */
+  position: sticky; /* Keep header visible */
+  top: 0;
+  background-color: #fff; /* Prevent content overlap */
+  z-index: 1030; /* Ensure header is above sidebar */
+}
+
+/* Sidebar styles */
+#tracker-nav {
+  border-right: 1px solid var(--global-border-color); /* Use variable */
+  padding-top: 1rem; /* Add padding to top */
+  height: 100vh; /* Full height */
+  position: sticky; /* Sticky sidebar */
+  top: 70px; /* Adjust based on actual header height */
+  overflow-y: auto; /* Enable scrolling for long content */
+}
+
+/* Main content styles */
+#main-content {
+  padding: 1.5rem; 
+  flex-grow: 1; 
+  overflow-y: auto; /* Enable scrolling for main content */
+  height: calc(100vh - 70px); /* Adjust based on actual header height */
+}
+
+/* General Modal Styling */
+.modal-content {
+  border-radius: 0.5rem; /* Softer corners */
+  border: none; /* Remove default border if any, rely on shadow */
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15); /* Enhanced shadow */
+}
+
+.modal-header {
+  background-color: var(--global-bg-color); /* Use variable */
+  border-bottom: 1px solid var(--global-border-color); /* Use variable */
+  padding: 1rem 1.5rem;
+}
+
+#genericModalLabel {
+  font-size: 1.25rem; /* Slightly larger title */
+  font-weight: 600; /* Bolder title */
+}
+
+.modal-body {
+  padding: 1.5rem; /* Consistent padding */
+}
+
+.modal-footer {
+  background-color: var(--global-bg-color); /* Use variable */
+  border-top: 1px solid var(--global-border-color); /* Use variable */
+  padding: 1rem 1.5rem;
+  display: flex; /* Ensure proper button alignment */
+  justify-content: flex-end; /* Align buttons to the right */
+}
+
+.modal-footer .btn + .btn {
+  margin-left: 0.5rem; /* Space between buttons */
 }
 
 /* Modal read-only view styles */
 #genericModalBody dl.row dt {
-  font-weight: 600; /* Harmonizing with Bootstrap's bold */
-  margin-right: 0.5rem; /* Spacing from dd */
-  color: #333; /* Good contrast */
+  font-weight: 700; /* Bolder for better emphasis */
+  color: #495057; /* Darker grey for better contrast */
+  margin-bottom: 0.25rem; /* Space below label if stacked */
 }
+
+/* Ensure dt takes full width on smaller screens when stacked */
+@media (max-width: 575.98px) {
+  #genericModalBody dl.row dt {
+    margin-right: 0; /* Remove right margin */
+    margin-bottom: 0.25rem; /* Add bottom margin */
+  }
+}
+
+
 #genericModalBody dl.row dd {
-  line-height: 1.5; /* Improved readability */
-  margin-bottom: 1.25rem; /* Slightly larger bottom margin - specific choice */
+  line-height: 1.6; /* Slightly more line height */
+  margin-bottom: 1rem; /* Consistent bottom margin */
+  color: #343a40; /* Slightly darker text for dd */
 }
+
+#genericModalBody dl.row dd:last-child {
+  margin-bottom: 0; /* No margin for the last item */
+}
+
 #genericModalBody dl.row dd pre {
-  background-color: #f8f9fa;
-  padding: 0.75rem; /* Slightly more padding */
-  border-radius: 0.25rem;
-  border: 1px solid #dee2e6;
-  font-size: 0.9em;
+  background-color: #e9ecef; /* Lighter background for pre - kept specific for contrast */
+  padding: 0.75rem 1rem; /* More horizontal padding */
+  border-radius: 0.3rem; /* Slightly more rounded corners */
+  border: 1px solid var(--global-border-color); /* Use variable */
+  font-size: 0.875em; /* Adjusted font size */
   white-space: pre-wrap;
-  word-wrap: break-word; /* Ensure overflow prevention */
+  word-wrap: break-word;
+  color: #212529; /* Darker text for pre */
 }
 
 /* Styles for Form Elements within Modals */
-/* Rules for generic form elements removed as they are handled by Bootstrap form-control/form-select */
-
-#genericModalBody form textarea {
-  min-height: 80px; /* Provide a decent default size for textareas */
-  resize: vertical; /* Allow vertical resizing */
+#genericModalBody form .form-label {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
 }
 
-/* Button styles removed as they are handled by Bootstrap .btn and .btn-* classes */
+#genericModalBody form .form-control,
+#genericModalBody form .form-select {
+  margin-bottom: 1rem; /* Space below form elements */
+}
+
+#genericModalBody form textarea.form-control {
+  min-height: 100px; /* Increased default size */
+  resize: vertical;
+}
 
 /* Styles for rendered Markdown content */
 .markdown-content {
-  background-color: #f8f9fa;
-  padding: 0.75rem; /* Match pre padding */
-  border-radius: 0.25rem;
-  border: 1px solid #dee2e6;
-  font-size: 0.9em;
-  line-height: 1.5; /* Improved readability */
+  background-color: #fff; /* Cleaner background */
+  padding: 1rem 1.25rem; /* Increased padding */
+  border-radius: 0.3rem; /* Consistent rounded corners */
+  border: 1px solid var(--global-border-color); /* Use variable */
+  font-size: 0.95em; /* Slightly larger base font */
+  line-height: 1.7; /* Improved readability */
+  color: #212529; /* Darker text */
+}
+
+.markdown-content p {
+  margin-bottom: 1rem; /* Consistent paragraph spacing */
 }
 
 .markdown-content p:last-child {
@@ -50,35 +196,83 @@ body {
 }
 
 .markdown-content pre {
-  background-color: #e9ecef; /* Slightly different for nested pre */
-  padding: 0.5rem;
-  border-radius: 0.2rem;
+  background-color: var(--global-bg-color); /* Use variable */
+  padding: 1rem;
+  border-radius: 0.3rem;
+  border: 1px solid var(--global-border-color); /* Use variable */
   white-space: pre-wrap;
+  word-wrap: break-word;
+  font-size: 0.9em; /* Slightly smaller than surrounding text */
+}
+
+.markdown-content code:not(pre code) { /* Target inline code */
+  font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.9em; 
+  color: #c7254e; /* A common color for inline code */
+  background-color: #f9f2f4; /* Light pinkish background */
+  padding: 0.2em 0.4em;
+  border-radius: 0.2rem;
   word-wrap: break-word;
 }
 
-.markdown-content code {
+.markdown-content pre code { /* Code within pre blocks */
   font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  font-size: 0.875em; /* Slightly smaller than surrounding text */
-  color: #d63384; /* Bootstrap's pink for code */
-  word-wrap: break-word;
+  font-size: inherit; /* Inherit from pre */
+  color: inherit; /* Inherit from pre */
+  background-color: transparent; /* No background for code inside pre */
+  padding: 0;
+  border-radius: 0;
 }
+
 
 .markdown-content blockquote {
   font-style: italic;
-  color: #6c757d;
-  padding-left: 1rem;
-  border-left: 0.25rem solid #e9ecef;
+  color: #495057; /* Darker blockquote text */
+  padding: 0.75rem 1.25rem; /* More padding */
   margin-left: 0;
+  margin-right: 0;
+  margin-bottom: 1rem; /* Consistent bottom margin */
+  border-left: 0.3rem solid #adb5bd; /* More prominent border - kept specific for emphasis */
+  background-color: var(--global-bg-color); /* Use variable */
 }
 
 .markdown-content h1, .markdown-content h2, .markdown-content h3, .markdown-content h4, .markdown-content h5, .markdown-content h6 {
-  margin-top: 1rem;
-  margin-bottom: 0.5rem;
-  font-weight: bold;
+  margin-top: 1.5rem; /* More space above headings */
+  margin-bottom: 0.75rem; /* Space below headings */
+  font-weight: 700; /* Bolder headings */
+  color: #343a40; /* Darker heading color */
+}
+
+.markdown-content hr {
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-top: 1px solid var(--global-border-color); /* Use variable */
 }
 
 .markdown-content ul, .markdown-content ol {
-  padding-left: 2rem;
+  padding-left: 1.5rem; /* Slightly reduced padding */
   margin-bottom: 1rem;
+}
+
+.markdown-content li {
+  margin-bottom: 0.25rem; /* Space between list items */
+}
+
+/* Responsive adjustments */
+@media (min-width: 768px) {
+  body {
+    flex-direction: row;
+  }
+
+  #tracker-nav {
+    /* position: sticky; already defined */
+    /* top: 0;  Adjusted for header height */
+    /* height: 100vh; already defined */
+    /* overflow-y: auto; already defined */
+  }
+
+  #main-content {
+    /* height: 100vh; Adjusted for header height */
+    /* overflow-y: auto; already defined */
+  }
 }
