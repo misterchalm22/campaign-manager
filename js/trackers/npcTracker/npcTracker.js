@@ -151,11 +151,18 @@ window.npcTracker.renderNPCListView = function(container, campaign) {
   });
   container.querySelectorAll('[data-delete]').forEach(btn => {
     btn.onclick = () => {
-      if (confirm('Delete this NPC?')) {
-        entries.splice(parseInt(btn.getAttribute('data-delete')), 1);
-        this.saveEntries(campaign, entries);
-        this.renderNPCListView(container, campaign);
-      }
+      const idxToDelete = parseInt(btn.getAttribute('data-delete'));
+      const npcToDelete = entries[idxToDelete];
+      window.modalUtils.showConfirmModal(
+        'Delete NPC',
+        `Are you sure you want to delete NPC: "${window.modalUtils.escapeHtml(npcToDelete.name || 'Unnamed')}"? This action cannot be undone.`,
+        () => { // onConfirm
+          entries.splice(idxToDelete, 1);
+          this.saveEntries(campaign, entries);
+          this.renderNPCListView(container, campaign); // Refresh the list
+        },
+        null // onCancel - do nothing
+      );
     };
   });
 };
@@ -175,7 +182,11 @@ window.npcTracker.renderNPCEntryView = function(npc, campaign, idx) {
   let footer = `<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
     <button type="button" class="btn btn-primary" id="editNPCFromViewBtn">Edit</button>`;
   window.modalUtils.showModal(`View NPC: ${window.modalUtils.escapeHtml(npc.name)}`, html, footer);
-  document.getElementById('editNPCFromViewBtn').onclick = () => {
+  
+  const editButton = document.getElementById('editNPCFromViewBtn');
+  const newEditButton = editButton.cloneNode(true); // Clone to remove old listeners
+  editButton.parentNode.replaceChild(newEditButton, editButton);
+  newEditButton.onclick = () => {
     window.npcTracker.renderNPCFormModal(campaign, idx, true);
   };
 };
@@ -257,34 +268,37 @@ window.npcTracker.renderNPCFormModal = function(campaign, idx, isEditFromView = 
       appearance: simpleMDEInstances.appearance.value().trim(),
       secret: simpleMDEInstances.secret.value().trim()
     };
+
     if (!newNPC.name) {
-      // Clean up SimpleMDE instances before showing alert and returning
-      Object.values(simpleMDEInstances).forEach(sde => {
-        if (sde && sde.toTextArea) {
-          sde.toTextArea();
-        }
+    window.modalUtils.showAlertModal('Validation Error', 'NPC Name is required. Please enter a name for the NPC.', () => {
+      // This callback ensures that if showAlertModal itself is a modal,
+      // focus or other states are correctly handled when it's dismissed.
+      // No SimpleMDE cleanup here, as the form modal should remain open and active.
       });
-      alert('NPC Name is required.');
       return;
     }
+
+  // If validation passes, then proceed to save.
+  // Clean up SimpleMDE instances now that we are sure we are closing the form modal.
+  Object.values(simpleMDEInstances).forEach(sde => {
+    if (sde && sde.toTextArea) {
+      sde.toTextArea();
+    }
+  });
+
     if (idx != null) {
       entries[idx] = newNPC;
     } else {
       entries.push(newNPC);
     }
     window.npcTracker.saveEntries(campaign, entries);
-    // Clean up SimpleMDE instances before hiding modal
-    Object.values(simpleMDEInstances).forEach(sde => {
-      if (sde && sde.toTextArea) {
-        sde.toTextArea();
-      }
-    });
-    window.modalUtils.hideModal();
+  // window.modalUtils.hideModal(); // This will be called after successful save or explicit cancel.
     // Refresh list view
     const mainContent = document.getElementById('main-content');
     if (mainContent) {
       window.npcTracker.renderNPCListView(mainContent, campaign);
     }
+  window.modalUtils.hideModal(); // Hide modal after successful save and list refresh
   };
 };
 })();
