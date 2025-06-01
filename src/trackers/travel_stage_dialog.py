@@ -81,8 +81,8 @@ class TravelStageDialog(QDialog):
             self.pace_combo.setCurrentText(self.stage_data_to_edit.pace)
             self.travel_time_value_spinbox.setValue(self.stage_data_to_edit.travel_time_value)
             self.travel_time_unit_combo.setCurrentText(self.stage_data_to_edit.travel_time_unit)
-            self.narrative_notes_edit.setPlainText(self.stage_data_to_edit.narrative_notes)
-            self.challenges_edit.setPlainText(self.stage_data_to_edit.challenges)
+            self.narrative_notes_edit.setHtml(self.stage_data_to_edit.narrative_notes)
+            self.challenges_edit.setHtml(self.stage_data_to_edit.challenges)
             self.elapsed_time_total_edit.setText(self.stage_data_to_edit.elapsed_time_total)
 
     def get_data(self) -> Optional[TravelStage]:
@@ -111,8 +111,8 @@ class TravelStageDialog(QDialog):
                 pace=self.pace_combo.currentText(),
                 travel_time_value=self.travel_time_value_spinbox.value(),
                 travel_time_unit=self.travel_time_unit_combo.currentText(),
-                narrative_notes=self.narrative_notes_edit.toPlainText().strip(),
-                challenges=self.challenges_edit.toPlainText().strip(),
+                narrative_notes=self.narrative_notes_edit.toHtml().strip(),
+                challenges=self.challenges_edit.toHtml().strip(),
                 elapsed_time_total=self.elapsed_time_total_edit.text().strip()
             )
         return None

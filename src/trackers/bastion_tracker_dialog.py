@@ -49,8 +49,8 @@ class SpecialFacilityDialog(QDialog):
             self.name_edit.setText(self.facility_to_edit.facility_type_name)
             self.space_edit.setText(self.facility_to_edit.space)
             self.order_edit.setText(self.facility_to_edit.order_association)
-            self.hirelings_edit.setPlainText(self.facility_to_edit.hirelings)
-            self.notes_edit.setPlainText(self.facility_to_edit.notes)
+            self.hirelings_edit.setHtml(self.facility_to_edit.hirelings)
+            self.notes_edit.setHtml(self.facility_to_edit.notes)
 
     def _on_save(self):
         name = self.name_edit.text().strip()
@@ -64,8 +64,8 @@ class SpecialFacilityDialog(QDialog):
             name = self.name_edit.text().strip()
             space = self.space_edit.text().strip()
             order = self.order_edit.text().strip()
-            hirelings = self.hirelings_edit.toPlainText().strip()
-            notes = self.notes_edit.toPlainText().strip()
+            hirelings = self.hirelings_edit.toHtml().strip()
+            notes = self.notes_edit.toHtml().strip()
 
             if self.facility_to_edit:
                 self.facility_to_edit.facility_type_name = name
@@ -173,8 +173,8 @@ class BastionEntryDialog(QDialog):
             self.bastion_name_edit.setText(self.bastion_to_edit.bastion_name)
             self.character_name_edit.setText(self.bastion_to_edit.character_name)
             self.level_spinbox.setValue(self.bastion_to_edit.level)
-            self.basic_facilities_edit.setPlainText(self.bastion_to_edit.basic_facilities_desc)
-            self.bastion_defenders_edit.setPlainText(self.bastion_to_edit.bastion_defenders_desc)
+            self.basic_facilities_edit.setHtml(self.bastion_to_edit.basic_facilities_desc)
+            self.bastion_defenders_edit.setHtml(self.bastion_to_edit.bastion_defenders_desc)
             # self.current_facilities is loaded in __init__
             self._refresh_facilities_list()
 
@@ -243,8 +243,8 @@ class BastionEntryDialog(QDialog):
             bastion_name = self.bastion_name_edit.text().strip()
             character_name = self.character_name_edit.text().strip()
             level = self.level_spinbox.value()
-            basic_facilities = self.basic_facilities_edit.toPlainText().strip()
-            bastion_defenders = self.bastion_defenders_edit.toPlainText().strip()
+            basic_facilities = self.basic_facilities_edit.toHtml().strip()
+            bastion_defenders = self.bastion_defenders_edit.toHtml().strip()
 
             if self.bastion_to_edit:
                 self.bastion_to_edit.bastion_name = bastion_name

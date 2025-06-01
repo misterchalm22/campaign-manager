@@ -71,9 +71,9 @@ class CampaignJournalEntryDialog(QDialog):
             else:
                 self.session_date_edit.setDate(QDate.currentDate())
             self.session_title_edit.setText(self.journal_entry_to_edit.session_title)
-            self.earlier_events_edit.setPlainText(self.journal_entry_to_edit.earlier_events)
-            self.planned_summary_edit.setPlainText(self.journal_entry_to_edit.planned_summary)
-            self.additional_notes_edit.setPlainText(self.journal_entry_to_edit.additional_notes)
+            self.earlier_events_edit.setHtml(self.journal_entry_to_edit.earlier_events)
+            self.planned_summary_edit.setHtml(self.journal_entry_to_edit.planned_summary)
+            self.additional_notes_edit.setHtml(self.journal_entry_to_edit.additional_notes)
 
     def _on_save(self):
         session_number = self.session_number_edit.value()
@@ -87,9 +87,9 @@ class CampaignJournalEntryDialog(QDialog):
         # It's good practice to ensure session numbers are unique for a campaign if desired,
         # but the prompt doesn't explicitly ask for this validation. For now, we assume it's okay or handled by user.
 
-        earlier_events = self.earlier_events_edit.toPlainText().strip()
-        planned_summary = self.planned_summary_edit.toPlainText().strip()
-        additional_notes = self.additional_notes_edit.toPlainText().strip()
+        earlier_events = self.earlier_events_edit.toHtml().strip()
+        planned_summary = self.planned_summary_edit.toHtml().strip()
+        additional_notes = self.additional_notes_edit.toHtml().strip()
 
         active_campaign_id = self.parent_main_window.current_campaign_id
         if not active_campaign_id:

@@ -45,7 +45,7 @@ class CampaignConflictEntryDialog(QDialog):
         if self.conflict_to_edit:
             self.title_edit.setText(self.conflict_to_edit.title_identifier)
             self.antagonist_edit.setText(self.conflict_to_edit.antagonist_situation)
-            self.notes_edit.setPlainText(self.conflict_to_edit.notes)
+            self.notes_edit.setHtml(self.conflict_to_edit.notes)
 
     def _on_save(self):
         title = self.title_edit.text().strip()
@@ -62,7 +62,7 @@ class CampaignConflictEntryDialog(QDialog):
         if self.result() == QDialog.DialogCode.Accepted:
             title = self.title_edit.text().strip()
             antagonist = self.antagonist_edit.text().strip()
-            notes = self.notes_edit.toPlainText().strip()
+            notes = self.notes_edit.toHtml().strip()
 
             if self.conflict_to_edit: # Editing existing entry
                 # Update the existing conflict object directly

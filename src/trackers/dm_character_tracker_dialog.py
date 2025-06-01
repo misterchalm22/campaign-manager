@@ -115,19 +115,19 @@ class DMCharacterEntryDialog(QDialog):
             for motivation, checkbox in self.motivation_checkboxes.items():
                 checkbox.setChecked(motivation in self.entry_to_edit.player_motivations)
 
-            self.notes_on_player_expectations_edit.setPlainText(self.entry_to_edit.notes_on_player_expectations)
+            self.notes_on_player_expectations_edit.setHtml(self.entry_to_edit.notes_on_player_expectations)
             self.char_class_edit.setText(self.entry_to_edit.char_class)
             self.subclass_edit.setText(self.entry_to_edit.subclass)
             self.level_spinbox.setValue(self.entry_to_edit.level)
             self.background_edit.setText(self.entry_to_edit.background)
             self.species_race_edit.setText(self.entry_to_edit.species_race)
             self.alignment_edit.setText(self.entry_to_edit.alignment)
-            self.goals_ambitions_edit.setPlainText(self.entry_to_edit.goals_ambitions)
-            self.quirks_whims_edit.setPlainText(self.entry_to_edit.quirks_whims)
-            self.magic_items_owned_edit.setPlainText(self.entry_to_edit.magic_items_owned)
-            self.character_details_edit.setPlainText(self.entry_to_edit.character_details)
-            self.family_friends_foes_edit.setPlainText(self.entry_to_edit.family_friends_foes)
-            self.adventure_ideas_edit.setPlainText(self.entry_to_edit.adventure_ideas)
+            self.goals_ambitions_edit.setHtml(self.entry_to_edit.goals_ambitions)
+            self.quirks_whims_edit.setHtml(self.entry_to_edit.quirks_whims)
+            self.magic_items_owned_edit.setHtml(self.entry_to_edit.magic_items_owned)
+            self.character_details_edit.setHtml(self.entry_to_edit.character_details)
+            self.family_friends_foes_edit.setHtml(self.entry_to_edit.family_friends_foes)
+            self.adventure_ideas_edit.setHtml(self.entry_to_edit.adventure_ideas)
 
     def _on_save(self):
         character_name = self.character_name_edit.text().strip()
@@ -142,19 +142,19 @@ class DMCharacterEntryDialog(QDialog):
             if checkbox.isChecked():
                 selected_motivations.append(motivation)
 
-        notes_on_player_expectations = self.notes_on_player_expectations_edit.toPlainText().strip()
+        notes_on_player_expectations = self.notes_on_player_expectations_edit.toHtml().strip()
         char_class = self.char_class_edit.text().strip()
         subclass = self.subclass_edit.text().strip()
         level = self.level_spinbox.value()
         background = self.background_edit.text().strip()
         species_race = self.species_race_edit.text().strip()
         alignment = self.alignment_edit.text().strip()
-        goals_ambitions = self.goals_ambitions_edit.toPlainText().strip()
-        quirks_whims = self.quirks_whims_edit.toPlainText().strip()
-        magic_items_owned = self.magic_items_owned_edit.toPlainText().strip()
-        character_details = self.character_details_edit.toPlainText().strip()
-        family_friends_foes = self.family_friends_foes_edit.toPlainText().strip()
-        adventure_ideas = self.adventure_ideas_edit.toPlainText().strip()
+        goals_ambitions = self.goals_ambitions_edit.toHtml().strip()
+        quirks_whims = self.quirks_whims_edit.toHtml().strip()
+        magic_items_owned = self.magic_items_owned_edit.toHtml().strip()
+        character_details = self.character_details_edit.toHtml().strip()
+        family_friends_foes = self.family_friends_foes_edit.toHtml().strip()
+        adventure_ideas = self.adventure_ideas_edit.toHtml().strip()
 
         active_campaign_id = self.parent_main_window.current_campaign_id
         if not active_campaign_id:

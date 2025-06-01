@@ -86,9 +86,9 @@ class GameExpectationsEntryDialog(QDialog):
         if self.entry_to_edit:
             self.dm_name_edit.setText(self.entry_to_edit.dm_name)
             self.player_name_edit.setText(self.entry_to_edit.player_name)
-            self.game_theme_flavor_edit.setPlainText(self.entry_to_edit.game_theme_flavor)
-            self.player_hopes_edit.setPlainText(self.entry_to_edit.player_hopes)
-            self.at_table_concerns_edit.setPlainText(self.entry_to_edit.at_table_concerns)
+            self.game_theme_flavor_edit.setHtml(self.entry_to_edit.game_theme_flavor)
+            self.player_hopes_edit.setHtml(self.entry_to_edit.player_hopes)
+            self.at_table_concerns_edit.setHtml(self.entry_to_edit.at_table_concerns)
 
             self.sensitive_elements_table.setRowCount(0) # Clear table first
             for element in self.entry_to_edit.sensitive_elements:
@@ -138,9 +138,9 @@ class GameExpectationsEntryDialog(QDialog):
             return
 
         dm_name = self.dm_name_edit.text().strip()
-        game_theme_flavor = self.game_theme_flavor_edit.toPlainText().strip()
-        player_hopes = self.player_hopes_edit.toPlainText().strip()
-        at_table_concerns = self.at_table_concerns_edit.toPlainText().strip()
+        game_theme_flavor = self.game_theme_flavor_edit.toHtml().strip()
+        player_hopes = self.player_hopes_edit.toHtml().strip()
+        at_table_concerns = self.at_table_concerns_edit.toHtml().strip()
 
         collected_sensitive_elements: List[SensitiveElement] = []
         for row in range(self.sensitive_elements_table.rowCount()):

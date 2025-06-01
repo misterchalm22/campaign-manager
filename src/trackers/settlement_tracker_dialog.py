@@ -74,12 +74,12 @@ class SettlementEntryDialog(QDialog):
             else: # Fallback if data is inconsistent, or use first option
                 self.size_combo.setCurrentIndex(0)
 
-            self.defining_trait_edit.setPlainText(self.settlement_entry_to_edit.defining_trait)
-            self.claim_to_fame_edit.setPlainText(self.settlement_entry_to_edit.claim_to_fame)
-            self.current_calamity_edit.setPlainText(self.settlement_entry_to_edit.current_calamity)
+            self.defining_trait_edit.setHtml(self.settlement_entry_to_edit.defining_trait)
+            self.claim_to_fame_edit.setHtml(self.settlement_entry_to_edit.claim_to_fame)
+            self.current_calamity_edit.setHtml(self.settlement_entry_to_edit.current_calamity)
             self.local_leader_edit.setText(self.settlement_entry_to_edit.local_leader)
-            self.noteworthy_people_edit.setPlainText(self.settlement_entry_to_edit.noteworthy_people)
-            self.noteworthy_places_edit.setPlainText(self.settlement_entry_to_edit.noteworthy_places)
+            self.noteworthy_people_edit.setHtml(self.settlement_entry_to_edit.noteworthy_people)
+            self.noteworthy_places_edit.setHtml(self.settlement_entry_to_edit.noteworthy_places)
             self.gp_value_edit.setText(self.settlement_entry_to_edit.gp_value_most_expensive_item)
 
     def _on_save(self):
@@ -89,12 +89,12 @@ class SettlementEntryDialog(QDialog):
             return
 
         size = self.size_combo.currentText()
-        defining_trait = self.defining_trait_edit.toPlainText().strip()
-        claim_to_fame = self.claim_to_fame_edit.toPlainText().strip()
-        current_calamity = self.current_calamity_edit.toPlainText().strip()
+        defining_trait = self.defining_trait_edit.toHtml().strip()
+        claim_to_fame = self.claim_to_fame_edit.toHtml().strip()
+        current_calamity = self.current_calamity_edit.toHtml().strip()
         local_leader = self.local_leader_edit.text().strip()
-        noteworthy_people = self.noteworthy_people_edit.toPlainText().strip()
-        noteworthy_places = self.noteworthy_places_edit.toPlainText().strip()
+        noteworthy_people = self.noteworthy_people_edit.toHtml().strip()
+        noteworthy_places = self.noteworthy_places_edit.toHtml().strip()
         gp_value = self.gp_value_edit.text().strip()
 
         active_campaign_id = self.parent_main_window.current_campaign_id

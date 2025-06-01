@@ -63,11 +63,11 @@ class NPCEntryDialog(QDialog):
             self.name_edit.setText(self.npc_entry_to_edit.name)
             self.stat_block_source_edit.setText(self.npc_entry_to_edit.stat_block_source)
             self.mm_page_edit.setText(self.npc_entry_to_edit.mm_page)
-            self.stat_block_alterations_edit.setPlainText(self.npc_entry_to_edit.stat_block_alterations)
+            self.stat_block_alterations_edit.setHtml(self.npc_entry_to_edit.stat_block_alterations)
             self.alignment_edit.setText(self.npc_entry_to_edit.alignment)
-            self.personality_edit.setPlainText(self.npc_entry_to_edit.personality)
-            self.appearance_edit.setPlainText(self.npc_entry_to_edit.appearance)
-            self.secret_edit.setPlainText(self.npc_entry_to_edit.secret)
+            self.personality_edit.setHtml(self.npc_entry_to_edit.personality)
+            self.appearance_edit.setHtml(self.npc_entry_to_edit.appearance)
+            self.secret_edit.setHtml(self.npc_entry_to_edit.secret)
 
     def _on_save(self):
         name = self.name_edit.text().strip()
@@ -77,11 +77,11 @@ class NPCEntryDialog(QDialog):
 
         stat_block_source = self.stat_block_source_edit.text().strip()
         mm_page = self.mm_page_edit.text().strip()
-        stat_block_alterations = self.stat_block_alterations_edit.toPlainText().strip()
+        stat_block_alterations = self.stat_block_alterations_edit.toHtml().strip()
         alignment = self.alignment_edit.text().strip()
-        personality = self.personality_edit.toPlainText().strip()
-        appearance = self.appearance_edit.toPlainText().strip()
-        secret = self.secret_edit.toPlainText().strip()
+        personality = self.personality_edit.toHtml().strip()
+        appearance = self.appearance_edit.toHtml().strip()
+        secret = self.secret_edit.toHtml().strip()
 
         active_campaign_id = self.parent_main_window.current_campaign_id
         if not active_campaign_id:
