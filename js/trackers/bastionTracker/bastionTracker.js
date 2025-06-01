@@ -44,11 +44,19 @@ window.bastionTracker = {
     });
     container.querySelectorAll('[data-delete]').forEach(btn => {
       btn.onclick = () => {
-        if (confirm('Delete this bastion?')) {
-          entries.splice(parseInt(btn.getAttribute('data-delete')), 1);
-          this.saveEntries(campaign, entries);
-          this.renderBastionList(container, campaign);
-        }
+        const indexToDelete = parseInt(btn.getAttribute('data-delete'));
+        const bastionName = entries[indexToDelete] ? entries[indexToDelete].name : 'this bastion';
+        const bastionNameEscaped = window.modalUtils.escapeHtml(bastionName);
+        window.modalUtils.showConfirmModal(
+          'Delete Bastion',
+          `Are you sure you want to delete "${bastionNameEscaped}"? This action cannot be undone.`,
+          () => { // onConfirm
+            entries.splice(indexToDelete, 1);
+            this.saveEntries(campaign, entries);
+            this.renderBastionList(container, campaign);
+          },
+          null // onCancel
+        );
       };
     });
   },
@@ -304,7 +312,7 @@ window.bastionTracker = {
         defenders: form.defenders.value.trim()
       };
       if (!newBastion.bastionName) {
-        alert('Bastion Name is required.');
+        window.modalUtils.showAlertModal('Validation Error', 'Bastion Name is required.', null);
         return;
       }
       if (idx != null) {

@@ -195,7 +195,7 @@ window.dmCharacterTracker = {
         adventureIdeas: form.adventureIdeas.value.trim()
       };
       if (!newChar.characterName) {
-        alert('Character Name is required.');
+        window.modalUtils.showAlertModal('Validation Error', 'Character Name is required.', null);
         return;
       }
       if (idx != null) {
@@ -243,11 +243,19 @@ window.dmCharacterTracker = {
     });
     container.querySelectorAll('[data-delete]').forEach(btn => {
       btn.onclick = () => {
-        if (confirm('Delete this character?')) {
-          entries.splice(parseInt(btn.getAttribute('data-delete')), 1);
-          this.saveEntries(campaign, entries);
-          this.renderDMCharacterList(container, campaign);
-        }
+        const indexToDelete = parseInt(btn.getAttribute('data-delete'));
+        const characterName = entries[indexToDelete] && entries[indexToDelete].name ? entries[indexToDelete].name : 'this character';
+        const characterNameEscaped = window.modalUtils.escapeHtml(characterName);
+        window.modalUtils.showConfirmModal(
+          'Delete Character',
+          `Are you sure you want to delete the character "${characterNameEscaped}"? This action cannot be undone.`,
+          () => { // onConfirm
+            entries.splice(indexToDelete, 1);
+            this.saveEntries(campaign, entries);
+            this.renderCharacterList(container, campaign);
+          },
+          null // onCancel
+        );
       };
     });
   },

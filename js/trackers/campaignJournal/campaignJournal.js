@@ -41,11 +41,19 @@ window.campaignJournal = {
     });
     container.querySelectorAll('[data-delete]').forEach(btn => {
       btn.onclick = () => {
-        if (confirm('Delete this journal entry?')) {
-          entries.splice(parseInt(btn.getAttribute('data-delete')), 1);
-          this.saveEntries(campaign, entries);
-          this.renderJournalList(container, campaign);
-        }
+        const indexToDelete = parseInt(btn.getAttribute('data-delete'));
+        const entryTitle = entries[indexToDelete] && entries[indexToDelete].title ? entries[indexToDelete].title : 'this journal entry';
+        const entryTitleEscaped = window.modalUtils.escapeHtml(entryTitle);
+        window.modalUtils.showConfirmModal(
+          'Delete Journal Entry',
+          `Are you sure you want to delete the journal entry "${entryTitleEscaped}"? This action cannot be undone.`,
+          () => { // onConfirm
+            entries.splice(indexToDelete, 1);
+            this.saveEntries(campaign, entries);
+            this.renderJournalList(container, campaign);
+          },
+          null // onCancel
+        );
       };
     });
   },
@@ -239,13 +247,8 @@ window.campaignJournal = {
         notes: simpleMDEInstances.notes.value().trim()
       };
       if (!newEntry.sessionNumber) {
-        // Clean up SimpleMDE instances before showing alert and returning
-        Object.values(simpleMDEInstances).forEach(sde => {
-          if (sde && sde.toTextArea) {
-            sde.toTextArea();
-          }
-        });
-        alert('Session Number is required.');
+        // No SimpleMDE cleanup here, as the form modal should remain open and active.
+        window.modalUtils.showAlertModal('Validation Error', 'Session Number is required.', null);
         return;
       }
       if (idx != null) {

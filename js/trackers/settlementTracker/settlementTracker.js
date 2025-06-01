@@ -42,11 +42,19 @@ window.settlementTracker = {
     });
     container.querySelectorAll('[data-delete]').forEach(btn => {
       btn.onclick = () => {
-        if (confirm('Delete this settlement?')) {
-          entries.splice(parseInt(btn.getAttribute('data-delete')), 1);
-          this.saveEntries(campaign, entries);
-          this.renderSettlementList(container, campaign);
-        }
+        const indexToDelete = parseInt(btn.getAttribute('data-delete'));
+        const settlementName = entries[indexToDelete] && entries[indexToDelete].name ? entries[indexToDelete].name : 'this settlement';
+        const settlementNameEscaped = window.modalUtils.escapeHtml(settlementName);
+        window.modalUtils.showConfirmModal(
+          'Delete Settlement',
+          `Are you sure you want to delete the settlement "${settlementNameEscaped}"? This action cannot be undone.`,
+          () => { // onConfirm
+            entries.splice(indexToDelete, 1);
+            this.saveEntries(campaign, entries);
+            this.renderSettlementList(container, campaign);
+          },
+          null // onCancel
+        );
       };
     });
   },
@@ -259,7 +267,7 @@ window.settlementTracker = {
         gpValue: form.gpValue.value.trim()
       };
       if (!newSettlement.name) {
-        alert('Settlement Name is required.');
+        window.modalUtils.showAlertModal('Validation Error', 'Settlement Name is required.', null);
         return;
       }
       if (idx != null) {

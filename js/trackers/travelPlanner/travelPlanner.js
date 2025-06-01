@@ -191,11 +191,20 @@ window.travelPlanner = {
     });
     container.querySelectorAll('[data-delete]').forEach(btn => {
       btn.onclick = () => {
-        if (confirm('Delete this journey?')) {
-          entries.splice(parseInt(btn.getAttribute('data-delete')), 1);
-          this.saveEntries(campaign, entries);
-          this.renderTravelPlannerListView(container, campaign);
-        }
+        const indexToDelete = parseInt(btn.getAttribute('data-delete'));
+        // Assuming journeys have a 'name' or 'destination' or some identifiable field. Using 'name' as a placeholder.
+        const journeyName = entries[indexToDelete] && entries[indexToDelete].name ? entries[indexToDelete].name : 'this journey';
+        const journeyNameEscaped = window.modalUtils.escapeHtml(journeyName);
+        window.modalUtils.showConfirmModal(
+          'Delete Journey',
+          `Are you sure you want to delete the journey "${journeyNameEscaped}"? This action cannot be undone.`,
+          () => { // onConfirm
+            entries.splice(indexToDelete, 1);
+            this.saveEntries(campaign, entries);
+            this.renderJourneyList(container, campaign);
+          },
+          null // onCancel
+        );
       };
     });
   },
@@ -335,7 +344,7 @@ window.travelPlanner = {
         stages: journey.stages
       };
       if (!newJourney.name) {
-        alert('Journey Name is required.');
+        window.modalUtils.showAlertModal('Validation Error', 'Journey Name is required.', null);
         return;
       }
       if (idx != null) {

@@ -126,11 +126,19 @@ window.campaignConflicts = {
     });
     container.querySelectorAll('[data-delete]').forEach(btn => {
       btn.onclick = () => {
-        if (confirm('Delete this conflict?')) {
-          conflicts.splice(parseInt(btn.getAttribute('data-delete')), 1);
-          this.saveConflicts(campaign, conflicts);
-          this.renderCampaignConflictsListView(container, campaign);
-        }
+        const indexToDelete = parseInt(btn.getAttribute('data-delete'));
+        const conflictName = entries[indexToDelete] && entries[indexToDelete].name ? entries[indexToDelete].name : 'this conflict';
+        const conflictNameEscaped = window.modalUtils.escapeHtml(conflictName);
+        window.modalUtils.showConfirmModal(
+          'Delete Conflict',
+          `Are you sure you want to delete the conflict "${conflictNameEscaped}"? This action cannot be undone.`,
+          () => { // onConfirm
+            entries.splice(indexToDelete, 1);
+            this.saveEntries(campaign, entries);
+            this.renderConflictList(container, campaign);
+          },
+          null // onCancel
+        );
       };
     });
   },
@@ -182,7 +190,7 @@ window.campaignConflicts = {
         notes: form.notes.value.trim()
       };
       if (!newConflict.title) {
-        alert('Conflict Title is required.');
+        window.modalUtils.showAlertModal('Validation Error', 'Conflict Title is required.', null);
         return;
       }
       if (idx != null) {

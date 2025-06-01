@@ -176,11 +176,20 @@ window.gameExpectations = {
     });
     container.querySelectorAll('[data-delete]').forEach(btn => {
       btn.onclick = () => {
-        if (confirm('Delete this entry?')) {
-          entries.splice(parseInt(btn.getAttribute('data-delete')), 1);
-          this.saveEntries(campaign, entries);
-          this.renderGameExpectationsListView(container, campaign);
-        }
+        const indexToDelete = parseInt(btn.getAttribute('data-delete'));
+        // Assuming entries have a 'type' or 'description' or some identifiable field. Using 'description' as a placeholder.
+        const entryDesc = entries[indexToDelete] && entries[indexToDelete].description ? entries[indexToDelete].description : 'this entry';
+        const entryDescEscaped = window.modalUtils.escapeHtml(entryDesc);
+        window.modalUtils.showConfirmModal(
+          'Delete Expectation Entry',
+          `Are you sure you want to delete the entry: "${entryDescEscaped}"? This action cannot be undone.`,
+          () => { // onConfirm
+            entries.splice(indexToDelete, 1);
+            this.saveEntries(campaign, entries);
+            this.renderExpectationsList(container, campaign);
+          },
+          null // onCancel
+        );
       };
     });
   },
@@ -295,7 +304,7 @@ window.gameExpectations = {
         concerns: form.concerns.value.trim()
       };
       if (!newEntry.playerName) {
-        alert('Player Name is required.');
+        window.modalUtils.showAlertModal('Validation Error', 'Player Name is required.', null);
         return;
       }
       if (idx != null) {
