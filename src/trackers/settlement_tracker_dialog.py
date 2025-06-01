@@ -1,8 +1,10 @@
 from typing import Optional
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QFormLayout, QLineEdit, QTextEdit,
-    QPushButton, QMessageBox, QDialogButtonBox, QComboBox
+    QPushButton, QMessageBox, QDialogButtonBox, QComboBox,
+    QSizeGrip, QHBoxLayout
 )
+from PySide6.QtCore import Qt # Import Qt
 from src.data_models import SettlementEntry
 
 SETTLEMENT_SIZE_OPTIONS = [
@@ -24,7 +26,7 @@ class SettlementEntryDialog(QDialog):
             self.setWindowTitle("Add New Settlement")
 
         self.setModal(True)
-        self.setMinimumWidth(500) # Increased width for QTextEdit fields
+        self.setMinimumWidth(450) # Adjusted minimum width
 
         layout = QVBoxLayout(self)
         form_layout = QFormLayout()
@@ -57,6 +59,13 @@ class SettlementEntryDialog(QDialog):
         self.button_box.accepted.connect(self._on_save)
         self.button_box.rejected.connect(self.reject)
         layout.addWidget(self.button_box)
+
+        # Add QSizeGrip for resizing
+        sizegrip_layout = QHBoxLayout()
+        sizegrip_layout.addStretch(1)
+        self.size_grip = QSizeGrip(self)
+        sizegrip_layout.addWidget(self.size_grip, 0, Qt.AlignBottom | Qt.AlignRight)
+        layout.addLayout(sizegrip_layout)
 
         if self.settlement_entry_to_edit:
             self._load_settlement_data()

@@ -50,8 +50,9 @@ TRACKER_NAMES = [
 DATA_FILE_NAME = "ttrpg_campaign_data.json"
 
 class MainWindow(QMainWindow):
-    def __init__(self, app_data_path: Optional[str] = None):
+    def __init__(self, app, app_data_path: Optional[str] = None): # Added 'app' parameter
         super().__init__()
+        self.parent_app = app # Store the app instance
         self.setWindowTitle("TTRPG Campaign Tracker")
         self.setGeometry(100, 100, 1200, 800)
 
@@ -66,6 +67,7 @@ class MainWindow(QMainWindow):
         self._load_app_data() # Load data and populate campaign selector
         self._connect_signals()
         self._update_tracker_nav_status() # Initial status update
+        self._load_and_apply_stylesheet() # Apply QSS
 
     def _init_ui(self):
         # Central Widget and Main Layout
@@ -419,6 +421,21 @@ class MainWindow(QMainWindow):
         self._save_app_data()
         super().closeEvent(event)
 
+    def _load_and_apply_stylesheet(self):
+        stylesheet_path = os.path.join(os.path.dirname(__file__), "modern_style.qss")
+        try:
+            with open(stylesheet_path, "r") as f:
+                style = f.read()
+            self.parent_app.setStyleSheet(style) # Assuming parent_app is the QApplication instance
+            print("Stylesheet applied successfully.") # For debugging
+        except FileNotFoundError:
+            print(f"Stylesheet file not found at {stylesheet_path}") # For debugging
+            QMessageBox.warning(self, "Stylesheet Error", f"Could not load stylesheet: {stylesheet_path}")
+        except Exception as e:
+            print(f"Error loading stylesheet: {e}") # For debugging
+            QMessageBox.warning(self, "Stylesheet Error", f"An error occurred while loading stylesheet: {e}")
+
+
 if __name__ == '__main__': # Basic test
     # This is for direct testing of main_window.py. app.py is the main entry point.
     app = QApplication(sys.argv)
@@ -428,7 +445,7 @@ if __name__ == '__main__': # Basic test
     # initial_test_data = ApplicationData()
     # save_data(initial_test_data, test_data_path)
 
-    main_win = MainWindow() # MainWindow(app_data_path=test_data_path)
+    main_win = MainWindow(app) # Pass app instance, MainWindow(app, app_data_path=test_data_path)
     main_win.show()
     exit_code = app.exec()
 

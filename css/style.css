@@ -90,41 +90,74 @@ header {
 }
 
 /* General Modal Styling */
-.modal-content {
-  border-radius: 0.5rem; /* Softer corners */
-  border: none; /* Remove default border if any, rely on shadow */
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15); /* Enhanced shadow */
+#genericModal .modal-dialog {
+  resize: both; /* Allow horizontal and vertical resizing */
+  overflow: auto; /* Show scrollbars if content overflows after resize */
+  min-width: 300px; /* Prevent resizing to be too small */
+  min-height: 200px; /* Prevent resizing to be too small */
 }
 
-.modal-header {
-  background-color: var(--global-bg-color); /* Use variable */
-  border-bottom: 1px solid var(--global-border-color); /* Use variable */
-  padding: 1rem 1.5rem;
+#genericModal .modal-content {
+  border-radius: 0.75rem; /* Slightly larger radius for a softer, modern look */
+  box-shadow: 0 0.75rem 1.5rem rgba(0, 0, 0, 0.2); /* Deeper, softer shadow */
+  border: none; /* Ensured */
 }
 
-#genericModalLabel {
-  font-size: 1.25rem; /* Slightly larger title */
-  font-weight: 600; /* Bolder title */
+#genericModal .modal-header {
+  background-color: #f1f3f5; /* A lighter, modern off-white/grey */
+  color: #212529; /* Darker text for better contrast */
+  border-bottom: 1px solid #ced4da; /* Slightly lighter border */
+  padding: 1rem 1.5rem; /* Ensured */
 }
 
-.modal-body {
-  padding: 1.5rem; /* Consistent padding */
+#genericModal #genericModalLabel {
+  font-size: 1.35rem; /* Slightly larger title */
+  font-weight: 600; /* Ensured */
 }
 
-.modal-footer {
-  background-color: var(--global-bg-color); /* Use variable */
-  border-top: 1px solid var(--global-border-color); /* Use variable */
-  padding: 1rem 1.5rem;
+#genericModal .modal-body {
+  padding: 1.5rem; /* Ensured */
+  background-color: #fff; /* Consider a slightly lighter background if needed for content sections */
+}
+
+#genericModal .modal-footer {
+  background-color: #f1f3f5; /* Consistent with header */
+  border-top: 1px solid #ced4da; /* Consistent with header */
+  padding: 1rem 1.5rem; /* Ensured */
   display: flex; /* Ensure proper button alignment */
   justify-content: flex-end; /* Align buttons to the right */
 }
 
-.modal-footer .btn + .btn {
+#genericModal .modal-footer .btn {
+  border-radius: 0.375rem; /* Bootstrap 5 default, but ensure consistency */
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+}
+
+#genericModal .modal-footer .btn-primary {
+  background-color: #007bff;
+  color: white;
+}
+
+#genericModal .modal-footer .btn-primary:hover {
+  background-color: #0056b3;
+}
+
+#genericModal .modal-footer .btn-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+#genericModal .modal-footer .btn-secondary:hover {
+  background-color: #545b62;
+}
+
+#genericModal .modal-footer .btn + .btn {
   margin-left: 0.5rem; /* Space between buttons */
 }
 
 /* Modal read-only view styles */
-#genericModalBody dl.row dt {
+#genericModal .modal-body dl.row dt { /* Ensured #genericModal prefix */
   font-weight: 700; /* Bolder for better emphasis */
   color: #495057; /* Darker grey for better contrast */
   margin-bottom: 0.25rem; /* Space below label if stacked */
@@ -132,24 +165,24 @@ header {
 
 /* Ensure dt takes full width on smaller screens when stacked */
 @media (max-width: 575.98px) {
-  #genericModalBody dl.row dt {
+  #genericModal .modal-body dl.row dt { /* Ensured #genericModal prefix */
     margin-right: 0; /* Remove right margin */
     margin-bottom: 0.25rem; /* Add bottom margin */
   }
 }
 
 
-#genericModalBody dl.row dd {
+#genericModal .modal-body dl.row dd { /* Ensured #genericModal prefix */
   line-height: 1.6; /* Slightly more line height */
   margin-bottom: 1rem; /* Consistent bottom margin */
   color: #343a40; /* Slightly darker text for dd */
 }
 
-#genericModalBody dl.row dd:last-child {
+#genericModal .modal-body dl.row dd:last-child { /* Ensured #genericModal prefix */
   margin-bottom: 0; /* No margin for the last item */
 }
 
-#genericModalBody dl.row dd pre {
+#genericModal .modal-body dl.row dd pre { /* Ensured #genericModal prefix */
   background-color: #e9ecef; /* Lighter background for pre - kept specific for contrast */
   padding: 0.75rem 1rem; /* More horizontal padding */
   border-radius: 0.3rem; /* Slightly more rounded corners */
@@ -161,17 +194,17 @@ header {
 }
 
 /* Styles for Form Elements within Modals */
-#genericModalBody form .form-label {
+#genericModal .form-label { /* Changed to be more generic for #genericModal */
   font-weight: 600;
   margin-bottom: 0.5rem;
 }
 
-#genericModalBody form .form-control,
-#genericModalBody form .form-select {
+#genericModal .form-control, /* Changed to be more generic for #genericModal */
+#genericModal .form-select { /* Changed to be more generic for #genericModal */
   margin-bottom: 1rem; /* Space below form elements */
 }
 
-#genericModalBody form textarea.form-control {
+#genericModal textarea.form-control { /* Changed to be more generic for #genericModal */
   min-height: 100px; /* Increased default size */
   resize: vertical;
 }

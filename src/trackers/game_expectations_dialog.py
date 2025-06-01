@@ -3,7 +3,7 @@ from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QFormLayout, QLineEdit, QTextEdit,
     QPushButton, QMessageBox, QDialogButtonBox, QTableWidget,
     QTableWidgetItem, QCheckBox, QHeaderView, QGroupBox, QHBoxLayout,
-    QWidget
+    QWidget, QSizeGrip
 )
 from PySide6.QtCore import Qt
 from src.data_models import GameExpectationsEntry, SensitiveElement
@@ -21,7 +21,7 @@ class GameExpectationsEntryDialog(QDialog):
             self.setWindowTitle("Add New Player Expectations")
 
         self.setModal(True)
-        self.setMinimumWidth(550) # Adjusted for content
+        self.setMinimumWidth(500) # Adjusted minimum width
 
         main_layout = QVBoxLayout(self)
 
@@ -65,6 +65,13 @@ class GameExpectationsEntryDialog(QDialog):
         # Dialog Buttons
         self.button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel)
         main_layout.addWidget(self.button_box)
+
+        # Add QSizeGrip for resizing
+        sizegrip_layout = QHBoxLayout()
+        sizegrip_layout.addStretch(1)
+        self.size_grip = QSizeGrip(self)
+        sizegrip_layout.addWidget(self.size_grip, 0, Qt.AlignBottom | Qt.AlignRight)
+        main_layout.addLayout(sizegrip_layout)
 
         # Connect signals
         self.add_sensitive_btn.clicked.connect(lambda: self._add_sensitive_element_row())

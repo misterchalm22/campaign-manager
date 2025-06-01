@@ -2,7 +2,7 @@ from typing import Optional, List, Dict
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QFormLayout, QLineEdit, QTextEdit,
     QPushButton, QMessageBox, QDialogButtonBox, QSpinBox, QCheckBox,
-    QGroupBox, QGridLayout, QScrollArea, QWidget
+    QGroupBox, QGridLayout, QScrollArea, QWidget, QSizeGrip, QHBoxLayout
 )
 from PySide6.QtCore import Qt
 from src.data_models import DMCharacterEntry
@@ -25,7 +25,7 @@ class DMCharacterEntryDialog(QDialog):
             self.setWindowTitle("Add New Player Character (PC)")
 
         self.setModal(True)
-        self.setMinimumWidth(500) # Good starting width
+        self.setMinimumWidth(450) # Adjusted minimum width
 
         # Main layout for the dialog
         main_dialog_layout = QVBoxLayout(self)
@@ -99,6 +99,13 @@ class DMCharacterEntryDialog(QDialog):
         # Dialog Buttons
         self.button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel)
         main_dialog_layout.addWidget(self.button_box) # Add button box to main dialog layout, not scroll
+
+        # Add QSizeGrip for resizing
+        sizegrip_layout = QHBoxLayout()
+        sizegrip_layout.addStretch(1)
+        self.size_grip = QSizeGrip(self)
+        sizegrip_layout.addWidget(self.size_grip, 0, Qt.AlignBottom | Qt.AlignRight)
+        main_dialog_layout.addLayout(sizegrip_layout)
 
         # Connect signals
         self.button_box.accepted.connect(self._on_save)

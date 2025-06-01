@@ -2,7 +2,7 @@ from typing import Optional, List, cast
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QFormLayout, QLineEdit, QTextEdit,
     QPushButton, QMessageBox, QDialogButtonBox, QSpinBox, QGroupBox,
-    QListWidget, QListWidgetItem
+    QListWidget, QListWidgetItem, QSizeGrip
 )
 from PySide6.QtCore import Qt, Slot
 from src.data_models import BastionEntry, BastionFacility # Use existing models
@@ -18,7 +18,7 @@ class SpecialFacilityDialog(QDialog):
             self.setWindowTitle("Add New Special Facility")
 
         self.setModal(True)
-        self.setMinimumWidth(400)
+        self.setMinimumWidth(350) # Adjusted minimum width
 
         layout = QVBoxLayout(self)
         form_layout = QFormLayout()
@@ -40,6 +40,13 @@ class SpecialFacilityDialog(QDialog):
         self.button_box.accepted.connect(self._on_save)
         self.button_box.rejected.connect(self.reject)
         layout.addWidget(self.button_box)
+
+        # Add QSizeGrip for resizing
+        sizegrip_layout = QHBoxLayout()
+        sizegrip_layout.addStretch(1)
+        self.size_grip = QSizeGrip(self)
+        sizegrip_layout.addWidget(self.size_grip, 0, Qt.AlignBottom | Qt.AlignRight)
+        layout.addLayout(sizegrip_layout)
 
         if self.facility_to_edit:
             self._load_facility_data()
@@ -105,7 +112,7 @@ class BastionEntryDialog(QDialog):
             self.setWindowTitle("Add New Bastion")
 
         self.setModal(True)
-        self.setMinimumWidth(550)
+        self.setMinimumWidth(500) # Adjusted minimum width
 
         main_layout = QVBoxLayout(self)
 
@@ -153,6 +160,13 @@ class BastionEntryDialog(QDialog):
         # Dialog Buttons
         self.button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel)
         main_layout.addWidget(self.button_box)
+
+        # Add QSizeGrip for resizing
+        sizegrip_container = QHBoxLayout()
+        sizegrip_container.addStretch(1)
+        self.size_grip_main = QSizeGrip(self) # Use a different variable name if self.size_grip is already used
+        sizegrip_container.addWidget(self.size_grip_main, 0, Qt.AlignBottom | Qt.AlignRight)
+        main_layout.addLayout(sizegrip_container)
 
         # Connect signals
         self.add_facility_btn.clicked.connect(self._on_add_facility)
@@ -267,7 +281,7 @@ class BastionEntryDialog(QDialog):
         return None
 
 if __name__ == '__main__':
-    from PySide6.QtWidgets import QApplication
+    from PySide6.QtWidgets import QApplication, QWidget
     # Mock main_window for dialog testing context
     class MockParentWidget(QWidget):
         def __init__(self):
@@ -275,7 +289,7 @@ if __name__ == '__main__':
             # Mimic main_window structure if dialogs need it (not directly for these dialogs)
             # For BastionEntryDialog, parent is BastionTrackerWidget, which has main_window
             # So, if testing BastionEntryDialog directly, its parent needs a main_window attribute.
-            class MockMainWindow:
+            class MockMainWindow: # noqa
                 pass
             self.main_window = MockMainWindow()
 

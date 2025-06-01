@@ -1,7 +1,7 @@
 from typing import Optional
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QFormLayout, QLineEdit, QTextEdit,
-    QDialogButtonBox, QComboBox, QSpinBox
+    QDialogButtonBox, QComboBox, QSpinBox, QSizeGrip, QHBoxLayout
 )
 from PySide6.QtCore import Qt
 from src.data_models import TravelStage # Assuming TravelStage dataclass is defined
@@ -21,7 +21,7 @@ class TravelStageDialog(QDialog):
             self.setWindowTitle("Add New Travel Stage")
 
         self.setModal(True)
-        self.setMinimumWidth(400)
+        self.setMinimumWidth(350) # Adjusted minimum width
 
         layout = QVBoxLayout(self)
         form_layout = QFormLayout()
@@ -66,6 +66,13 @@ class TravelStageDialog(QDialog):
         self.button_box.accepted.connect(self.accept) # Use QDialog's accept
         self.button_box.rejected.connect(self.reject)
         layout.addWidget(self.button_box)
+
+        # Add QSizeGrip for resizing
+        sizegrip_layout = QHBoxLayout()
+        sizegrip_layout.addStretch(1)
+        self.size_grip = QSizeGrip(self)
+        sizegrip_layout.addWidget(self.size_grip, 0, Qt.AlignBottom | Qt.AlignRight)
+        layout.addLayout(sizegrip_layout)
 
         if self.stage_data_to_edit:
             self._load_stage_data()

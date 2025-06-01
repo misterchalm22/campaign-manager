@@ -1,7 +1,8 @@
 from typing import Optional
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QFormLayout, QLineEdit, QTextEdit,
-    QPushButton, QMessageBox, QDialogButtonBox, QSpinBox, QDateEdit
+    QPushButton, QMessageBox, QDialogButtonBox, QSpinBox, QDateEdit,
+    QSizeGrip, QHBoxLayout
 )
 from PySide6.QtCore import QDate, Qt
 from src.data_models import CampaignJournalEntry
@@ -19,7 +20,7 @@ class CampaignJournalEntryDialog(QDialog):
             self.setWindowTitle("Add New Journal Entry")
 
         self.setModal(True)
-        self.setMinimumWidth(450)
+        self.setMinimumWidth(400) # Adjusted minimum width
 
         layout = QVBoxLayout(self)
         form_layout = QFormLayout()
@@ -50,6 +51,13 @@ class CampaignJournalEntryDialog(QDialog):
         self.button_box.accepted.connect(self._on_save)
         self.button_box.rejected.connect(self.reject)
         layout.addWidget(self.button_box)
+
+        # Add QSizeGrip for resizing
+        sizegrip_layout = QHBoxLayout()
+        sizegrip_layout.addStretch(1)
+        self.size_grip = QSizeGrip(self)
+        sizegrip_layout.addWidget(self.size_grip, 0, Qt.AlignBottom | Qt.AlignRight)
+        layout.addLayout(sizegrip_layout)
 
         if self.journal_entry_to_edit:
             self._load_journal_entry_data()
