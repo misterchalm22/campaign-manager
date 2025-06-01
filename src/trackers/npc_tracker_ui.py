@@ -1,7 +1,7 @@
-from typing import cast
+from typing import cast, Optional
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QPushButton, QTableWidget, QTableWidgetItem,
-    QHeaderView, QMessageBox, QHBoxLayout, QLabel
+    QHeaderView, QMessageBox, QHBoxLayout, QLabel, QDialog, QStatusBar
 )
 from PySide6.QtCore import Qt, Slot
 

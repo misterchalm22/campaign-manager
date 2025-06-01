@@ -179,15 +179,15 @@ class MainWindow(QMainWindow):
         menu_bar = self.menuBar()
         file_menu = menu_bar.addMenu("&File")
 
-        import_all_action = QAction("Import All Data...", self)
-        file_menu.addAction(import_all_action)
+        self.import_all_action = QAction("Import All Data...", self)
+        file_menu.addAction(self.import_all_action)
 
-        export_all_action = QAction("Export All Data...", self)
-        file_menu.addAction(export_all_action)
+        self.export_all_action = QAction("Export All Data...", self)
+        file_menu.addAction(self.export_all_action)
 
         file_menu.addSeparator()
-        exit_action = QAction("Exit", self)
-        file_menu.addAction(exit_action)
+        self.exit_action = QAction("Exit", self)
+        file_menu.addAction(self.exit_action)
 
         # Status Bar
         self.setStatusBar(QStatusBar(self))
@@ -203,16 +203,9 @@ class MainWindow(QMainWindow):
         self.tracker_nav_list.currentItemChanged.connect(self._on_tracker_selected)
 
         # Menu actions
-        # Assuming import_all_action and export_all_action are attributes if connected here
-        # Or connect them directly:
-        file_menu = self.menuBar().actions()[0].menu() # Get the File menu
-        import_all_action = file_menu.actions()[0]
-        export_all_action = file_menu.actions()[1]
-        exit_action = file_menu.actions()[3]
-
-        import_all_action.triggered.connect(self._on_import_all_data)
-        export_all_action.triggered.connect(self._on_export_all_data)
-        exit_action.triggered.connect(self.close)
+        self.import_all_action.triggered.connect(self._on_import_all_data)
+        self.export_all_action.triggered.connect(self._on_export_all_data)
+        self.exit_action.triggered.connect(self.close)
 
 
     def _populate_campaign_selector(self):
