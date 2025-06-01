@@ -1,0 +1,50 @@
+{
+    "campaigns": {
+        "e17ba619-29bf-470f-ad98-75e050db3e0d": {
+            "campaign_id": "e17ba619-29bf-470f-ad98-75e050db3e0d",
+            "name": "Libby and Friends",
+            "game_expectations": {},
+            "travel_plans": {},
+            "npcs": {},
+            "settlements": {},
+            "campaign_journal": {},
+            "dm_characters": {},
+            "campaign_conflicts": {
+                "conflicts": []
+            },
+            "magic_item_tracker": {
+                "level_tier_1_4": {
+                    "common_items": [],
+                    "uncommon_items": [],
+                    "rare_items": [],
+                    "very_rare_items": [],
+                    "legendary_items": []
+                },
+                "level_tier_5_10": {
+                    "common_items": [],
+                    "uncommon_items": [],
+                    "rare_items": [],
+                    "very_rare_items": [],
+                    "legendary_items": []
+                },
+                "level_tier_11_16": {
+                    "common_items": [],
+                    "uncommon_items": [],
+                    "rare_items": [],
+                    "very_rare_items": [],
+                    "legendary_items": []
+                },
+                "level_tier_17_20": {
+                    "common_items": [],
+                    "uncommon_items": [],
+                    "rare_items": [],
+                    "very_rare_items": [],
+                    "legendary_items": []
+                }
+            },
+            "bastions": {},
+            "dm_name_global": ""
+        }
+    },
+    "active_campaign_id": "e17ba619-29bf-470f-ad98-75e050db3e0d"
+}
