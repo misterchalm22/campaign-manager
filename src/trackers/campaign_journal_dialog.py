@@ -1,9 +1,11 @@
 from typing import Optional
+from typing import Optional
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QFormLayout, QLineEdit, QTextEdit,
     QPushButton, QMessageBox, QDialogButtonBox, QSpinBox, QDateEdit,
-    QSizeGrip, QHBoxLayout
+    QSizeGrip, QHBoxLayout, QToolButton, QWidget, QLabel
 )
+from PySide6.QtGui import QFont, QTextCharFormat, QTextCursor, QTextListFormat
 from PySide6.QtCore import QDate, Qt
 from src.data_models import CampaignJournalEntry
 
@@ -34,16 +36,40 @@ class CampaignJournalEntryDialog(QDialog):
         self.session_date_edit.setDisplayFormat("yyyy-MM-dd")
 
         self.session_title_edit = QLineEdit()
+
         self.earlier_events_edit = QTextEdit()
+        self.earlier_events_toolbar = self._create_rich_text_toolbar(self.earlier_events_edit)
+        earlier_events_layout = QVBoxLayout()
+        earlier_events_layout.setSpacing(2) # Minimal spacing between toolbar and text edit
+        earlier_events_layout.addWidget(self.earlier_events_toolbar)
+        earlier_events_layout.addWidget(self.earlier_events_edit)
+        earlier_events_widget = QWidget()
+        earlier_events_widget.setLayout(earlier_events_layout)
+
         self.planned_summary_edit = QTextEdit()
+        self.planned_summary_toolbar = self._create_rich_text_toolbar(self.planned_summary_edit)
+        planned_summary_layout = QVBoxLayout()
+        planned_summary_layout.setSpacing(2)
+        planned_summary_layout.addWidget(self.planned_summary_toolbar)
+        planned_summary_layout.addWidget(self.planned_summary_edit)
+        planned_summary_widget = QWidget()
+        planned_summary_widget.setLayout(planned_summary_layout)
+
         self.additional_notes_edit = QTextEdit()
+        self.additional_notes_toolbar = self._create_rich_text_toolbar(self.additional_notes_edit)
+        additional_notes_layout = QVBoxLayout()
+        additional_notes_layout.setSpacing(2)
+        additional_notes_layout.addWidget(self.additional_notes_toolbar)
+        additional_notes_layout.addWidget(self.additional_notes_edit)
+        additional_notes_widget = QWidget()
+        additional_notes_widget.setLayout(additional_notes_layout)
 
         form_layout.addRow("Session Number*:", self.session_number_edit)
         form_layout.addRow("Session Date:", self.session_date_edit)
         form_layout.addRow("Session Title*:", self.session_title_edit)
-        form_layout.addRow("Important Earlier Events:", self.earlier_events_edit)
-        form_layout.addRow("Planned Summary for Session:", self.planned_summary_edit)
-        form_layout.addRow("Additional Notes/Outcome:", self.additional_notes_edit)
+        form_layout.addRow(QLabel("Important Earlier Events:"), earlier_events_widget)
+        form_layout.addRow(QLabel("Planned Summary for Session:"), planned_summary_widget)
+        form_layout.addRow(QLabel("Additional Notes/Outcome:"), additional_notes_widget)
 
         layout.addLayout(form_layout)
 
@@ -70,6 +96,83 @@ class CampaignJournalEntryDialog(QDialog):
                         max_session_num = entry.session_number
                 self.session_number_edit.setValue(max_session_num + 1)
 
+    def _create_rich_text_toolbar(self, text_edit: QTextEdit) -> QWidget:
+        toolbar_widget = QWidget()
+        toolbar_layout = QHBoxLayout(toolbar_widget)
+        toolbar_layout.setContentsMargins(0, 0, 0, 0)
+        toolbar_layout.setSpacing(3)
+
+        # Bold Button
+        bold_button = QToolButton()
+        bold_button.setText("B")
+        font = bold_button.font()
+        font.setBold(True)
+        bold_button.setFont(font)
+        bold_button.setCheckable(True)
+        bold_button.clicked.connect(lambda checked: text_edit.setFontWeight(QFont.Bold if checked else QFont.Normal))
+        toolbar_layout.addWidget(bold_button)
+
+        # Italic Button
+        italic_button = QToolButton()
+        italic_button.setText("I")
+        font = italic_button.font()
+        font.setItalic(True)
+        italic_button.setFont(font)
+        italic_button.setCheckable(True)
+        italic_button.clicked.connect(lambda checked: text_edit.setFontItalic(checked))
+        toolbar_layout.addWidget(italic_button)
+
+        # Underline Button
+        underline_button = QToolButton()
+        underline_button.setText("U")
+        font = underline_button.font()
+        font.setUnderline(True)
+        underline_button.setFont(font)
+        underline_button.setCheckable(True)
+        underline_button.clicked.connect(lambda checked: text_edit.setFontUnderline(checked))
+        toolbar_layout.addWidget(underline_button)
+
+        # Strikethrough Button
+        strike_button = QToolButton()
+        strike_button.setText("S")
+        font = strike_button.font()
+        font.setStrikeOut(True) # Visual cue on button
+        strike_button.setFont(font)
+        strike_button.setCheckable(True)
+        def toggle_strike():
+            fmt = text_edit.currentCharFormat()
+            fmt.setFontStrikeOut(strike_button.isChecked())
+            text_edit.setCurrentCharFormat(fmt)
+        strike_button.clicked.connect(toggle_strike)
+        toolbar_layout.addWidget(strike_button)
+
+        toolbar_layout.addSpacing(10) # Separator
+
+        # Bullet List Button
+        bullet_list_button = QToolButton()
+        bullet_list_button.setText("• List") # Or use an icon
+        bullet_list_button.clicked.connect(lambda: text_edit.textCursor().createList(QTextListFormat.Style.ListDisc))
+        toolbar_layout.addWidget(bullet_list_button)
+
+        # Numbered List Button
+        numbered_list_button = QToolButton()
+        numbered_list_button.setText("1. List") # Or use an icon
+        numbered_list_button.clicked.connect(lambda: text_edit.textCursor().createList(QTextListFormat.Style.ListDecimal))
+        toolbar_layout.addWidget(numbered_list_button)
+
+        toolbar_layout.addStretch() # Push buttons to the left
+
+        # Update button states based on cursor's current format
+        def update_button_states():
+            fmt = text_edit.currentCharFormat()
+            bold_button.setChecked(fmt.fontWeight() == QFont.Bold)
+            italic_button.setChecked(fmt.fontItalic())
+            underline_button.setChecked(fmt.fontUnderline())
+            strike_button.setChecked(fmt.fontStrikeOut())
+
+        text_edit.currentCharFormatChanged.connect(update_button_states)
+
+        return toolbar_widget
 
     def _load_journal_entry_data(self):
         if self.journal_entry_to_edit:

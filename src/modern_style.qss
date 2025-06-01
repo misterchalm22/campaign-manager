@@ -1,157 +1,270 @@
 /* src/modern_style.qss */
 
+/* Color Palette */
+/* Primary Color: Muted Teal */
+/* Secondary/Accent Color: Soft Coral */
+/* Neutral Grays: Light, Medium, Dark */
+
+/* General Styles */
+QWidget {
+    font-family: 'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    font-size: 10pt;
+    color: #333333; /* Dark Gray for text */
+}
+
 QDialog {
-    background-color: #f8f9fa; /* Light gray background for dialogs */
-    border: 1px solid #dee2e6; /* Subtle border */
-    border-radius: 8px; /* Rounded corners for dialogs */
+    background-color: #f4f6f8; /* Light Gray background */
+    border: 1px solid #d1d5db; /* Medium Gray border */
+    border-radius: 8px;
 }
 
 QLabel {
-    font-family: 'Inter', sans-serif; /* Assuming Inter is available or use a common modern font */
-    font-size: 10pt; /* Consistent font size, adjust as needed */
-    color: #343a40; /* Dark gray text */
+    font-size: 10pt;
+    color: #333333; /* Dark Gray text */
+    padding: 4px;
 }
 
+/* Input Fields */
 QLineEdit, QTextEdit, QSpinBox, QDateEdit, QComboBox {
-    font-family: 'Inter', sans-serif;
     font-size: 10pt;
-    padding: 8px;
-    background-color: #ffffff; /* White background for inputs */
-    border: 1px solid #ced4da; /* Light gray border */
-    border-radius: 4px; /* Slightly rounded corners for inputs */
-    color: #212529; /* Dark text for input fields */
+    padding: 10px 8px; /* Increased padding */
+    background-color: #ffffff; /* White background */
+    border: 1px solid #c5ccd6; /* Medium Gray border */
+    border-radius: 5px; /* Slightly more rounded corners */
+    color: #222222; /* Darker text for input fields */
 }
 
 QLineEdit:focus, QTextEdit:focus, QSpinBox:focus, QDateEdit:focus, QComboBox:focus {
-    border-color: #80bdff; /* Blue border on focus, common modern practice */
-    outline: 0; /* Remove default outline */
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25); /* Subtle glow effect */
+    border-color: #0078A2; /* Primary Teal for focus */
+    outline: 0;
+    box-shadow: 0 0 0 0.15rem rgba(0, 120, 162, 0.2); /* Subtle glow effect with Primary Teal */
 }
 
 QTextEdit {
-    min-height: 60px; /* Default min height for text edits */
+    min-height: 70px; /* Slightly increased min height */
 }
 
+/* Buttons */
 QPushButton {
-    font-family: 'Inter', sans-serif;
     font-size: 10pt;
-    font-weight: 500;
-    color: #ffffff; /* White text on buttons */
-    background-color: #007bff; /* Primary blue */
-    padding: 8px 12px;
-    border: 1px solid #007bff;
-    border-radius: 4px;
-    min-width: 80px; /* Minimum width for buttons */
+    font-weight: 500; /* Medium weight */
+    color: #ffffff; /* White text */
+    background-color: #008CBA; /* Primary Teal */
+    padding: 10px 15px; /* Increased padding */
+    border: 1px solid #0078A2; /* Darker shade of Primary Teal */
+    border-radius: 5px;
+    min-width: 90px;
 }
 
 QPushButton:hover {
-    background-color: #0056b3; /* Darker blue on hover */
-    border-color: #0052a3;
+    background-color: #0078A2; /* Darker Primary Teal on hover */
+    border-color: #006080;
 }
 
 QPushButton:pressed {
-    background-color: #004085; /* Even darker blue when pressed */
-    border-color: #00376e;
+    background-color: #006080; /* Even darker Primary Teal when pressed */
+    border-color: #004D66;
 }
 
 QPushButton:disabled {
-    background-color: #6c757d; /* Gray for disabled buttons */
-    border-color: #6c757d;
-    color: #e9ecef;
+    background-color: #b0bec5; /* Light Neutral Gray for disabled */
+    border-color: #90a4ae;
+    color: #78909c;
 }
 
-/* Styling for QDialogButtonBox buttons */
+/* QDialogButtonBox specific styling */
 QDialogButtonBox QPushButton {
-    /* Specific styles if needed, e.g., to override general QPushButton */
-    /* For now, they will inherit the above QPushButton styles */
-    /* You might want different styling for Save vs Cancel, e.g. */
+    padding: 8px 12px; /* Slightly less padding for dialog buttons if needed */
+    min-width: 80px;
 }
-/* Example: Styling the Save button specifically if it's identifiable */
-/* QDialogButtonBox QPushButton[text="Save"] { background-color: #28a745; border-color: #28a745; } */
-/* QDialogButtonBox QPushButton[text="Save"]:hover { background-color: #1e7e34; border-color: #1c7430; } */
+
+/* Example: Styling a potential "Accent" button (e.g., Save, OK) */
+QPushButton[cssClass="accent"] {
+    color: #ffffff;
+    background-color: #FF7F50; /* Secondary/Accent - Soft Coral */
+    border-color: #E67348;
+}
+
+QPushButton[cssClass="accent"]:hover {
+    background-color: #E67348;
+    border-color: #CC663F;
+}
+
+QPushButton[cssClass="accent"]:pressed {
+    background-color: #CC663F;
+    border-color: #B35935;
+}
 
 
+/* ComboBox */
 QComboBox::drop-down {
     subcontrol-origin: padding;
     subcontrol-position: top right;
-    width: 20px;
+    width: 22px; /* Slightly wider */
     border-left-width: 1px;
-    border-left-color: #ced4da;
+    border-left-color: #c5ccd6; /* Medium Gray */
     border-left-style: solid;
-    border-top-right-radius: 3px;
-    border-bottom-right-radius: 3px;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
 }
 
 QComboBox::down-arrow {
-    image: url(placeholder_down_arrow.svg); /* Placeholder: Needs a real SVG or use a character */
-    /* A common alternative is to use a unicode character: ▼ */
-    /* For simplicity in this step, we might omit the image and rely on default arrow */
+    image: url(none); /* Remove placeholder, rely on Qt's default or a unicode char if set in code */
+    /* For a unicode arrow, you might need to set it programmatically or use a custom QProxyStyle */
+    /* A simple text character can be used if the image is problematic: */
+    /* Example: QComboBox::down-arrow { text: "▼"; } - this is not standard QSS, but some custom widgets might support it */
 }
 
-QComboBox QAbstractItemView { /* Styling for the dropdown list */
-   font-family: 'Inter', sans-serif;
+QComboBox::down-arrow:on { /* When dropdown is open */
+    /* Optional: change arrow direction or appearance */
+}
+
+
+QComboBox QAbstractItemView {
    font-size: 10pt;
-   background-color: #ffffff;
-   border: 1px solid #ced4da;
-   selection-background-color: #007bff; /* Blue selection color */
+   background-color: #ffffff; /* White */
+   border: 1px solid #c5ccd6; /* Medium Gray */
+   selection-background-color: #008CBA; /* Primary Teal for selection */
    selection-color: #ffffff; /* White text for selected item */
-   outline: 0px; /* Remove outline from the dropdown view */
+   outline: 0px;
+   padding: 4px; /* Padding for items in dropdown */
 }
 
+/* Table Widget */
 QTableWidget {
-    font-family: 'Inter', sans-serif;
     font-size: 10pt;
-    gridline-color: #dee2e6; /* Lighter grid lines */
+    gridline-color: #e0e0e0; /* Lighter Gray grid lines */
     background-color: #ffffff;
-    border: 1px solid #ced4da;
-    border-radius: 4px;
+    border: 1px solid #d1d5db; /* Medium Gray border */
+    border-radius: 5px;
 }
 
 QHeaderView::section {
-    font-family: 'Inter', sans-serif;
     font-size: 10pt;
-    font-weight: 600; /* Bolder header text */
-    background-color: #e9ecef; /* Light gray for header sections */
-    color: #212529; /* Dark text for header */
-    padding: 8px;
-    border: none; /* Remove default borders if any */
-    border-bottom: 1px solid #ced4da; /* Border only at the bottom of header */
-}
-QHeaderView::section:not(:last-child) {
-   border-right: 1px solid #ced4da; /* Vertical line between header sections */
+    font-weight: 600; /* Bold header text */
+    background-color: #e8edf0; /* Lighter Gray for header */
+    color: #2c3e50; /* Darker, muted blue-gray text for header */
+    padding: 10px 8px; /* Increased padding */
+    border: none;
+    border-bottom: 1px solid #d1d5db; /* Medium Gray */
 }
 
+QHeaderView::section:not(:last-child) {
+   border-right: 1px solid #d1d5db; /* Medium Gray */
+}
+
+/* ScrollBars */
+QScrollBar {
+    border: 1px solid #d1d5db; /* Medium Gray */
+    background: #f0f2f4; /* Very Light Gray */
+    border-radius: 3px;
+}
 
 QScrollBar:horizontal {
-    border: 1px solid #ced4da;
-    background: #f1f3f5;
-    height: 12px;
-    margin: 0px 20px 0 20px;
+    height: 14px; /* Slightly thicker */
+    margin: 0px 18px 0 18px; /* Adjusted margin for add/sub line */
 }
 QScrollBar::handle:horizontal {
-    background: #adb5bd;
-    min-width: 20px;
-    border-radius: 6px;
+    background: #adb5bd; /* Neutral Gray handle */
+    min-width: 25px;
+    border-radius: 7px; /* More rounded handle */
+    margin: 2px 0;
 }
 QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
     border: none;
     background: none;
-    width: 20px;
+    width: 16px; /* Adjust if using custom icons */
+}
+QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {
+    background: none;
 }
 
+
 QScrollBar:vertical {
-    border: 1px solid #ced4da;
-    background: #f1f3f5;
-    width: 12px;
-    margin: 20px 0 20px 0;
+    width: 14px; /* Slightly thicker */
+    margin: 18px 0 18px 0; /* Adjusted margin for add/sub line */
 }
 QScrollBar::handle:vertical {
-    background: #adb5bd;
-    min-height: 20px;
-    border-radius: 6px;
+    background: #adb5bd; /* Neutral Gray handle */
+    min-height: 25px;
+    border-radius: 7px; /* More rounded handle */
+    margin: 0 2px;
 }
 QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
     border: none;
     background: none;
-    height: 20px;
+    height: 16px; /* Adjust if using custom icons */
+}
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+    background: none;
+}
+
+/* MenuBar */
+QMenuBar {
+    background-color: #e8edf0; /* Light Gray background */
+    padding: 5px 0;
+    border-bottom: 1px solid #d1d5db; /* Medium Gray border */
+}
+
+QMenuBar::item {
+    spacing: 4px; /* Spacing between menu bar items */
+    padding: 6px 10px;
+    background: transparent;
+    border-radius: 4px;
+}
+
+QMenuBar::item:selected { /* When selected using keyboard navigation */
+    background-color: #d1d5db; /* Medium Gray */
+}
+
+QMenuBar::item:pressed { /* When menu is open */
+    background-color: #c5ccd6; /* Slightly darker Medium Gray */
+}
+
+/* QMenu (Dropdown menu) */
+QMenu {
+    background-color: #ffffff; /* White background for dropdown */
+    border: 1px solid #c5ccd6; /* Medium Gray border */
+    padding: 5px; /* Padding around the entire menu */
+    border-radius: 4px;
+}
+
+QMenu::item {
+    padding: 8px 20px; /* Padding for individual menu items */
+    font-size: 9pt; /* Slightly smaller font for menu items if desired */
+}
+
+QMenu::item:selected {
+    background-color: #008CBA; /* Primary Teal for selection */
+    color: #ffffff; /* White text */
+}
+
+QMenu::separator {
+    height: 1px;
+    background: #e0e0e0; /* Light Gray separator */
+    margin: 4px 0;
+}
+
+/* StatusBar */
+QStatusBar {
+    background-color: #e8edf0; /* Light Gray background */
+    color: #333333; /* Dark Gray text */
+    padding: 5px 8px;
+    border-top: 1px solid #d1d5db; /* Medium Gray border */
+}
+
+QStatusBar::item {
+    border: none; /* No border for items in status bar */
+}
+
+/* Tooltip Style */
+QToolTip {
+    font-family: 'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    font-size: 9pt;
+    color: #ffffff; /* White text */
+    background-color: #2c3e50; /* Dark, muted blue-gray background */
+    padding: 6px 8px;
+    border: 1px solid #1a242f; /* Slightly darker border */
+    border-radius: 4px;
+    opacity: 230; /* Slightly transparent */
 }
