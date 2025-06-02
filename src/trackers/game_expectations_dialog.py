@@ -3,7 +3,7 @@ from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QFormLayout, QLineEdit, QTextEdit,
     QPushButton, QMessageBox, QDialogButtonBox, QTableWidget,
     QTableWidgetItem, QCheckBox, QHeaderView, QGroupBox, QHBoxLayout,
-    QWidget
+    QWidget, QSizeGrip
 )
 from PySide6.QtCore import Qt
 from src.data_models import GameExpectationsEntry, SensitiveElement
@@ -21,7 +21,7 @@ class GameExpectationsEntryDialog(QDialog):
             self.setWindowTitle("Add New Player Expectations")
 
         self.setModal(True)
-        self.setMinimumWidth(550) # Adjusted for content
+        self.setMinimumWidth(500) # Adjusted minimum width
 
         main_layout = QVBoxLayout(self)
 
@@ -66,6 +66,13 @@ class GameExpectationsEntryDialog(QDialog):
         self.button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel)
         main_layout.addWidget(self.button_box)
 
+        # Add QSizeGrip for resizing
+        sizegrip_layout = QHBoxLayout()
+        sizegrip_layout.addStretch(1)
+        self.size_grip = QSizeGrip(self)
+        sizegrip_layout.addWidget(self.size_grip, 0, Qt.AlignBottom | Qt.AlignRight)
+        main_layout.addLayout(sizegrip_layout)
+
         # Connect signals
         self.add_sensitive_btn.clicked.connect(lambda: self._add_sensitive_element_row())
         self.remove_sensitive_btn.clicked.connect(self._remove_sensitive_element_row)
@@ -86,9 +93,9 @@ class GameExpectationsEntryDialog(QDialog):
         if self.entry_to_edit:
             self.dm_name_edit.setText(self.entry_to_edit.dm_name)
             self.player_name_edit.setText(self.entry_to_edit.player_name)
-            self.game_theme_flavor_edit.setPlainText(self.entry_to_edit.game_theme_flavor)
-            self.player_hopes_edit.setPlainText(self.entry_to_edit.player_hopes)
-            self.at_table_concerns_edit.setPlainText(self.entry_to_edit.at_table_concerns)
+            self.game_theme_flavor_edit.setHtml(self.entry_to_edit.game_theme_flavor)
+            self.player_hopes_edit.setHtml(self.entry_to_edit.player_hopes)
+            self.at_table_concerns_edit.setHtml(self.entry_to_edit.at_table_concerns)
 
             self.sensitive_elements_table.setRowCount(0) # Clear table first
             for element in self.entry_to_edit.sensitive_elements:
@@ -138,9 +145,9 @@ class GameExpectationsEntryDialog(QDialog):
             return
 
         dm_name = self.dm_name_edit.text().strip()
-        game_theme_flavor = self.game_theme_flavor_edit.toPlainText().strip()
-        player_hopes = self.player_hopes_edit.toPlainText().strip()
-        at_table_concerns = self.at_table_concerns_edit.toPlainText().strip()
+        game_theme_flavor = self.game_theme_flavor_edit.toHtml().strip()
+        player_hopes = self.player_hopes_edit.toHtml().strip()
+        at_table_concerns = self.at_table_concerns_edit.toHtml().strip()
 
         collected_sensitive_elements: List[SensitiveElement] = []
         for row in range(self.sensitive_elements_table.rowCount()):

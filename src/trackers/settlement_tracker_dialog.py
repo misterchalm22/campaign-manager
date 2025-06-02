@@ -1,8 +1,12 @@
 from typing import Optional
+from typing import Optional
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QFormLayout, QLineEdit, QTextEdit,
-    QPushButton, QMessageBox, QDialogButtonBox, QComboBox
+    QPushButton, QMessageBox, QDialogButtonBox, QComboBox,
+    QSizeGrip, QHBoxLayout, QToolButton, QWidget, QLabel # Added QToolButton, QWidget, QLabel
 )
+from PySide6.QtGui import QFont, QTextCharFormat, QTextCursor, QTextListFormat # Added imports
+from PySide6.QtCore import Qt
 from src.data_models import SettlementEntry
 
 SETTLEMENT_SIZE_OPTIONS = [
@@ -24,7 +28,7 @@ class SettlementEntryDialog(QDialog):
             self.setWindowTitle("Add New Settlement")
 
         self.setModal(True)
-        self.setMinimumWidth(500) # Increased width for QTextEdit fields
+        self.setMinimumWidth(450) # Adjusted minimum width
 
         layout = QVBoxLayout(self)
         form_layout = QFormLayout()
@@ -34,21 +38,62 @@ class SettlementEntryDialog(QDialog):
         self.size_combo.addItems(SETTLEMENT_SIZE_OPTIONS)
 
         self.defining_trait_edit = QTextEdit()
+        defining_trait_toolbar = self._create_rich_text_toolbar(self.defining_trait_edit)
+        defining_trait_layout = QVBoxLayout()
+        defining_trait_layout.setSpacing(2)
+        defining_trait_layout.addWidget(defining_trait_toolbar)
+        defining_trait_layout.addWidget(self.defining_trait_edit)
+        defining_trait_widget = QWidget()
+        defining_trait_widget.setLayout(defining_trait_layout)
+
         self.claim_to_fame_edit = QTextEdit()
+        claim_to_fame_toolbar = self._create_rich_text_toolbar(self.claim_to_fame_edit)
+        claim_to_fame_layout = QVBoxLayout()
+        claim_to_fame_layout.setSpacing(2)
+        claim_to_fame_layout.addWidget(claim_to_fame_toolbar)
+        claim_to_fame_layout.addWidget(self.claim_to_fame_edit)
+        claim_to_fame_widget = QWidget()
+        claim_to_fame_widget.setLayout(claim_to_fame_layout)
+
         self.current_calamity_edit = QTextEdit()
+        current_calamity_toolbar = self._create_rich_text_toolbar(self.current_calamity_edit)
+        current_calamity_layout = QVBoxLayout()
+        current_calamity_layout.setSpacing(2)
+        current_calamity_layout.addWidget(current_calamity_toolbar)
+        current_calamity_layout.addWidget(self.current_calamity_edit)
+        current_calamity_widget = QWidget()
+        current_calamity_widget.setLayout(current_calamity_layout)
+
         self.local_leader_edit = QLineEdit()
+
         self.noteworthy_people_edit = QTextEdit()
+        noteworthy_people_toolbar = self._create_rich_text_toolbar(self.noteworthy_people_edit)
+        noteworthy_people_layout = QVBoxLayout()
+        noteworthy_people_layout.setSpacing(2)
+        noteworthy_people_layout.addWidget(noteworthy_people_toolbar)
+        noteworthy_people_layout.addWidget(self.noteworthy_people_edit)
+        noteworthy_people_widget = QWidget()
+        noteworthy_people_widget.setLayout(noteworthy_people_layout)
+
         self.noteworthy_places_edit = QTextEdit()
+        noteworthy_places_toolbar = self._create_rich_text_toolbar(self.noteworthy_places_edit)
+        noteworthy_places_layout = QVBoxLayout()
+        noteworthy_places_layout.setSpacing(2)
+        noteworthy_places_layout.addWidget(noteworthy_places_toolbar)
+        noteworthy_places_layout.addWidget(self.noteworthy_places_edit)
+        noteworthy_places_widget = QWidget()
+        noteworthy_places_widget.setLayout(noteworthy_places_layout)
+
         self.gp_value_edit = QLineEdit() # Gold piece value
 
         form_layout.addRow("Name*:", self.name_edit)
         form_layout.addRow("Size:", self.size_combo)
-        form_layout.addRow("Defining Trait:", self.defining_trait_edit)
-        form_layout.addRow("Claim to Fame:", self.claim_to_fame_edit)
-        form_layout.addRow("Current Calamity:", self.current_calamity_edit)
+        form_layout.addRow(QLabel("Defining Trait:"), defining_trait_widget)
+        form_layout.addRow(QLabel("Claim to Fame:"), claim_to_fame_widget)
+        form_layout.addRow(QLabel("Current Calamity:"), current_calamity_widget)
         form_layout.addRow("Local Leader:", self.local_leader_edit)
-        form_layout.addRow("Noteworthy People:", self.noteworthy_people_edit)
-        form_layout.addRow("Noteworthy Places:", self.noteworthy_places_edit)
+        form_layout.addRow(QLabel("Noteworthy People:"), noteworthy_people_widget)
+        form_layout.addRow(QLabel("Noteworthy Places:"), noteworthy_places_widget)
         form_layout.addRow("GP Value of Most Expensive Item:", self.gp_value_edit)
 
         layout.addLayout(form_layout)
@@ -58,12 +103,96 @@ class SettlementEntryDialog(QDialog):
         self.button_box.rejected.connect(self.reject)
         layout.addWidget(self.button_box)
 
+        # Add QSizeGrip for resizing
+        sizegrip_layout = QHBoxLayout()
+        sizegrip_layout.addStretch(1)
+        self.size_grip = QSizeGrip(self)
+        sizegrip_layout.addWidget(self.size_grip, 0, Qt.AlignBottom | Qt.AlignRight)
+        layout.addLayout(sizegrip_layout)
+
         if self.settlement_entry_to_edit:
             self._load_settlement_data()
         else:
             # Set default size for new entries if needed, though QComboBox defaults to first item
             self.size_combo.setCurrentIndex(0)
 
+    def _create_rich_text_toolbar(self, text_edit: QTextEdit) -> QWidget:
+        toolbar_widget = QWidget()
+        toolbar_layout = QHBoxLayout(toolbar_widget)
+        toolbar_layout.setContentsMargins(0, 0, 0, 0)
+        toolbar_layout.setSpacing(3)
+
+        # Bold Button
+        bold_button = QToolButton()
+        bold_button.setText("B")
+        font = bold_button.font()
+        font.setBold(True)
+        bold_button.setFont(font)
+        bold_button.setCheckable(True)
+        bold_button.clicked.connect(lambda checked: text_edit.setFontWeight(QFont.Bold if checked else QFont.Normal))
+        toolbar_layout.addWidget(bold_button)
+
+        # Italic Button
+        italic_button = QToolButton()
+        italic_button.setText("I")
+        font = italic_button.font()
+        font.setItalic(True)
+        italic_button.setFont(font)
+        italic_button.setCheckable(True)
+        italic_button.clicked.connect(lambda checked: text_edit.setFontItalic(checked))
+        toolbar_layout.addWidget(italic_button)
+
+        # Underline Button
+        underline_button = QToolButton()
+        underline_button.setText("U")
+        font = underline_button.font()
+        font.setUnderline(True)
+        underline_button.setFont(font)
+        underline_button.setCheckable(True)
+        underline_button.clicked.connect(lambda checked: text_edit.setFontUnderline(checked))
+        toolbar_layout.addWidget(underline_button)
+
+        # Strikethrough Button
+        strike_button = QToolButton()
+        strike_button.setText("S")
+        font = strike_button.font()
+        font.setStrikeOut(True) # Visual cue on button
+        strike_button.setFont(font)
+        strike_button.setCheckable(True)
+        def toggle_strike():
+            fmt = text_edit.currentCharFormat()
+            fmt.setFontStrikeOut(strike_button.isChecked())
+            text_edit.setCurrentCharFormat(fmt)
+        strike_button.clicked.connect(toggle_strike)
+        toolbar_layout.addWidget(strike_button)
+
+        toolbar_layout.addSpacing(10) # Separator
+
+        # Bullet List Button
+        bullet_list_button = QToolButton()
+        bullet_list_button.setText("• List") # Or use an icon
+        bullet_list_button.clicked.connect(lambda: text_edit.textCursor().createList(QTextListFormat.Style.ListDisc))
+        toolbar_layout.addWidget(bullet_list_button)
+
+        # Numbered List Button
+        numbered_list_button = QToolButton()
+        numbered_list_button.setText("1. List") # Or use an icon
+        numbered_list_button.clicked.connect(lambda: text_edit.textCursor().createList(QTextListFormat.Style.ListDecimal))
+        toolbar_layout.addWidget(numbered_list_button)
+
+        toolbar_layout.addStretch() # Push buttons to the left
+
+        # Update button states based on cursor's current format
+        def update_button_states():
+            fmt = text_edit.currentCharFormat()
+            bold_button.setChecked(fmt.fontWeight() == QFont.Bold)
+            italic_button.setChecked(fmt.fontItalic())
+            underline_button.setChecked(fmt.fontUnderline())
+            strike_button.setChecked(fmt.fontStrikeOut())
+
+        text_edit.currentCharFormatChanged.connect(update_button_states)
+
+        return toolbar_widget
 
     def _load_settlement_data(self):
         if self.settlement_entry_to_edit:
@@ -74,12 +203,12 @@ class SettlementEntryDialog(QDialog):
             else: # Fallback if data is inconsistent, or use first option
                 self.size_combo.setCurrentIndex(0)
 
-            self.defining_trait_edit.setPlainText(self.settlement_entry_to_edit.defining_trait)
-            self.claim_to_fame_edit.setPlainText(self.settlement_entry_to_edit.claim_to_fame)
-            self.current_calamity_edit.setPlainText(self.settlement_entry_to_edit.current_calamity)
+            self.defining_trait_edit.setHtml(self.settlement_entry_to_edit.defining_trait)
+            self.claim_to_fame_edit.setHtml(self.settlement_entry_to_edit.claim_to_fame)
+            self.current_calamity_edit.setHtml(self.settlement_entry_to_edit.current_calamity)
             self.local_leader_edit.setText(self.settlement_entry_to_edit.local_leader)
-            self.noteworthy_people_edit.setPlainText(self.settlement_entry_to_edit.noteworthy_people)
-            self.noteworthy_places_edit.setPlainText(self.settlement_entry_to_edit.noteworthy_places)
+            self.noteworthy_people_edit.setHtml(self.settlement_entry_to_edit.noteworthy_people)
+            self.noteworthy_places_edit.setHtml(self.settlement_entry_to_edit.noteworthy_places)
             self.gp_value_edit.setText(self.settlement_entry_to_edit.gp_value_most_expensive_item)
 
     def _on_save(self):
@@ -89,12 +218,12 @@ class SettlementEntryDialog(QDialog):
             return
 
         size = self.size_combo.currentText()
-        defining_trait = self.defining_trait_edit.toPlainText().strip()
-        claim_to_fame = self.claim_to_fame_edit.toPlainText().strip()
-        current_calamity = self.current_calamity_edit.toPlainText().strip()
+        defining_trait = self.defining_trait_edit.toHtml().strip()
+        claim_to_fame = self.claim_to_fame_edit.toHtml().strip()
+        current_calamity = self.current_calamity_edit.toHtml().strip()
         local_leader = self.local_leader_edit.text().strip()
-        noteworthy_people = self.noteworthy_people_edit.toPlainText().strip()
-        noteworthy_places = self.noteworthy_places_edit.toPlainText().strip()
+        noteworthy_people = self.noteworthy_people_edit.toHtml().strip()
+        noteworthy_places = self.noteworthy_places_edit.toHtml().strip()
         gp_value = self.gp_value_edit.text().strip()
 
         active_campaign_id = self.parent_main_window.current_campaign_id

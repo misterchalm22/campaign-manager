@@ -1,0 +1,157 @@
+/* src/modern_style.qss */
+
+QDialog {
+    background-color: #f8f9fa; /* Light gray background for dialogs */
+    border: 1px solid #dee2e6; /* Subtle border */
+    border-radius: 8px; /* Rounded corners for dialogs */
+}
+
+QLabel {
+    font-family: 'Inter', sans-serif; /* Assuming Inter is available or use a common modern font */
+    font-size: 10pt; /* Consistent font size, adjust as needed */
+    color: #343a40; /* Dark gray text */
+}
+
+QLineEdit, QTextEdit, QSpinBox, QDateEdit, QComboBox {
+    font-family: 'Inter', sans-serif;
+    font-size: 10pt;
+    padding: 8px;
+    background-color: #ffffff; /* White background for inputs */
+    border: 1px solid #ced4da; /* Light gray border */
+    border-radius: 4px; /* Slightly rounded corners for inputs */
+    color: #212529; /* Dark text for input fields */
+}
+
+QLineEdit:focus, QTextEdit:focus, QSpinBox:focus, QDateEdit:focus, QComboBox:focus {
+    border-color: #80bdff; /* Blue border on focus, common modern practice */
+    outline: 0; /* Remove default outline */
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25); /* Subtle glow effect */
+}
+
+QTextEdit {
+    min-height: 60px; /* Default min height for text edits */
+}
+
+QPushButton {
+    font-family: 'Inter', sans-serif;
+    font-size: 10pt;
+    font-weight: 500;
+    color: #ffffff; /* White text on buttons */
+    background-color: #007bff; /* Primary blue */
+    padding: 8px 12px;
+    border: 1px solid #007bff;
+    border-radius: 4px;
+    min-width: 80px; /* Minimum width for buttons */
+}
+
+QPushButton:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+    border-color: #0052a3;
+}
+
+QPushButton:pressed {
+    background-color: #004085; /* Even darker blue when pressed */
+    border-color: #00376e;
+}
+
+QPushButton:disabled {
+    background-color: #6c757d; /* Gray for disabled buttons */
+    border-color: #6c757d;
+    color: #e9ecef;
+}
+
+/* Styling for QDialogButtonBox buttons */
+QDialogButtonBox QPushButton {
+    /* Specific styles if needed, e.g., to override general QPushButton */
+    /* For now, they will inherit the above QPushButton styles */
+    /* You might want different styling for Save vs Cancel, e.g. */
+}
+/* Example: Styling the Save button specifically if it's identifiable */
+/* QDialogButtonBox QPushButton[text="Save"] { background-color: #28a745; border-color: #28a745; } */
+/* QDialogButtonBox QPushButton[text="Save"]:hover { background-color: #1e7e34; border-color: #1c7430; } */
+
+
+QComboBox::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: top right;
+    width: 20px;
+    border-left-width: 1px;
+    border-left-color: #ced4da;
+    border-left-style: solid;
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+}
+
+QComboBox::down-arrow {
+    image: url(placeholder_down_arrow.svg); /* Placeholder: Needs a real SVG or use a character */
+    /* A common alternative is to use a unicode character: ▼ */
+    /* For simplicity in this step, we might omit the image and rely on default arrow */
+}
+
+QComboBox QAbstractItemView { /* Styling for the dropdown list */
+   font-family: 'Inter', sans-serif;
+   font-size: 10pt;
+   background-color: #ffffff;
+   border: 1px solid #ced4da;
+   selection-background-color: #007bff; /* Blue selection color */
+   selection-color: #ffffff; /* White text for selected item */
+   outline: 0px; /* Remove outline from the dropdown view */
+}
+
+QTableWidget {
+    font-family: 'Inter', sans-serif;
+    font-size: 10pt;
+    gridline-color: #dee2e6; /* Lighter grid lines */
+    background-color: #ffffff;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+}
+
+QHeaderView::section {
+    font-family: 'Inter', sans-serif;
+    font-size: 10pt;
+    font-weight: 600; /* Bolder header text */
+    background-color: #e9ecef; /* Light gray for header sections */
+    color: #212529; /* Dark text for header */
+    padding: 8px;
+    border: none; /* Remove default borders if any */
+    border-bottom: 1px solid #ced4da; /* Border only at the bottom of header */
+}
+QHeaderView::section:not(:last-child) {
+   border-right: 1px solid #ced4da; /* Vertical line between header sections */
+}
+
+
+QScrollBar:horizontal {
+    border: 1px solid #ced4da;
+    background: #f1f3f5;
+    height: 12px;
+    margin: 0px 20px 0 20px;
+}
+QScrollBar::handle:horizontal {
+    background: #adb5bd;
+    min-width: 20px;
+    border-radius: 6px;
+}
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+    border: none;
+    background: none;
+    width: 20px;
+}
+
+QScrollBar:vertical {
+    border: 1px solid #ced4da;
+    background: #f1f3f5;
+    width: 12px;
+    margin: 20px 0 20px 0;
+}
+QScrollBar::handle:vertical {
+    background: #adb5bd;
+    min-height: 20px;
+    border-radius: 6px;
+}
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    border: none;
+    background: none;
+    height: 20px;
+}

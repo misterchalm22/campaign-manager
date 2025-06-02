@@ -2,7 +2,7 @@ from typing import Optional, List, cast
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QFormLayout, QLineEdit, QTextEdit,
     QPushButton, QMessageBox, QDialogButtonBox, QSpinBox, QGroupBox,
-    QListWidget, QListWidgetItem
+    QListWidget, QListWidgetItem, QSizeGrip
 )
 from PySide6.QtCore import Qt, Slot
 from src.data_models import BastionEntry, BastionFacility # Use existing models
@@ -18,7 +18,7 @@ class SpecialFacilityDialog(QDialog):
             self.setWindowTitle("Add New Special Facility")
 
         self.setModal(True)
-        self.setMinimumWidth(400)
+        self.setMinimumWidth(350) # Adjusted minimum width
 
         layout = QVBoxLayout(self)
         form_layout = QFormLayout()
@@ -41,6 +41,13 @@ class SpecialFacilityDialog(QDialog):
         self.button_box.rejected.connect(self.reject)
         layout.addWidget(self.button_box)
 
+        # Add QSizeGrip for resizing
+        sizegrip_layout = QHBoxLayout()
+        sizegrip_layout.addStretch(1)
+        self.size_grip = QSizeGrip(self)
+        sizegrip_layout.addWidget(self.size_grip, 0, Qt.AlignBottom | Qt.AlignRight)
+        layout.addLayout(sizegrip_layout)
+
         if self.facility_to_edit:
             self._load_facility_data()
 
@@ -49,8 +56,8 @@ class SpecialFacilityDialog(QDialog):
             self.name_edit.setText(self.facility_to_edit.facility_type_name)
             self.space_edit.setText(self.facility_to_edit.space)
             self.order_edit.setText(self.facility_to_edit.order_association)
-            self.hirelings_edit.setPlainText(self.facility_to_edit.hirelings)
-            self.notes_edit.setPlainText(self.facility_to_edit.notes)
+            self.hirelings_edit.setHtml(self.facility_to_edit.hirelings)
+            self.notes_edit.setHtml(self.facility_to_edit.notes)
 
     def _on_save(self):
         name = self.name_edit.text().strip()
@@ -64,8 +71,8 @@ class SpecialFacilityDialog(QDialog):
             name = self.name_edit.text().strip()
             space = self.space_edit.text().strip()
             order = self.order_edit.text().strip()
-            hirelings = self.hirelings_edit.toPlainText().strip()
-            notes = self.notes_edit.toPlainText().strip()
+            hirelings = self.hirelings_edit.toHtml().strip()
+            notes = self.notes_edit.toHtml().strip()
 
             if self.facility_to_edit:
                 self.facility_to_edit.facility_type_name = name
@@ -105,7 +112,7 @@ class BastionEntryDialog(QDialog):
             self.setWindowTitle("Add New Bastion")
 
         self.setModal(True)
-        self.setMinimumWidth(550)
+        self.setMinimumWidth(500) # Adjusted minimum width
 
         main_layout = QVBoxLayout(self)
 
@@ -154,6 +161,13 @@ class BastionEntryDialog(QDialog):
         self.button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel)
         main_layout.addWidget(self.button_box)
 
+        # Add QSizeGrip for resizing
+        sizegrip_container = QHBoxLayout()
+        sizegrip_container.addStretch(1)
+        self.size_grip_main = QSizeGrip(self) # Use a different variable name if self.size_grip is already used
+        sizegrip_container.addWidget(self.size_grip_main, 0, Qt.AlignBottom | Qt.AlignRight)
+        main_layout.addLayout(sizegrip_container)
+
         # Connect signals
         self.add_facility_btn.clicked.connect(self._on_add_facility)
         self.edit_facility_btn.clicked.connect(self._on_edit_facility)
@@ -173,8 +187,8 @@ class BastionEntryDialog(QDialog):
             self.bastion_name_edit.setText(self.bastion_to_edit.bastion_name)
             self.character_name_edit.setText(self.bastion_to_edit.character_name)
             self.level_spinbox.setValue(self.bastion_to_edit.level)
-            self.basic_facilities_edit.setPlainText(self.bastion_to_edit.basic_facilities_desc)
-            self.bastion_defenders_edit.setPlainText(self.bastion_to_edit.bastion_defenders_desc)
+            self.basic_facilities_edit.setHtml(self.bastion_to_edit.basic_facilities_desc)
+            self.bastion_defenders_edit.setHtml(self.bastion_to_edit.bastion_defenders_desc)
             # self.current_facilities is loaded in __init__
             self._refresh_facilities_list()
 
@@ -243,8 +257,8 @@ class BastionEntryDialog(QDialog):
             bastion_name = self.bastion_name_edit.text().strip()
             character_name = self.character_name_edit.text().strip()
             level = self.level_spinbox.value()
-            basic_facilities = self.basic_facilities_edit.toPlainText().strip()
-            bastion_defenders = self.bastion_defenders_edit.toPlainText().strip()
+            basic_facilities = self.basic_facilities_edit.toHtml().strip()
+            bastion_defenders = self.bastion_defenders_edit.toHtml().strip()
 
             if self.bastion_to_edit:
                 self.bastion_to_edit.bastion_name = bastion_name
@@ -267,7 +281,7 @@ class BastionEntryDialog(QDialog):
         return None
 
 if __name__ == '__main__':
-    from PySide6.QtWidgets import QApplication
+    from PySide6.QtWidgets import QApplication, QWidget
     # Mock main_window for dialog testing context
     class MockParentWidget(QWidget):
         def __init__(self):
@@ -275,7 +289,7 @@ if __name__ == '__main__':
             # Mimic main_window structure if dialogs need it (not directly for these dialogs)
             # For BastionEntryDialog, parent is BastionTrackerWidget, which has main_window
             # So, if testing BastionEntryDialog directly, its parent needs a main_window attribute.
-            class MockMainWindow:
+            class MockMainWindow: # noqa
                 pass
             self.main_window = MockMainWindow()
 

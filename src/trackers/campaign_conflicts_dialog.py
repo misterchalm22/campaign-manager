@@ -1,8 +1,9 @@
 from typing import Optional
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QFormLayout, QLineEdit, QTextEdit,
-    QDialogButtonBox, QMessageBox
+    QDialogButtonBox, QMessageBox, QSizeGrip, QHBoxLayout
 )
+from PySide6.QtCore import Qt # Import Qt
 from src.data_models import Conflict # Use the existing Conflict model
 
 class CampaignConflictEntryDialog(QDialog):
@@ -17,7 +18,7 @@ class CampaignConflictEntryDialog(QDialog):
             self.setWindowTitle("Add New Conflict Entry")
 
         self.setModal(True)
-        self.setMinimumWidth(400)
+        self.setMinimumWidth(350) # Adjusted minimum width
 
         layout = QVBoxLayout(self)
         form_layout = QFormLayout()
@@ -38,6 +39,13 @@ class CampaignConflictEntryDialog(QDialog):
         self.button_box.rejected.connect(self.reject)
         layout.addWidget(self.button_box)
 
+        # Add QSizeGrip for resizing
+        sizegrip_layout = QHBoxLayout()
+        sizegrip_layout.addStretch(1)
+        self.size_grip = QSizeGrip(self)
+        sizegrip_layout.addWidget(self.size_grip, 0, Qt.AlignBottom | Qt.AlignRight)
+        layout.addLayout(sizegrip_layout)
+
         if self.conflict_to_edit:
             self._load_conflict_data()
 
@@ -45,7 +53,7 @@ class CampaignConflictEntryDialog(QDialog):
         if self.conflict_to_edit:
             self.title_edit.setText(self.conflict_to_edit.title_identifier)
             self.antagonist_edit.setText(self.conflict_to_edit.antagonist_situation)
-            self.notes_edit.setPlainText(self.conflict_to_edit.notes)
+            self.notes_edit.setHtml(self.conflict_to_edit.notes)
 
     def _on_save(self):
         title = self.title_edit.text().strip()
@@ -62,7 +70,7 @@ class CampaignConflictEntryDialog(QDialog):
         if self.result() == QDialog.DialogCode.Accepted:
             title = self.title_edit.text().strip()
             antagonist = self.antagonist_edit.text().strip()
-            notes = self.notes_edit.toPlainText().strip()
+            notes = self.notes_edit.toHtml().strip()
 
             if self.conflict_to_edit: # Editing existing entry
                 # Update the existing conflict object directly

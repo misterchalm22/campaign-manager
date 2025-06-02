@@ -2,8 +2,10 @@ from typing import Optional, List, Dict
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QFormLayout, QLineEdit, QTextEdit,
     QPushButton, QMessageBox, QDialogButtonBox, QSpinBox, QCheckBox,
-    QGroupBox, QGridLayout, QScrollArea, QWidget
+    QGroupBox, QGridLayout, QScrollArea, QWidget, QSizeGrip, QHBoxLayout,
+    QToolButton, QLabel # Added QToolButton, QLabel
 )
+from PySide6.QtGui import QFont, QTextCharFormat, QTextCursor, QTextListFormat # Added imports
 from PySide6.QtCore import Qt
 from src.data_models import DMCharacterEntry
 
@@ -25,7 +27,7 @@ class DMCharacterEntryDialog(QDialog):
             self.setWindowTitle("Add New Player Character (PC)")
 
         self.setModal(True)
-        self.setMinimumWidth(500) # Good starting width
+        self.setMinimumWidth(450) # Adjusted minimum width
 
         # Main layout for the dialog
         main_dialog_layout = QVBoxLayout(self)
@@ -58,7 +60,14 @@ class DMCharacterEntryDialog(QDialog):
         form_layout.addRow(motivations_groupbox)
 
         self.notes_on_player_expectations_edit = QTextEdit()
-        form_layout.addRow("Notes on Player Expectations:", self.notes_on_player_expectations_edit)
+        notes_expectations_toolbar = self._create_rich_text_toolbar(self.notes_on_player_expectations_edit)
+        notes_expectations_layout = QVBoxLayout()
+        notes_expectations_layout.setSpacing(2)
+        notes_expectations_layout.addWidget(notes_expectations_toolbar)
+        notes_expectations_layout.addWidget(self.notes_on_player_expectations_edit)
+        notes_expectations_widget = QWidget()
+        notes_expectations_widget.setLayout(notes_expectations_layout)
+        form_layout.addRow(QLabel("Notes on Player Expectations:"), notes_expectations_widget)
 
         # Character Stats
         stats_groupbox = QGroupBox("Character Stats")
@@ -82,23 +91,79 @@ class DMCharacterEntryDialog(QDialog):
         # Character Details
         details_groupbox = QGroupBox("Character Details")
         details_layout = QFormLayout(details_groupbox)
+
         self.goals_ambitions_edit = QTextEdit()
+        goals_toolbar = self._create_rich_text_toolbar(self.goals_ambitions_edit)
+        goals_layout = QVBoxLayout()
+        goals_layout.setSpacing(2)
+        goals_layout.addWidget(goals_toolbar)
+        goals_layout.addWidget(self.goals_ambitions_edit)
+        goals_widget = QWidget()
+        goals_widget.setLayout(goals_layout)
+        details_layout.addRow(QLabel("Goals & Ambitions:"), goals_widget)
+
         self.quirks_whims_edit = QTextEdit()
+        quirks_toolbar = self._create_rich_text_toolbar(self.quirks_whims_edit)
+        quirks_layout = QVBoxLayout()
+        quirks_layout.setSpacing(2)
+        quirks_layout.addWidget(quirks_toolbar)
+        quirks_layout.addWidget(self.quirks_whims_edit)
+        quirks_widget = QWidget()
+        quirks_widget.setLayout(quirks_layout)
+        details_layout.addRow(QLabel("Quirks & Whims:"), quirks_widget)
+
         self.magic_items_owned_edit = QTextEdit()
+        magic_items_toolbar = self._create_rich_text_toolbar(self.magic_items_owned_edit)
+        magic_items_layout = QVBoxLayout()
+        magic_items_layout.setSpacing(2)
+        magic_items_layout.addWidget(magic_items_toolbar)
+        magic_items_layout.addWidget(self.magic_items_owned_edit)
+        magic_items_widget = QWidget()
+        magic_items_widget.setLayout(magic_items_layout)
+        details_layout.addRow(QLabel("Magic Items Owned:"), magic_items_widget)
+
         self.character_details_edit = QTextEdit() # General details
+        char_details_toolbar = self._create_rich_text_toolbar(self.character_details_edit)
+        char_details_layout = QVBoxLayout()
+        char_details_layout.setSpacing(2)
+        char_details_layout.addWidget(char_details_toolbar)
+        char_details_layout.addWidget(self.character_details_edit)
+        char_details_widget = QWidget()
+        char_details_widget.setLayout(char_details_layout)
+        details_layout.addRow(QLabel("Other Character Details:"), char_details_widget)
+
         self.family_friends_foes_edit = QTextEdit()
+        family_toolbar = self._create_rich_text_toolbar(self.family_friends_foes_edit)
+        family_layout = QVBoxLayout()
+        family_layout.setSpacing(2)
+        family_layout.addWidget(family_toolbar)
+        family_layout.addWidget(self.family_friends_foes_edit)
+        family_widget = QWidget()
+        family_widget.setLayout(family_layout)
+        details_layout.addRow(QLabel("Family, Friends, & Foes:"), family_widget)
+
         self.adventure_ideas_edit = QTextEdit()
-        details_layout.addRow("Goals & Ambitions:", self.goals_ambitions_edit)
-        details_layout.addRow("Quirks & Whims:", self.quirks_whims_edit)
-        details_layout.addRow("Magic Items Owned:", self.magic_items_owned_edit)
-        details_layout.addRow("Other Character Details:", self.character_details_edit)
-        details_layout.addRow("Family, Friends, & Foes:", self.family_friends_foes_edit)
-        details_layout.addRow("Adventure Ideas (DM):", self.adventure_ideas_edit)
+        adventure_toolbar = self._create_rich_text_toolbar(self.adventure_ideas_edit)
+        adventure_layout = QVBoxLayout()
+        adventure_layout.setSpacing(2)
+        adventure_layout.addWidget(adventure_toolbar)
+        adventure_layout.addWidget(self.adventure_ideas_edit)
+        adventure_widget = QWidget()
+        adventure_widget.setLayout(adventure_layout)
+        details_layout.addRow(QLabel("Adventure Ideas (DM):"), adventure_widget)
+
         form_layout.addRow(details_groupbox)
 
         # Dialog Buttons
         self.button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel)
         main_dialog_layout.addWidget(self.button_box) # Add button box to main dialog layout, not scroll
+
+        # Add QSizeGrip for resizing
+        sizegrip_layout = QHBoxLayout()
+        sizegrip_layout.addStretch(1)
+        self.size_grip = QSizeGrip(self)
+        sizegrip_layout.addWidget(self.size_grip, 0, Qt.AlignBottom | Qt.AlignRight)
+        main_dialog_layout.addLayout(sizegrip_layout)
 
         # Connect signals
         self.button_box.accepted.connect(self._on_save)
@@ -106,6 +171,84 @@ class DMCharacterEntryDialog(QDialog):
 
         if self.entry_to_edit:
             self._load_entry_data()
+
+    def _create_rich_text_toolbar(self, text_edit: QTextEdit) -> QWidget:
+        toolbar_widget = QWidget()
+        toolbar_layout = QHBoxLayout(toolbar_widget)
+        toolbar_layout.setContentsMargins(0, 0, 0, 0)
+        toolbar_layout.setSpacing(3)
+
+        # Bold Button
+        bold_button = QToolButton()
+        bold_button.setText("B")
+        font = bold_button.font()
+        font.setBold(True)
+        bold_button.setFont(font)
+        bold_button.setCheckable(True)
+        bold_button.clicked.connect(lambda checked: text_edit.setFontWeight(QFont.Bold if checked else QFont.Normal))
+        toolbar_layout.addWidget(bold_button)
+
+        # Italic Button
+        italic_button = QToolButton()
+        italic_button.setText("I")
+        font = italic_button.font()
+        font.setItalic(True)
+        italic_button.setFont(font)
+        italic_button.setCheckable(True)
+        italic_button.clicked.connect(lambda checked: text_edit.setFontItalic(checked))
+        toolbar_layout.addWidget(italic_button)
+
+        # Underline Button
+        underline_button = QToolButton()
+        underline_button.setText("U")
+        font = underline_button.font()
+        font.setUnderline(True)
+        underline_button.setFont(font)
+        underline_button.setCheckable(True)
+        underline_button.clicked.connect(lambda checked: text_edit.setFontUnderline(checked))
+        toolbar_layout.addWidget(underline_button)
+
+        # Strikethrough Button
+        strike_button = QToolButton()
+        strike_button.setText("S")
+        font = strike_button.font()
+        font.setStrikeOut(True) # Visual cue on button
+        strike_button.setFont(font)
+        strike_button.setCheckable(True)
+        def toggle_strike():
+            fmt = text_edit.currentCharFormat()
+            fmt.setFontStrikeOut(strike_button.isChecked())
+            text_edit.setCurrentCharFormat(fmt)
+        strike_button.clicked.connect(toggle_strike)
+        toolbar_layout.addWidget(strike_button)
+
+        toolbar_layout.addSpacing(10) # Separator
+
+        # Bullet List Button
+        bullet_list_button = QToolButton()
+        bullet_list_button.setText("• List") # Or use an icon
+        bullet_list_button.clicked.connect(lambda: text_edit.textCursor().createList(QTextListFormat.Style.ListDisc))
+        toolbar_layout.addWidget(bullet_list_button)
+
+        # Numbered List Button
+        numbered_list_button = QToolButton()
+        numbered_list_button.setText("1. List") # Or use an icon
+        numbered_list_button.clicked.connect(lambda: text_edit.textCursor().createList(QTextListFormat.Style.ListDecimal))
+        toolbar_layout.addWidget(numbered_list_button)
+
+        toolbar_layout.addStretch() # Push buttons to the left
+
+        # Update button states based on cursor's current format
+        def update_button_states():
+            fmt = text_edit.currentCharFormat()
+            bold_button.setChecked(fmt.fontWeight() == QFont.Bold)
+            italic_button.setChecked(fmt.fontItalic())
+            underline_button.setChecked(fmt.fontUnderline())
+            strike_button.setChecked(fmt.fontStrikeOut())
+
+        text_edit.currentCharFormatChanged.connect(update_button_states)
+
+        return toolbar_widget
 
     def _load_entry_data(self):
         if self.entry_to_edit:
@@ -115,19 +258,19 @@ class DMCharacterEntryDialog(QDialog):
             for motivation, checkbox in self.motivation_checkboxes.items():
                 checkbox.setChecked(motivation in self.entry_to_edit.player_motivations)
 
-            self.notes_on_player_expectations_edit.setPlainText(self.entry_to_edit.notes_on_player_expectations)
+            self.notes_on_player_expectations_edit.setHtml(self.entry_to_edit.notes_on_player_expectations)
             self.char_class_edit.setText(self.entry_to_edit.char_class)
             self.subclass_edit.setText(self.entry_to_edit.subclass)
             self.level_spinbox.setValue(self.entry_to_edit.level)
             self.background_edit.setText(self.entry_to_edit.background)
             self.species_race_edit.setText(self.entry_to_edit.species_race)
             self.alignment_edit.setText(self.entry_to_edit.alignment)
-            self.goals_ambitions_edit.setPlainText(self.entry_to_edit.goals_ambitions)
-            self.quirks_whims_edit.setPlainText(self.entry_to_edit.quirks_whims)
-            self.magic_items_owned_edit.setPlainText(self.entry_to_edit.magic_items_owned)
-            self.character_details_edit.setPlainText(self.entry_to_edit.character_details)
-            self.family_friends_foes_edit.setPlainText(self.entry_to_edit.family_friends_foes)
-            self.adventure_ideas_edit.setPlainText(self.entry_to_edit.adventure_ideas)
+            self.goals_ambitions_edit.setHtml(self.entry_to_edit.goals_ambitions)
+            self.quirks_whims_edit.setHtml(self.entry_to_edit.quirks_whims)
+            self.magic_items_owned_edit.setHtml(self.entry_to_edit.magic_items_owned)
+            self.character_details_edit.setHtml(self.entry_to_edit.character_details)
+            self.family_friends_foes_edit.setHtml(self.entry_to_edit.family_friends_foes)
+            self.adventure_ideas_edit.setHtml(self.entry_to_edit.adventure_ideas)
 
     def _on_save(self):
         character_name = self.character_name_edit.text().strip()
@@ -142,19 +285,19 @@ class DMCharacterEntryDialog(QDialog):
             if checkbox.isChecked():
                 selected_motivations.append(motivation)
 
-        notes_on_player_expectations = self.notes_on_player_expectations_edit.toPlainText().strip()
+        notes_on_player_expectations = self.notes_on_player_expectations_edit.toHtml().strip()
         char_class = self.char_class_edit.text().strip()
         subclass = self.subclass_edit.text().strip()
         level = self.level_spinbox.value()
         background = self.background_edit.text().strip()
         species_race = self.species_race_edit.text().strip()
         alignment = self.alignment_edit.text().strip()
-        goals_ambitions = self.goals_ambitions_edit.toPlainText().strip()
-        quirks_whims = self.quirks_whims_edit.toPlainText().strip()
-        magic_items_owned = self.magic_items_owned_edit.toPlainText().strip()
-        character_details = self.character_details_edit.toPlainText().strip()
-        family_friends_foes = self.family_friends_foes_edit.toPlainText().strip()
-        adventure_ideas = self.adventure_ideas_edit.toPlainText().strip()
+        goals_ambitions = self.goals_ambitions_edit.toHtml().strip()
+        quirks_whims = self.quirks_whims_edit.toHtml().strip()
+        magic_items_owned = self.magic_items_owned_edit.toHtml().strip()
+        character_details = self.character_details_edit.toHtml().strip()
+        family_friends_foes = self.family_friends_foes_edit.toHtml().strip()
+        adventure_ideas = self.adventure_ideas_edit.toHtml().strip()
 
         active_campaign_id = self.parent_main_window.current_campaign_id
         if not active_campaign_id:

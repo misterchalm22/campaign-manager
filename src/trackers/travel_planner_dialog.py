@@ -3,7 +3,7 @@ from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QFormLayout, QLineEdit, QTextEdit,
     QPushButton, QMessageBox, QDialogButtonBox, QTableWidget,
     QTableWidgetItem, QHeaderView, QGroupBox, QHBoxLayout,
-    QWidget, QLabel
+    QWidget, QLabel, QSizeGrip
 )
 from PySide6.QtCore import Qt, Slot
 
@@ -29,7 +29,7 @@ class TravelPlanEntryDialog(QDialog):
             self.setWindowTitle("Add New Travel Plan")
 
         self.setModal(True)
-        self.setMinimumWidth(600) # Wider for table
+        self.setMinimumWidth(550) # Adjusted minimum width
 
         main_layout = QVBoxLayout(self)
 
@@ -74,6 +74,13 @@ class TravelPlanEntryDialog(QDialog):
         # Dialog Buttons
         self.button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel)
         main_layout.addWidget(self.button_box)
+
+        # Add QSizeGrip for resizing
+        sizegrip_layout = QHBoxLayout()
+        sizegrip_layout.addStretch(1)
+        self.size_grip = QSizeGrip(self)
+        sizegrip_layout.addWidget(self.size_grip, 0, Qt.AlignBottom | Qt.AlignRight)
+        main_layout.addLayout(sizegrip_layout)
 
         # Connect signals
         self.add_stage_btn.clicked.connect(self._on_add_stage)
