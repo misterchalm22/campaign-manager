@@ -252,6 +252,7 @@ if __name__ == '__main__':
             # Add a sample journal entry to test auto-increment
             sample_entry = CampaignJournalEntry(session_number=1, session_title="First Session")
             campaign.campaign_journal[sample_entry.entry_id] = sample_entry
+            self.sample_entry_id = sample_entry.entry_id
             self.application_data.campaigns[self.current_campaign_id] = campaign
 
         def _save_app_data(self):
@@ -267,12 +268,12 @@ if __name__ == '__main__':
         if dialog_add.get_journal_entry_data():
             entry_id = dialog_add.get_journal_entry_data().entry_id
             print(f"Entry in mock data: {mock_parent.application_data.campaigns[mock_parent.current_campaign_id].campaign_journal.get(entry_id)}")
-
-    existing_entry = mock_parent.application_data.campaigns[mock_parent.current_campaign_id].campaign_journal.get(sample_entry.entry_id)
+    existing_entry = mock_parent.application_data.campaigns[mock_parent.current_campaign_id].campaign_journal.get(mock_parent.sample_entry_id)
     if existing_entry:
         dialog_edit = CampaignJournalEntryDialog(mock_parent, journal_entry=existing_entry)
         if dialog_edit.exec() == QDialog.DialogCode.Accepted:
             print("Edit Journal dialog accepted. Data:", dialog_edit.get_journal_entry_data())
+            print(f"Updated entry in mock data: {mock_parent.application_data.campaigns[mock_parent.current_campaign_id].campaign_journal.get(existing_entry.entry_id)}")
             print(f"Updated entry in mock data: {mock_parent.application_data.campaigns[mock_parent.current_campaign_id].campaign_journal.get(existing_entry.entry_id)}")
 
     del app
