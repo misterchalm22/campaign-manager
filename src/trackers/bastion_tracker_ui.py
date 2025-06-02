@@ -1,230 +1,139 @@
-from typing import Optional
+from typing import Optional, List, Any
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QTableWidget,
-    QTableWidgetItem, QHeaderView, QMessageBox, QLabel
+    QTableWidgetItem, QHeaderView, QMessageBox, QDialog
 )
-from PySide6.QtCore import Qt, Slot
+from PySide6.QtCore import Qt
 
-from src.data_models import BastionEntry # Use existing model
+from src.data_models import BastionEntry, Campaign # For type hinting
 from src.trackers.bastion_tracker_dialog import BastionEntryDialog
+from src.trackers.base_tracker_ui import BaseTrackerWidget
 
-class BastionTrackerWidget(QWidget):
-    def __init__(self, main_window):
-        super().__init__()
-        self.main_window = main_window # Instance of MainWindow
+class BastionTrackerWidget(BaseTrackerWidget):
+    def _get_entity_name(self) -> str:
+        return "Bastion"
 
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(0,0,0,0)
+    def _get_entity_name_plural(self) -> str:
+        return "Bastions"
 
-        # Action buttons
-        action_bar_layout = QHBoxLayout()
-        self.add_button = QPushButton("Add Bastion")
-        self.edit_button = QPushButton("Edit Selected Bastion")
-        self.delete_button = QPushButton("Delete Selected Bastion")
-        action_bar_layout.addWidget(self.add_button)
-        action_bar_layout.addWidget(self.edit_button)
-        action_bar_layout.addWidget(self.delete_button)
-        action_bar_layout.addStretch()
-        layout.addLayout(action_bar_layout)
+    def _configure_table_columns(self):
+        self.table_widget.setColumnCount(3)
+        self.table_widget.setHorizontalHeaderLabels(["Bastion Name", "Character Name", "Level"])
+        self.table_widget.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        self.table_widget.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        self.table_widget.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Interactive)
 
-        # Table for bastions
-        self.bastions_table = QTableWidget()
-        self.bastions_table.setColumnCount(3) # Bastion Name, Character Name, Level
-        self.bastions_table.setHorizontalHeaderLabels(["Bastion Name", "Character Name", "Level"])
-        self.bastions_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        self.bastions_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
-        self.bastions_table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Interactive)
-        self.bastions_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.bastions_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
-        self.bastions_table.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
-        layout.addWidget(self.bastions_table)
-
-        self.placeholder_label = QLabel("No bastions defined for this campaign. Click 'Add Bastion' to create one.")
-        self.placeholder_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.placeholder_label.setVisible(False) # Initially hidden
-        layout.addWidget(self.placeholder_label)
-        self.bastions_table.setVisible(True)
-
-
-        # Connect signals
-        self.add_button.clicked.connect(self._on_add_bastion)
-        self.edit_button.clicked.connect(self._on_edit_bastion)
-        self.delete_button.clicked.connect(self._on_delete_bastion)
-        self.bastions_table.itemDoubleClicked.connect(self._on_edit_bastion) # Edit on double click
-
-    def refresh_display(self):
-        current_campaign_id = self.main_window.current_campaign_id
-        if not current_campaign_id:
-            self.bastions_table.setRowCount(0)
-            self.show_placeholder(True, "No campaign selected.")
-            self.edit_button.setEnabled(False)
-            self.delete_button.setEnabled(False)
-            return
-
-        campaign = self.main_window.application_data.campaigns.get(current_campaign_id)
-        # Data model uses campaign.bastions which is a Dict[str, BastionEntry]
-        if not campaign or not campaign.bastions:
-            self.bastions_table.setRowCount(0)
-            self.show_placeholder(True, "No bastions defined. Click 'Add Bastion' to create one.")
-            self.edit_button.setEnabled(False)
-            self.delete_button.setEnabled(False)
-            return
-
-        self.show_placeholder(False)
-        bastions_dict = campaign.bastions # This is a Dict[str, BastionEntry]
-
+    def _get_item_data_for_display(self, campaign: Campaign) -> List[BastionEntry]:
+        if not campaign.bastions:
+            return []
         # Sort by bastion name for display consistency
-        sorted_bastion_ids = sorted(bastions_dict.keys(), key=lambda bid: bastions_dict[bid].bastion_name.lower())
+        return sorted(list(campaign.bastions.values()), key=lambda b: b.bastion_name.lower())
 
-        self.bastions_table.setRowCount(len(sorted_bastion_ids))
-        for row, bastion_id in enumerate(sorted_bastion_ids):
-            bastion_entry = bastions_dict[bastion_id]
+    def _populate_table_row(self, row: int, bastion_entry: BastionEntry):
+        name_item = self._create_table_item(bastion_entry.bastion_name, bastion_entry.entry_id)
+        self.table_widget.setItem(row, 0, name_item)
+        self.table_widget.setItem(row, 1, self._create_table_item(bastion_entry.character_name))
+        level_item = self._create_table_item(str(bastion_entry.level), alignment=Qt.AlignmentFlag.AlignCenter)
+        self.table_widget.setItem(row, 2, level_item)
 
-            name_item = QTableWidgetItem(bastion_entry.bastion_name)
-            # Store the bastion_id (which is entry_id) in the item for later retrieval
-            name_item.setData(Qt.ItemDataRole.UserRole, bastion_entry.entry_id)
+    def _get_dialog_for_add(self) -> Optional[QDialog]:
+        # The campaign object is implicitly handled by the base class calling _perform_add_item
+        return BastionEntryDialog(self) # Parent is this widget
 
-            self.bastions_table.setItem(row, 0, name_item)
-            self.bastions_table.setItem(row, 1, QTableWidgetItem(bastion_entry.character_name))
-
-            level_item = QTableWidgetItem(str(bastion_entry.level))
-            level_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.bastions_table.setItem(row, 2, level_item)
-
-        self.bastions_table.resizeRowsToContents()
-        self.edit_button.setEnabled(self.bastions_table.rowCount() > 0)
-        self.delete_button.setEnabled(self.bastions_table.rowCount() > 0)
-
-    def show_placeholder(self, show: bool, text: Optional[str] = None):
-        if show:
-            if text:
-                self.placeholder_label.setText(text)
-            self.bastions_table.setVisible(False)
-            self.placeholder_label.setVisible(True)
-        else:
-            self.bastions_table.setVisible(True)
-            self.placeholder_label.setVisible(False)
-
-    @Slot()
-    def _on_add_bastion(self):
-        current_campaign_id = self.main_window.current_campaign_id
-        if not current_campaign_id:
-            QMessageBox.warning(self, "No Campaign", "Please select or create a campaign first.")
-            return
-
-        campaign = self.main_window.application_data.campaigns.get(current_campaign_id)
-        if not campaign:
-            QMessageBox.critical(self, "Error", "Campaign data not found.")
-            return
-
-        dialog = BastionEntryDialog(self) # Parent is this widget
-        if dialog.exec() == QDialog.DialogCode.Accepted:
-            new_bastion_data = dialog.get_data() # Returns a BastionEntry object
-            if new_bastion_data:
-                # Add to the campaign.bastions dictionary (ID is auto-generated in BastionEntry)
-                campaign.bastions[new_bastion_data.entry_id] = new_bastion_data
-                self.main_window._save_app_data()
-                self.refresh_display()
-                self.main_window.statusBar().showMessage("New bastion added.", 3000)
-
-    @Slot()
-    def _on_edit_bastion(self):
-        current_campaign_id = self.main_window.current_campaign_id
-        if not current_campaign_id:
-            QMessageBox.warning(self, "No Campaign", "No campaign selected.")
-            return
-
-        selected_items = self.bastions_table.selectedItems()
-        if not selected_items:
-            QMessageBox.information(self, "No Selection", "Please select a bastion to edit.")
-            return
-
-        selected_row = selected_items[0].row()
-        # Retrieve the bastion_id (entry_id) stored in the item's UserRole data
-        bastion_id_to_edit = self.bastions_table.item(selected_row, 0).data(Qt.ItemDataRole.UserRole)
-
-        campaign = self.main_window.application_data.campaigns.get(current_campaign_id)
-        if not campaign or not campaign.bastions:
-            QMessageBox.critical(self, "Error", "Bastion data not found for this campaign.")
-            return
-
-        bastion_to_edit = campaign.bastions.get(bastion_id_to_edit)
-
+    def _get_dialog_for_edit(self, item_id: str, campaign: Campaign) -> Optional[QDialog]:
+        bastion_to_edit = campaign.bastions.get(item_id)
         if not bastion_to_edit:
-            QMessageBox.critical(self, "Error", f"Bastion with ID '{bastion_id_to_edit}' not found.")
-            self.refresh_display()
-            return
+            QMessageBox.critical(self, "Error", f"Bastion with ID '{item_id}' not found.")
+            # self.refresh_display() # Data might be out of sync - refresh is handled by base if dialog fails
+            return None
+        return BastionEntryDialog(self, bastion_entry=bastion_to_edit)
 
-        dialog = BastionEntryDialog(self, bastion_entry=bastion_to_edit)
-        if dialog.exec() == QDialog.DialogCode.Accepted:
-            # The dialog's get_data method updates the bastion_to_edit object in place.
-            self.main_window._save_app_data()
-            self.refresh_display()
-            self.main_window.statusBar().showMessage(f"Bastion '{bastion_to_edit.bastion_name}' updated.", 3000)
+    def _get_selected_item_id(self) -> Optional[str]:
+        # ID is stored in the first column (index 0)
+        return self._get_id_from_selected_row(column_with_id=0)
 
-    @Slot()
-    def _on_delete_bastion(self):
-        current_campaign_id = self.main_window.current_campaign_id
-        if not current_campaign_id:
-            QMessageBox.warning(self, "No Campaign", "No campaign selected.")
-            return
+    def _get_item_name_for_confirmation(self, item_id: str, campaign: Campaign) -> Optional[str]:
+        bastion = campaign.bastions.get(item_id)
+        return bastion.bastion_name if bastion else None
 
-        selected_items = self.bastions_table.selectedItems()
-        if not selected_items:
-            QMessageBox.information(self, "No Selection", "Please select a bastion to delete.")
-            return
+    def _perform_add_item(self, dialog_data: BastionEntry, campaign: Campaign) -> None:
+        # dialog_data is a BastionEntry object from BastionEntryDialog.get_data()
+        # The base class's _on_add_item_triggered method will pass the result of dialog.get_data()
+        # which is new_item_data in that context.
+        campaign.bastions[dialog_data.entry_id] = dialog_data
 
-        selected_row = selected_items[0].row()
-        bastion_id_to_delete = self.bastions_table.item(selected_row, 0).data(Qt.ItemDataRole.UserRole)
-        bastion_name = self.bastions_table.item(selected_row, 0).text()
+    def _perform_edit_item(self, item_id: str, dialog_data: BastionEntry, campaign: Campaign) -> None:
+        # BastionEntryDialog updates the passed bastion_entry in place.
+        # dialog_data is the result of dialog.get_data(). In BastionEntryDialog, get_data
+        # returns self.bastion_entry, which is the (potentially modified) instance.
+        # So, the object in campaign.bastions should already be updated if it was passed to the dialog.
+        if item_id not in campaign.bastions:
+            # This case should ideally be caught by _get_dialog_for_edit or if ID changed.
+            raise ValueError(f"Bastion with ID {item_id} not found for editing.")
+        # If the dialog modified the entry_id itself, we might need to adjust the dictionary key.
+        # Assuming entry_id is immutable or the dialog handles this correctly by updating the original dict key.
+        # For now, we assume the object identified by item_id in campaign.bastions is the one updated.
+        campaign.bastions[item_id] = dialog_data # Ensure the (potentially new) object from get_data is in the dict
 
-        reply = QMessageBox.question(self, "Delete Bastion",
-                                     f"Are you sure you want to delete the bastion: '{bastion_name}'?",
-                                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
-        if reply == QMessageBox.StandardButton.Yes:
-            campaign = self.main_window.application_data.campaigns.get(current_campaign_id)
-            if campaign and campaign.bastions and bastion_id_to_delete in campaign.bastions:
-                del campaign.bastions[bastion_id_to_delete]
-                self.main_window._save_app_data()
-                self.refresh_display()
-                self.main_window.statusBar().showMessage(f"Bastion '{bastion_name}' deleted.", 3000)
-            else:
-                QMessageBox.warning(self, "Delete Error", "Bastion not found for deletion.")
-                self.refresh_display()
 
+    def _perform_delete_item(self, item_id: str, campaign: Campaign) -> bool:
+        if campaign.bastions and item_id in campaign.bastions:
+            del campaign.bastions[item_id]
+            return True
+        return False
+
+# Keep the existing __main__ block for testing this widget independently
 if __name__ == '__main__':
     import sys
     from PySide6.QtWidgets import QApplication, QMainWindow, QStatusBar
-    from src.data_models import ApplicationData, Campaign
+    # Assuming ApplicationData and Campaign are correctly imported for type hinting
+    # For the test block, explicit import if not found by the linter/runtime
+    from src.data_models import ApplicationData #, Campaign # Campaign already imported
 
     class MockMainWindow(QMainWindow): # Mock for testing the widget
         def __init__(self):
             super().__init__()
             self.current_campaign_id = "bastion_test_camp"
+            # Initialize ApplicationData if it's not done elsewhere for the test
             self.application_data = ApplicationData()
             campaign = Campaign(campaign_id=self.current_campaign_id, name="Bastion Test Campaign")
 
+            # Initialize bastions for the test campaign
             b1 = BastionEntry(bastion_name="Northwatch Keep", character_name="Gardner", level=3)
             b2 = BastionEntry(bastion_name="The Lonely Tower", character_name="Wizard Zed", level=5)
-            campaign.bastions = {b1.entry_id: b1, b2.entry_id: b2} # Store as dict
+            campaign.bastions = {b1.entry_id: b1, b2.entry_id: b2}
 
             self.application_data.campaigns[self.current_campaign_id] = campaign
-            self.setStatusBar(QStatusBar(self))
+            self.setStatusBar(QStatusBar(self)) # Important for status messages
 
         def _save_app_data(self):
+            """Mock save method."""
             print(f"MockMainWindow: _save_app_data called for campaign: {self.current_campaign_id}")
+            # In a real app, this would serialize self.application_data
+            # For testing, we can inspect campaign.bastions directly or print
+            current_campaign = self.application_data.campaigns.get(self.current_campaign_id)
+            if current_campaign:
+                print("Current bastions in mock data:")
+                for bastion_id, bastion in current_campaign.bastions.items():
+                    print(f"  ID: {bastion_id}, Name: {bastion.bastion_name}, Level: {bastion.level}")
 
-        def statusBar(self):
-            return super().statusBar()
+
+        # statusBar method is inherited from QMainWindow and available
+        # def statusBar(self):
+        # return self._status_bar # if you were manually managing it.
 
     app = QApplication(sys.argv)
-    mock_main_win = MockMainWindow()
+    mock_main_win = MockMainWindow() # Create the mock main window instance
+
+    # Pass the mock main window to the BastionTrackerWidget
     bastion_widget = BastionTrackerWidget(mock_main_win)
 
     mock_main_win.setCentralWidget(bastion_widget)
     mock_main_win.setWindowTitle("Bastion Tracker Widget Test")
     mock_main_win.setGeometry(100, 100, 700, 500)
 
-    bastion_widget.refresh_display()
+    # The refresh_display is automatically called in BaseTrackerWidget's __init__
+    # So, no need to call it explicitly here unless a specific re-trigger is needed.
+    # bastion_widget.refresh_display()
+
     mock_main_win.show()
     sys.exit(app.exec())

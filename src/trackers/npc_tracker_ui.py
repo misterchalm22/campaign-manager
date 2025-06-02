@@ -1,209 +1,214 @@
-from typing import cast, Optional
+from typing import Optional, List, Any
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QPushButton, QTableWidget, QTableWidgetItem,
-    QHeaderView, QMessageBox, QHBoxLayout, QLabel, QDialog, QStatusBar
+    QPushButton, QHeaderView, QMessageBox, QDialog, QWidget, QHBoxLayout, QTableWidgetItem
 )
 from PySide6.QtCore import Qt, Slot
 
 from src.data_models import NPCEntry, Campaign # For type hinting
 from src.trackers.npc_tracker_dialog import NPCEntryDialog
-# main_window is passed in constructor, so no direct import here
+from src.trackers.base_tracker_ui import BaseTrackerWidget
 
-class NPCTrackerWidget(QWidget):
-    def __init__(self, main_window):
-        super().__init__()
-        self.main_window = main_window # Instance of MainWindow
+class NPCTrackerWidget(BaseTrackerWidget):
+    def _get_entity_name(self) -> str:
+        return "NPC"
 
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(0,0,0,0) # Use full space
+    def _get_entity_name_plural(self) -> str:
+        return "NPCs"
 
-        # Top bar for actions
-        action_bar_layout = QHBoxLayout()
-        self.add_npc_btn = QPushButton("Add New NPC")
-        action_bar_layout.addWidget(self.add_npc_btn)
-        action_bar_layout.addStretch() # Pushes button to the left
-        layout.addLayout(action_bar_layout)
+    def _get_add_button_text(self) -> str:
+        return "Add New NPC"
 
-        # NPC Table
-        self.npc_table = QTableWidget()
-        self.npc_table.setColumnCount(4) # Name, Stat Block, Alignment, Actions
-        self.npc_table.setHorizontalHeaderLabels(["Name", "Stat Block", "Alignment", "Actions"])
-        self.npc_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch) # Name
-        self.npc_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch) # Stat Block
-        self.npc_table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Interactive) # Alignment
-        self.npc_table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents) # Actions
-        self.npc_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers) # Read-only table
-        self.npc_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
-        layout.addWidget(self.npc_table)
+    def _setup_action_bar(self):
+        self.action_bar_layout = QHBoxLayout()
+        self.add_button = QPushButton(self._get_add_button_text())
+        self.add_button.clicked.connect(self._on_add_item_triggered)
 
-        # Placeholder for when table is empty
-        self.placeholder_label = QLabel("No NPCs found for the current campaign. Click 'Add New NPC' to create one.")
-        self.placeholder_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.placeholder_label.setVisible(False) # Initially hidden
-        layout.addWidget(self.placeholder_label)
-        self.npc_table.setVisible(True)
+        self.action_bar_layout.addWidget(self.add_button)
+        self.action_bar_layout.addStretch()
+        self.main_layout.insertLayout(0, self.action_bar_layout) # Insert at the top
 
+        self.edit_button = None
+        self.delete_button = None
 
-        # Connect signals
-        self.add_npc_btn.clicked.connect(self._on_add_npc)
+    def _set_buttons_enabled(self, enabled: bool):
+        if hasattr(self, 'add_button') and self.add_button:
+            self.add_button.setEnabled(bool(self.main_window.current_campaign_id))
+        # Edit/Delete buttons are per-row
 
-    def refresh_display(self):
-        current_campaign_id = self.main_window.current_campaign_id
-        if not current_campaign_id:
-            self.npc_table.setRowCount(0)
-            self.show_placeholder(True, "No campaign selected.")
-            return
+    def _configure_table_columns(self):
+        self.table_widget.setColumnCount(4)
+        self.table_widget.setHorizontalHeaderLabels(["Name", "Stat Block", "Alignment", "Actions"])
+        self.table_widget.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        self.table_widget.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        self.table_widget.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Interactive)
+        self.table_widget.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
+        self.table_widget.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.table_widget.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
 
-        campaign = self.main_window.application_data.campaigns.get(current_campaign_id)
-        if not campaign or not campaign.npcs:
-            self.npc_table.setRowCount(0)
-            self.show_placeholder(True, "No NPCs found. Click 'Add New NPC' to create one.")
-            return
+        try:
+            self.table_widget.itemDoubleClicked.disconnect(self._on_edit_item_triggered)
+        except RuntimeError:
+            pass # Not connected
 
-        self.show_placeholder(False)
-        npcs_data = campaign.npcs
+    def _get_item_data_for_display(self, campaign: Campaign) -> List[NPCEntry]:
+        if not campaign.npcs:
+            return []
+        # Sort by NPC name for consistency
+        return sorted(list(campaign.npcs.values()), key=lambda x: x.name.lower())
 
-        self.npc_table.setRowCount(len(npcs_data))
+    def _populate_table_row(self, row: int, entry: NPCEntry):
+        # Store entry_id in the first column's item (UserRole)
+        name_item = self._create_table_item(entry.name, data_role_value=entry.entry_id)
+        self.table_widget.setItem(row, 0, name_item)
+        self.table_widget.setItem(row, 1, self._create_table_item(entry.stat_block_source))
+        self.table_widget.setItem(row, 2, self._create_table_item(entry.alignment))
 
-        for row, npc_id in enumerate(npcs_data.keys()):
-            npc_entry = npcs_data[npc_id]
+        edit_btn = QPushButton("Edit")
+        delete_btn = QPushButton("Delete")
 
-            self.npc_table.setItem(row, 0, QTableWidgetItem(npc_entry.name))
-            self.npc_table.setItem(row, 1, QTableWidgetItem(npc_entry.stat_block_source))
-            self.npc_table.setItem(row, 2, QTableWidgetItem(npc_entry.alignment))
+        edit_btn.clicked.connect(lambda checked=False, bound_id=entry.entry_id: self._on_edit_entry_row(bound_id))
+        delete_btn.clicked.connect(lambda checked=False, bound_id=entry.entry_id: self._on_delete_entry_row(bound_id))
 
-            # Actions buttons
-            edit_btn = QPushButton("Edit")
-            delete_btn = QPushButton("Delete")
-
-            # Use a lambda to capture the correct npc_id for each button
-            edit_btn.clicked.connect(lambda checked=False, bound_npc_id=npc_id: self._on_edit_npc(bound_npc_id))
-            delete_btn.clicked.connect(lambda checked=False, bound_npc_id=npc_id: self._on_delete_npc(bound_npc_id))
-
-            actions_widget = QWidget()
-            actions_layout = QHBoxLayout(actions_widget)
-            actions_layout.addWidget(edit_btn)
-            actions_layout.addWidget(delete_btn)
-            actions_layout.setContentsMargins(0, 0, 0, 0) # Compact layout
-            self.npc_table.setCellWidget(row, 3, actions_widget)
-
-        self.npc_table.resizeRowsToContents()
-
-    def show_placeholder(self, show: bool, text: Optional[str] = None):
-        if show:
-            if text:
-                self.placeholder_label.setText(text)
-            self.npc_table.setVisible(False)
-            self.placeholder_label.setVisible(True)
-        else:
-            self.npc_table.setVisible(True)
-            self.placeholder_label.setVisible(False)
-
+        actions_widget = QWidget()
+        actions_layout = QHBoxLayout(actions_widget)
+        actions_layout.addWidget(edit_btn)
+        actions_layout.addWidget(delete_btn)
+        actions_layout.setContentsMargins(0, 0, 0, 0)
+        self.table_widget.setCellWidget(row, 3, actions_widget)
 
     @Slot()
-    def _on_add_npc(self):
+    def _on_edit_entry_row(self, entry_id: str):
         if not self.main_window.current_campaign_id:
-            QMessageBox.warning(self, "No Campaign", "Please select or create a campaign first.")
+            QMessageBox.warning(self, "No Campaign", "No campaign selected.")
             return
-
-        dialog = NPCEntryDialog(self.main_window) # Pass main_window as parent for data access
-        if dialog.exec() == QDialog.DialogCode.Accepted:
-            self.refresh_display()
-            self.main_window.statusBar().showMessage("New NPC added successfully.", 3000)
-
-    @Slot()
-    def _on_edit_npc(self, npc_id: str):
-        if not self.main_window.current_campaign_id: # Should not happen if edit button is visible
-            QMessageBox.critical(self, "Error", "No active campaign context.")
-            return
-
-        campaign = self.main_window.application_data.campaigns.get(self.main_window.current_campaign_id)
-        if not campaign: # Should not happen
-            QMessageBox.critical(self, "Error", "Active campaign data not found.")
-            return
-
-        npc_to_edit = campaign.npcs.get(npc_id)
-        if not npc_to_edit:
-            QMessageBox.critical(self, "Error", f"NPC with ID '{npc_id}' not found.")
-            self.refresh_display() # Data might be out of sync
-            return
-
-        dialog = NPCEntryDialog(self.main_window, npc_entry=npc_to_edit)
-        if dialog.exec() == QDialog.DialogCode.Accepted:
-            self.refresh_display()
-            self.main_window.statusBar().showMessage(f"NPC '{npc_to_edit.name}' updated.", 3000)
-
-    @Slot()
-    def _on_delete_npc(self, npc_id: str):
-        if not self.main_window.current_campaign_id:
-            QMessageBox.critical(self, "Error", "No active campaign context.")
-            return
-
         campaign = self.main_window.application_data.campaigns.get(self.main_window.current_campaign_id)
         if not campaign:
-            QMessageBox.critical(self, "Error", "Active campaign data not found.")
-            return
+             QMessageBox.critical(self, "Error", "Campaign data not found.")
+             return
+        dialog = self._get_dialog_for_edit(entry_id, campaign)
+        if dialog is None: return
 
-        npc_to_delete = campaign.npcs.get(npc_id)
-        if not npc_to_delete:
-            QMessageBox.critical(self, "Error", f"NPC with ID '{npc_id}' not found for deletion.")
-            self.refresh_display() # Data might be out of sync
-            return
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            # Dialog is expected to handle its own saving.
+            self._perform_edit_item(entry_id, None, campaign) # Call for consistency
+            self.main_window._save_app_data() # Ensure save consistency
+            self.refresh_display()
+            entry_name = self._get_item_name_for_confirmation(entry_id, campaign) or self._entity_name
+            self.main_window.statusBar().showMessage(f"{entry_name} updated.", 3000)
+        else:
+            self.refresh_display()
 
-        reply = QMessageBox.question(self, "Delete NPC",
-                                     f"Are you sure you want to delete NPC '{npc_to_delete.name}'?",
+
+    @Slot()
+    def _on_delete_entry_row(self, entry_id: str):
+        if not self.main_window.current_campaign_id:
+            QMessageBox.warning(self, "No Campaign", "No campaign selected.")
+            return
+        campaign = self.main_window.application_data.campaigns.get(self.main_window.current_campaign_id)
+        if not campaign:
+             QMessageBox.critical(self, "Error", "Campaign data not found.")
+             return
+        item_name = self._get_item_name_for_confirmation(entry_id, campaign) or f"the selected {self._entity_name.lower()}"
+        reply = QMessageBox.question(self, f"Delete {self._entity_name}",
+                                     f"Are you sure you want to delete {item_name}?",
                                      QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
         if reply == QMessageBox.StandardButton.Yes:
-            del campaign.npcs[npc_id]
-            self.main_window._save_app_data()
-            self.refresh_display()
-            self.main_window.statusBar().showMessage(f"NPC '{npc_to_delete.name}' deleted.", 3000)
+            try:
+                deleted = self._perform_delete_item(entry_id, campaign)
+                if deleted:
+                    self.main_window._save_app_data() # Save after successful deletion
+                    self.refresh_display()
+                    self.main_window.statusBar().showMessage(f"{item_name} deleted.", 3000)
+                else:
+                    QMessageBox.warning(self, "Delete Error", f"{self._entity_name} not found for deletion or already removed.")
+                    self.refresh_display()
+            except Exception as e:
+                QMessageBox.critical(self, "Error Deleting Item", f"Could not delete {self._entity_name.lower()}: {e}")
+                self.main_window.statusBar().showMessage(f"Failed to delete {self._entity_name.lower()}.", 5000)
+                self.refresh_display()
 
-if __name__ == '__main__': # Basic test for the widget
+    def _get_dialog_for_add(self) -> Optional[QDialog]:
+        # Dialog handles its own saving through main_window
+        return NPCEntryDialog(self.main_window)
+
+    def _get_dialog_for_edit(self, item_id: str, campaign: Campaign) -> Optional[QDialog]:
+        if not campaign.npcs:
+            QMessageBox.critical(self, "Error", "NPCs data structure not found.")
+            return None
+        entry_to_edit = campaign.npcs.get(item_id)
+        if not entry_to_edit:
+            QMessageBox.critical(self, "Error", f"{self._entity_name} with ID '{item_id}' not found.")
+            # self.refresh_display() # Base class handles refresh
+            return None
+        return NPCEntryDialog(self.main_window, npc_entry=entry_to_edit)
+
+    def _get_selected_item_id(self) -> Optional[str]:
+        # Not applicable for top-bar edit/delete as they don't exist.
+        return None
+
+    def _get_item_name_for_confirmation(self, item_id: str, campaign: Campaign) -> Optional[str]:
+        if not campaign.npcs:
+            return f"the selected {self._get_entity_name().lower()}"
+        entry = campaign.npcs.get(item_id)
+        if entry:
+            return entry.name
+        return f"the selected {self._get_entity_name().lower()}"
+
+
+    def _perform_add_item(self, dialog_data: Any, campaign: Campaign) -> None:
+        # Dialog handles saving
+        pass
+
+    def _perform_edit_item(self, item_id: str, dialog_data: Any, campaign: Campaign) -> None:
+        # Dialog handles saving
+        pass
+
+    def _perform_delete_item(self, item_id: str, campaign: Campaign) -> bool:
+        if campaign.npcs and item_id in campaign.npcs:
+            del campaign.npcs[item_id]
+            # Saving is handled by the calling slot (_on_delete_entry_row)
+            return True
+        return False
+
+if __name__ == '__main__':
     import sys
-    from PySide6.QtWidgets import QApplication, QMainWindow
-    from src.data_models import ApplicationData # Required for MockMainWindow
+    from PySide6.QtWidgets import QApplication, QMainWindow, QStatusBar
+    from src.data_models import ApplicationData
 
-    class MockMainWindow(QMainWindow): # Mock a QMainWindow
+    class MockMainWindow(QMainWindow):
         def __init__(self):
             super().__init__()
             self.current_campaign_id = "test_campaign"
             self.application_data = ApplicationData()
             campaign = Campaign(campaign_id="test_campaign", name="Test Campaign")
-            # Add some sample NPCs
-            npc1 = NPCEntry(name="Test NPC 1", stat_block_source="MM", alignment="LG")
-            npc2 = NPCEntry(name="Test NPC 2", stat_block_source="VGM", alignment="CN")
-            campaign.npcs = {npc1.entry_id: npc1, npc2.entry_id: npc2}
+
+            # Ensure npcs is initialized as a dict
+            campaign.npcs = {}
+            npc1 = NPCEntry(name="Gorok", stat_block_source="MM", alignment="CE")
+            npc2 = NPCEntry(name="Elara", stat_block_source="VGM", alignment="NG")
+            campaign.npcs[npc1.entry_id] = npc1
+            campaign.npcs[npc2.entry_id] = npc2
+
             self.application_data.campaigns["test_campaign"] = campaign
-            self.setStatusBar(QStatusBar(self)) # Important for status messages
+            self.setStatusBar(QStatusBar(self))
 
         def _save_app_data(self):
-            print("MockMainWindow: _save_app_data called")
-            # In a real scenario, this would save self.application_data to a file.
-            # For the mock, we can just log that it was called.
-            # To see changes in the table after dialog operations, we might need to
-            # simulate the data change more directly or rely on refresh_display.
+            print(f"MockMainWindow: _save_app_data called for campaign {self.current_campaign_id}")
+            current_campaign = self.application_data.campaigns.get(self.current_campaign_id)
+            if current_campaign and current_campaign.npcs:
+                print("Current NPCs in mock data:")
+                for entry_id, entry in current_campaign.npcs.items():
+                    print(f"  ID: {entry_id}, Name: {entry.name}, Alignment: {entry.alignment}")
 
-        def statusBar(self): # Ensure it returns the status bar
-            return super().statusBar()
-
+        # statusBar inherited
 
     app = QApplication(sys.argv)
+    mock_main_win = MockMainWindow()
+    npc_tracker_widget = NPCTrackerWidget(mock_main_win)
 
-    mock_main_win = MockMainWindow() # Create the mock main window
+    mock_main_win.setCentralWidget(npc_tracker_widget)
+    mock_main_win.setWindowTitle("NPC Tracker Widget Test")
+    mock_main_win.setGeometry(100, 100, 700, 500)
 
-    npc_tracker_widget = NPCTrackerWidget(mock_main_win) # Pass the mock
-
-    # To display the widget directly, we need a window
-    test_window = QMainWindow() # Or use mock_main_win if it's set up as a full window
-    test_window.setCentralWidget(npc_tracker_widget)
-    test_window.setWindowTitle("NPC Tracker Widget Test")
-    test_window.setGeometry(100, 100, 600, 400)
-
-    # Need to set the mock_main_win as the parent for the dialogs to work correctly if they use it
-    # For this test, NPCTrackerWidget uses mock_main_win which is a QMainWindow.
-
-    npc_tracker_widget.refresh_display() # Initial population
-    test_window.show()
-
+    mock_main_win.show()
     sys.exit(app.exec())
