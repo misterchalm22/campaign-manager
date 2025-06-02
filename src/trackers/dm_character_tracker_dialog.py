@@ -1,7 +1,5 @@
 from typing import Optional, List, Dict
 from PySide6.QtWidgets import (
-from typing import Optional, List, Dict
-from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QFormLayout, QLineEdit, QTextEdit,
     QPushButton, QMessageBox, QDialogButtonBox, QSpinBox, QCheckBox,
     QGroupBox, QGridLayout, QScrollArea, QWidget, QSizeGrip, QHBoxLayout,

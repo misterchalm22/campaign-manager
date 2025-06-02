@@ -18,7 +18,7 @@ if __name__ == '__main__':
     # if data_dir and not os.path.exists(data_dir):
     #     os.makedirs(data_dir)
 
-    main_win = MainWindow(app, app_data_path=APP_DATA_PATH) # Pass app instance
+    main_win = MainWindow(app_data_path=APP_DATA_PATH) # Pass app_data_path only
     main_win.show()
 
     sys.exit(app.exec())
