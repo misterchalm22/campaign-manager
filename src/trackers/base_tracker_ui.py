@@ -1,12 +1,14 @@
-from typing import Optional, List, Any, Dict
-from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QTableWidget,
-    QTableWidgetItem, QHeaderView, QMessageBox, QLabel, QDialog
-)
-from PySide6.QtCore import Qt, Slot, QCoreApplication
-from abc import ABC, abstractmethod
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QTableWidget, QAbstractItemView, QHeaderView, QMessageBox, QMenu, QDialog, QHBoxLayout, QLabel, QTableWidgetItem # Added QHBoxLayout, QLabel, QTableWidgetItem
+from PySide6.QtCore import Qt, QAbstractTableModel, QModelIndex, Slot
+from PySide6.QtGui import QAction
+from abc import ABC, ABCMeta, abstractmethod
+from typing import List, Any, Optional, TypeVar, Generic
 
-class BaseTrackerWidget(QWidget, ABC):
+# Combine metaclasses to resolve conflict
+class CombinedMeta(type(QWidget), ABCMeta):
+    pass
+
+class BaseTrackerWidget(QWidget, ABC, metaclass=CombinedMeta):
     def __init__(self, main_window, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.main_window = main_window # Instance of MainWindow
@@ -21,12 +23,12 @@ class BaseTrackerWidget(QWidget, ABC):
         self._setup_action_bar()
 
         # Table for items
-        self.table_widget = QTableWidget()
+        self.table_widget = QTableWidget() # Changed from QTableView to QTableWidget
         self._configure_table_columns() # Call abstract method for column setup
-        self.table_widget.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.table_widget.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
-        self.table_widget.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
-        self.table_widget.itemDoubleClicked.connect(self._on_edit_item_triggered) # Default double-click action
+        self.table_widget.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.table_widget.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.table_widget.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        self.table_widget.doubleClicked.connect(self._on_edit_item_triggered) # Default double-click action
         self.main_layout.addWidget(self.table_widget)
 
         # Placeholder label

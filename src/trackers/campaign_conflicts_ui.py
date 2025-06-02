@@ -1,6 +1,6 @@
 from typing import Optional, List, Any
 from PySide6.QtWidgets import (
-    QHeaderView, QMessageBox, QDialog
+    QHeaderView, QMessageBox, QDialog, QHBoxLayout
 )
 # QTableWidgetItem is imported via BaseTrackerWidget's _create_table_item if needed directly
 # Qt is imported via BaseTrackerWidget if needed directly

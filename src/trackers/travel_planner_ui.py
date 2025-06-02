@@ -1,10 +1,10 @@
 from typing import Optional, List, Any
 from PySide6.QtWidgets import (
-    QPushButton, QHeaderView, QMessageBox, QDialog, QWidget, QHBoxLayout, QTableWidgetItem
+    QWidget, QVBoxLayout, QPushButton, QTableWidget, QHeaderView, QMessageBox, QDialog, QAbstractItemView, QHBoxLayout
 )
 from PySide6.QtCore import Qt, Slot
 
-from src.data_models import TravelPlanEntry, Campaign, TravelStage # For type hinting
+from src.data_models import TravelPlanEntry, Campaign # For type hinting
 from src.trackers.travel_planner_dialog import TravelPlanEntryDialog
 from src.trackers.base_tracker_ui import BaseTrackerWidget
 
@@ -37,19 +37,20 @@ class TravelPlannerWidget(BaseTrackerWidget):
 
     def _configure_table_columns(self):
         self.table_widget.setColumnCount(5)
-        self.table_widget.setHorizontalHeaderLabels(["Journey Name", "Origin", "Destination", "# Stages", "Actions"])
+        self.table_widget.setHorizontalHeaderLabels(["Journey Name", "Origin", "Destination", "No. Stages", "Actions"])
         self.table_widget.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        self.table_widget.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
-        self.table_widget.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
-        self.table_widget.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.Interactive)
+        self.table_widget.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
+        self.table_widget.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+        self.table_widget.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
         self.table_widget.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
-        self.table_widget.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.table_widget.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.table_widget.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers) # Corrected Enum
+        self.table_widget.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
 
+        # Disconnect default double-click from base if it exists, as edit is per-row button
         try:
-            self.table_widget.itemDoubleClicked.disconnect(self._on_edit_item_triggered)
+            self.table_widget.doubleClicked.disconnect(self._on_edit_item_triggered)
         except RuntimeError:
-            pass # Not connected
+            pass # Not connected or already disconnected
 
     def _get_item_data_for_display(self, campaign: Campaign) -> List[TravelPlanEntry]:
         if not campaign.travel_plans:
@@ -174,7 +175,7 @@ class TravelPlannerWidget(BaseTrackerWidget):
 if __name__ == '__main__':
     import sys
     from PySide6.QtWidgets import QApplication, QMainWindow, QStatusBar
-    from src.data_models import ApplicationData
+    from src.data_models import ApplicationData, TravelStage
 
     class MockMainWindow(QMainWindow):
         def __init__(self):

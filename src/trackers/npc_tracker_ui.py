@@ -1,6 +1,6 @@
 from typing import Optional, List, Any
 from PySide6.QtWidgets import (
-    QPushButton, QHeaderView, QMessageBox, QDialog, QWidget, QHBoxLayout, QTableWidgetItem
+    QPushButton, QHeaderView, QMessageBox, QDialog, QWidget, QHBoxLayout, QTableWidgetItem, QAbstractItemView
 )
 from PySide6.QtCore import Qt, Slot
 
@@ -42,8 +42,9 @@ class NPCTrackerWidget(BaseTrackerWidget):
         self.table_widget.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         self.table_widget.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Interactive)
         self.table_widget.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
-        self.table_widget.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.table_widget.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        # Corrected Enum for EditTriggers
+        self.table_widget.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.table_widget.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
 
         try:
             self.table_widget.itemDoubleClicked.disconnect(self._on_edit_item_triggered)

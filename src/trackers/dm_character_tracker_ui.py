@@ -1,6 +1,6 @@
 from typing import Optional, List, Any
 from PySide6.QtWidgets import (
-    QPushButton, QHeaderView, QMessageBox, QDialog, QWidget, QHBoxLayout, QTableWidgetItem
+    QWidget, QVBoxLayout, QPushButton, QTableWidget, QHeaderView, QMessageBox, QDialog, QAbstractItemView, QHBoxLayout
 )
 from PySide6.QtCore import Qt, Slot
 
@@ -44,8 +44,8 @@ class DMCharacterWidget(BaseTrackerWidget):
         self.table_widget.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Interactive)
         self.table_widget.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.Interactive)
         self.table_widget.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
-        self.table_widget.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.table_widget.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.table_widget.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.table_widget.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         # self.table_widget.setSortingEnabled(True) # Optional: enable if sorting is desired
 
         # Disconnect double-click if connected by base, to prevent issues

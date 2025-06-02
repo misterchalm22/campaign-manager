@@ -1,6 +1,6 @@
 from typing import Optional, List, Any
 from PySide6.QtWidgets import (
-    QTableWidgetItem, QHeaderView, QMessageBox, QDialog
+    QTableWidgetItem, QHeaderView, QMessageBox, QDialog, QHBoxLayout
 )
 from PySide6.QtCore import Qt
 

@@ -1,6 +1,6 @@
 from typing import Optional, List, Any
 from PySide6.QtWidgets import (
-    QPushButton, QHeaderView, QMessageBox, QDialog, QWidget, QHBoxLayout, QTableWidgetItem
+    QWidget, QVBoxLayout, QPushButton, QTableWidget, QHeaderView, QMessageBox, QDialog, QAbstractItemView, QHBoxLayout
 )
 from PySide6.QtCore import Qt, Slot
 
@@ -41,8 +41,8 @@ class GameExpectationsWidget(BaseTrackerWidget):
         self.table_widget.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
         self.table_widget.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         self.table_widget.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
-        self.table_widget.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.table_widget.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.table_widget.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers) # Corrected Enum
+        self.table_widget.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
 
         try:
             self.table_widget.itemDoubleClicked.disconnect(self._on_edit_item_triggered)

@@ -1,12 +1,12 @@
 from functools import partial
-from typing import List, cast
+from typing import List, cast, Optional
 
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLineEdit,
     QListWidget, QListWidgetItem, QTabWidget, QGroupBox, QLabel,
-    QMessageBox
+    QMessageBox, QHeaderView, QAbstractItemView
 )
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Slot
 
 from src.data_models import MagicItemTierData, MagicItemTrackerData # Assuming these are defined
 

@@ -1,6 +1,6 @@
 from typing import Optional, List, Any
 from PySide6.QtWidgets import (
-    QPushButton, QHeaderView, QMessageBox, QDialog, QWidget, QHBoxLayout, QTableWidgetItem
+    QPushButton, QHeaderView, QMessageBox, QDialog, QWidget, QHBoxLayout, QTableWidgetItem, QAbstractItemView, QTableWidget
 )
 from PySide6.QtCore import Qt, Slot
 
@@ -36,14 +36,16 @@ class SettlementTrackerWidget(BaseTrackerWidget):
         # Edit/Delete buttons are per-row
 
     def _configure_table_columns(self):
-        self.table_widget.setColumnCount(4)
-        self.table_widget.setHorizontalHeaderLabels(["Name", "Size", "Defining Trait", "Actions"])
-        self.table_widget.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        self.table_widget.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Interactive)
-        self.table_widget.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
-        self.table_widget.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
-        self.table_widget.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.table_widget.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.table_widget.setColumnCount(6)
+        self.table_widget.setHorizontalHeaderLabels(["Name", "Region", "Gov't", "Population", "Type", "Defenses"])
+        self.table_widget.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch) # Name
+        self.table_widget.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents) # Region
+        self.table_widget.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents) # Gov't
+        self.table_widget.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents) # Population
+        self.table_widget.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents) # Type
+        self.table_widget.horizontalHeader().setSectionResizeMode(5, QHeaderView.ResizeMode.Stretch) # Defenses
+        self.table_widget.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers) # Corrected Enum
+        self.table_widget.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
 
         try:
             self.table_widget.itemDoubleClicked.disconnect(self._on_edit_item_triggered)
