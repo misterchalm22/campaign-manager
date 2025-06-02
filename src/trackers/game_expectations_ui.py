@@ -1,147 +1,178 @@
-from typing import Optional
+from typing import Optional, List, Any
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QPushButton, QTableWidget, QTableWidgetItem,
-    QHeaderView, QMessageBox, QHBoxLayout, QLabel
+    QWidget, QVBoxLayout, QPushButton, QTableWidget, QHeaderView, QMessageBox, QDialog, QAbstractItemView, QHBoxLayout
 )
 from PySide6.QtCore import Qt, Slot
 
-from src.data_models import GameExpectationsEntry # For type hinting
+from src.data_models import GameExpectationsEntry, Campaign, SensitiveElement # For type hinting
 from src.trackers.game_expectations_dialog import GameExpectationsEntryDialog
+from src.trackers.base_tracker_ui import BaseTrackerWidget
 
-class GameExpectationsWidget(QWidget):
-    def __init__(self, main_window):
-        super().__init__()
-        self.main_window = main_window
+class GameExpectationsWidget(BaseTrackerWidget):
+    def _get_entity_name(self) -> str:
+        return "Expectations Entry"
 
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(0,0,0,0)
+    def _get_entity_name_plural(self) -> str:
+        return "Expectations Entries"
 
-        action_bar_layout = QHBoxLayout()
-        self.add_entry_btn = QPushButton("Add Player Expectations")
-        action_bar_layout.addWidget(self.add_entry_btn)
-        action_bar_layout.addStretch()
-        layout.addLayout(action_bar_layout)
+    def _get_add_button_text(self) -> str:
+        return "Add Player Expectations"
 
-        self.expectations_table = QTableWidget()
-        # Columns: Player Name, DM Name, Actions
-        self.expectations_table.setColumnCount(3)
-        self.expectations_table.setHorizontalHeaderLabels(["Player Name", "DM Name", "Actions"])
-        self.expectations_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch) # Player Name
-        self.expectations_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch) # DM Name
-        self.expectations_table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents) # Actions
-        self.expectations_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.expectations_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
-        layout.addWidget(self.expectations_table)
+    def _setup_action_bar(self):
+        self.action_bar_layout = QHBoxLayout()
+        self.add_button = QPushButton(self._get_add_button_text())
+        self.add_button.clicked.connect(self._on_add_item_triggered)
 
-        self.placeholder_label = QLabel("No game expectations entries found. Click 'Add Player Expectations' to create one.")
-        self.placeholder_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.placeholder_label.setVisible(False)
-        layout.addWidget(self.placeholder_label)
-        self.expectations_table.setVisible(True)
+        self.action_bar_layout.addWidget(self.add_button)
+        self.action_bar_layout.addStretch()
+        self.main_layout.insertLayout(0, self.action_bar_layout) # Insert at the top
 
-        self.add_entry_btn.clicked.connect(self._on_add_entry)
+        self.edit_button = None
+        self.delete_button = None
 
-    def refresh_display(self):
-        current_campaign_id = self.main_window.current_campaign_id
-        if not current_campaign_id:
-            self.expectations_table.setRowCount(0)
-            self.show_placeholder(True, "No campaign selected.")
-            return
+    def _set_buttons_enabled(self, enabled: bool):
+        if hasattr(self, 'add_button') and self.add_button:
+            self.add_button.setEnabled(bool(self.main_window.current_campaign_id))
+        # Edit/Delete buttons are per-row
 
-        campaign = self.main_window.application_data.campaigns.get(current_campaign_id)
-        if not campaign or not campaign.game_expectations:
-            self.expectations_table.setRowCount(0)
-            self.show_placeholder(True, "No game expectations entries found. Click 'Add Player Expectations' to create one.")
-            return
+    def _configure_table_columns(self):
+        self.table_widget.setColumnCount(3)
+        self.table_widget.setHorizontalHeaderLabels(["Player Name", "DM Name", "Actions"])
+        self.table_widget.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        self.table_widget.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        self.table_widget.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+        self.table_widget.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers) # Corrected Enum
+        self.table_widget.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
 
-        self.show_placeholder(False)
-        entries_data = campaign.game_expectations
-        sorted_entry_ids = list(entries_data.keys()) # Could sort by player name if desired
+        try:
+            self.table_widget.itemDoubleClicked.disconnect(self._on_edit_item_triggered)
+        except RuntimeError:
+            pass # Not connected
 
-        self.expectations_table.setRowCount(len(sorted_entry_ids))
+    def _get_item_data_for_display(self, campaign: Campaign) -> List[GameExpectationsEntry]:
+        if not campaign.game_expectations:
+            return []
+        # Sort by player name for consistency
+        return sorted(list(campaign.game_expectations.values()), key=lambda x: x.player_name.lower())
 
-        for row, entry_id in enumerate(sorted_entry_ids):
-            entry = entries_data[entry_id]
+    def _populate_table_row(self, row: int, entry: GameExpectationsEntry):
+        # Store entry_id in the first column's item (UserRole)
+        player_name_item = self._create_table_item(entry.player_name, data_role_value=entry.entry_id)
+        self.table_widget.setItem(row, 0, player_name_item)
+        self.table_widget.setItem(row, 1, self._create_table_item(entry.dm_name))
 
-            self.expectations_table.setItem(row, 0, QTableWidgetItem(entry.player_name))
-            self.expectations_table.setItem(row, 1, QTableWidgetItem(entry.dm_name))
+        edit_btn = QPushButton("Edit")
+        delete_btn = QPushButton("Delete")
 
-            edit_btn = QPushButton("Edit")
-            delete_btn = QPushButton("Delete")
+        edit_btn.clicked.connect(lambda checked=False, bound_id=entry.entry_id: self._on_edit_entry_row(bound_id))
+        delete_btn.clicked.connect(lambda checked=False, bound_id=entry.entry_id: self._on_delete_entry_row(bound_id))
 
-            edit_btn.clicked.connect(lambda checked=False, bound_id=entry_id: self._on_edit_entry(bound_id))
-            delete_btn.clicked.connect(lambda checked=False, bound_id=entry_id: self._on_delete_entry(bound_id))
-
-            actions_widget = QWidget()
-            actions_layout = QHBoxLayout(actions_widget)
-            actions_layout.addWidget(edit_btn)
-            actions_layout.addWidget(delete_btn)
-            actions_layout.setContentsMargins(0, 0, 0, 0)
-            self.expectations_table.setCellWidget(row, 2, actions_widget)
-
-        self.expectations_table.resizeRowsToContents()
-
-    def show_placeholder(self, show: bool, text: Optional[str] = None):
-        if show:
-            if text:
-                self.placeholder_label.setText(text)
-            self.expectations_table.setVisible(False)
-            self.placeholder_label.setVisible(True)
-        else:
-            self.expectations_table.setVisible(True)
-            self.placeholder_label.setVisible(False)
+        actions_widget = QWidget()
+        actions_layout = QHBoxLayout(actions_widget)
+        actions_layout.addWidget(edit_btn)
+        actions_layout.addWidget(delete_btn)
+        actions_layout.setContentsMargins(0, 0, 0, 0)
+        self.table_widget.setCellWidget(row, 2, actions_widget)
 
     @Slot()
-    def _on_add_entry(self):
+    def _on_edit_entry_row(self, entry_id: str):
         if not self.main_window.current_campaign_id:
-            QMessageBox.warning(self, "No Campaign", "Please select or create a campaign first.")
+            QMessageBox.warning(self, "No Campaign", "No campaign selected.")
             return
+        campaign = self.main_window.application_data.campaigns.get(self.main_window.current_campaign_id)
+        if not campaign:
+             QMessageBox.critical(self, "Error", "Campaign data not found.")
+             return
+        dialog = self._get_dialog_for_edit(entry_id, campaign)
+        if dialog is None: return
 
-        dialog = GameExpectationsEntryDialog(self.main_window)
         if dialog.exec() == QDialog.DialogCode.Accepted:
+            # Dialog is expected to handle its own saving.
+            self._perform_edit_item(entry_id, None, campaign) # Call for consistency
+            self.main_window._save_app_data() # Ensure save consistency
             self.refresh_display()
-            self.main_window.statusBar().showMessage("New game expectations entry added.", 3000)
+            entry_name = self._get_item_name_for_confirmation(entry_id, campaign) or self._entity_name
+            self.main_window.statusBar().showMessage(f"{entry_name} updated.", 3000)
+        else:
+            self.refresh_display()
+
 
     @Slot()
-    def _on_edit_entry(self, entry_id: str):
-        campaign = self.main_window.application_data.campaigns.get(self.main_window.current_campaign_id)
-        if not campaign: return
-
-        entry_to_edit = campaign.game_expectations.get(entry_id)
-        if not entry_to_edit:
-            QMessageBox.critical(self, "Error", f"Game Expectations entry with ID '{entry_id}' not found.")
-            self.refresh_display()
+    def _on_delete_entry_row(self, entry_id: str):
+        if not self.main_window.current_campaign_id:
+            QMessageBox.warning(self, "No Campaign", "No campaign selected.")
             return
-
-        dialog = GameExpectationsEntryDialog(self.main_window, entry=entry_to_edit)
-        if dialog.exec() == QDialog.DialogCode.Accepted:
-            self.refresh_display()
-            self.main_window.statusBar().showMessage(f"Expectations for '{entry_to_edit.player_name}' updated.", 3000)
-
-    @Slot()
-    def _on_delete_entry(self, entry_id: str):
         campaign = self.main_window.application_data.campaigns.get(self.main_window.current_campaign_id)
-        if not campaign: return
-
-        entry_to_delete = campaign.game_expectations.get(entry_id)
-        if not entry_to_delete:
-            QMessageBox.critical(self, "Error", f"Game Expectations entry ID '{entry_id}' not found for deletion.")
-            self.refresh_display()
-            return
-
-        reply = QMessageBox.question(self, "Delete Entry",
-                                     f"Are you sure you want to delete expectations for player: '{entry_to_delete.player_name}'?",
+        if not campaign:
+             QMessageBox.critical(self, "Error", "Campaign data not found.")
+             return
+        item_name = self._get_item_name_for_confirmation(entry_id, campaign) or f"the selected {self._entity_name.lower()}"
+        reply = QMessageBox.question(self, f"Delete {self._entity_name}",
+                                     f"Are you sure you want to delete {item_name}?",
                                      QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
         if reply == QMessageBox.StandardButton.Yes:
-            del campaign.game_expectations[entry_id]
-            self.main_window._save_app_data()
-            self.refresh_display()
-            self.main_window.statusBar().showMessage(f"Expectations for '{entry_to_delete.player_name}' deleted.", 3000)
+            try:
+                deleted = self._perform_delete_item(entry_id, campaign)
+                if deleted:
+                    self.main_window._save_app_data() # Save after successful deletion
+                    self.refresh_display()
+                    self.main_window.statusBar().showMessage(f"{item_name} deleted.", 3000)
+                else:
+                    QMessageBox.warning(self, "Delete Error", f"{self._entity_name} not found for deletion or already removed.")
+                    self.refresh_display()
+            except Exception as e:
+                QMessageBox.critical(self, "Error Deleting Item", f"Could not delete {self._entity_name.lower()}: {e}")
+                self.main_window.statusBar().showMessage(f"Failed to delete {self._entity_name.lower()}.", 5000)
+                self.refresh_display()
+
+
+    def _get_dialog_for_add(self) -> Optional[QDialog]:
+        # Dialog handles its own saving through main_window
+        return GameExpectationsEntryDialog(self.main_window)
+
+    def _get_dialog_for_edit(self, item_id: str, campaign: Campaign) -> Optional[QDialog]:
+        if not campaign.game_expectations:
+            QMessageBox.critical(self, "Error", "Game Expectations data structure not found.")
+            return None
+        entry_to_edit = campaign.game_expectations.get(item_id)
+        if not entry_to_edit:
+            QMessageBox.critical(self, "Error", f"{self._entity_name} with ID '{item_id}' not found.")
+            # self.refresh_display() # Base class handles refresh
+            return None
+        return GameExpectationsEntryDialog(self.main_window, entry=entry_to_edit)
+
+    def _get_selected_item_id(self) -> Optional[str]:
+        # Not applicable for top-bar edit/delete as they don't exist.
+        return None
+
+    def _get_item_name_for_confirmation(self, item_id: str, campaign: Campaign) -> Optional[str]:
+        if not campaign.game_expectations:
+            return f"the selected {self._get_entity_name().lower()}"
+        entry = campaign.game_expectations.get(item_id)
+        if entry:
+            return f"expectations for {entry.player_name}"
+        return f"the selected {self._get_entity_name().lower()}"
+
+
+    def _perform_add_item(self, dialog_data: Any, campaign: Campaign) -> None:
+        # Dialog handles saving
+        pass
+
+    def _perform_edit_item(self, item_id: str, dialog_data: Any, campaign: Campaign) -> None:
+        # Dialog handles saving
+        pass
+
+    def _perform_delete_item(self, item_id: str, campaign: Campaign) -> bool:
+        if campaign.game_expectations and item_id in campaign.game_expectations:
+            del campaign.game_expectations[item_id]
+            # Saving is handled by the calling slot (_on_delete_entry_row)
+            return True
+        return False
 
 if __name__ == '__main__':
     import sys
     from PySide6.QtWidgets import QApplication, QMainWindow, QStatusBar
-    from src.data_models import ApplicationData, Campaign, SensitiveElement
+    from src.data_models import ApplicationData # Other models imported above
 
     class MockMainWindow(QMainWindow):
         def __init__(self):
@@ -150,26 +181,32 @@ if __name__ == '__main__':
             self.application_data = ApplicationData()
             campaign = Campaign(campaign_id=self.current_campaign_id, name="GE Test Campaign", dm_name_global="Global DM")
 
-            ge1 = GameExpectationsEntry(player_name="Alice", dm_name="Global DM", sensitive_elements=[SensitiveElement("Snakes", hard_limit=True)])
+            # Ensure game_expectations is initialized as a dict
+            campaign.game_expectations = {}
+            ge1 = GameExpectationsEntry(player_name="Alice", dm_name="Global DM",
+                                        sensitive_elements=[SensitiveElement(name="Snakes", description="Fear of snakes", hard_limit=True)])
             ge2 = GameExpectationsEntry(player_name="Bob", dm_name="Global DM")
-            campaign.game_expectations = {ge1.entry_id: ge1, ge2.entry_id: ge2}
+            campaign.game_expectations[ge1.entry_id] = ge1
+            campaign.game_expectations[ge2.entry_id] = ge2
+
             self.application_data.campaigns[self.current_campaign_id] = campaign
             self.setStatusBar(QStatusBar(self))
 
         def _save_app_data(self):
-            print("MockMainWindow: _save_app_data called")
+            print(f"MockMainWindow: _save_app_data called for campaign {self.current_campaign_id}")
+            current_campaign = self.application_data.campaigns.get(self.current_campaign_id)
+            if current_campaign and current_campaign.game_expectations:
+                print("Current game expectations in mock data:")
+                for entry_id, entry in current_campaign.game_expectations.items():
+                    print(f"  ID: {entry_id}, Player: {entry.player_name}, DM: {entry.dm_name}")
 
-        def statusBar(self):
-            return super().statusBar()
+        # statusBar inherited
 
     app = QApplication(sys.argv)
     mock_main = MockMainWindow()
     ge_widget = GameExpectationsWidget(mock_main)
-
     mock_main.setCentralWidget(ge_widget)
     mock_main.setWindowTitle("Game Expectations Widget Test")
     mock_main.setGeometry(100, 100, 700, 500)
-
-    ge_widget.refresh_display()
     mock_main.show()
     sys.exit(app.exec())

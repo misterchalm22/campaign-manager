@@ -1,11 +1,11 @@
 from typing import Optional, List, cast
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QFormLayout, QLineEdit, QTextEdit,
-    QPushButton, QMessageBox, QDialogButtonBox, QTableWidget,
-    QTableWidgetItem, QHeaderView, QGroupBox, QHBoxLayout,
-    QWidget, QLabel, QSizeGrip
+    QPushButton, QDialogButtonBox, QSpinBox, QComboBox, QDateTimeEdit,
+    QTableWidget, QHeaderView, QAbstractItemView, QMessageBox, QLabel, 
+    QTableWidgetItem, QGroupBox, QHBoxLayout, QSizeGrip, QWidget  # Added QWidget
 )
-from PySide6.QtCore import Qt, Slot
+from PySide6.QtCore import Qt, Slot, QDateTime # Added QDateTime
 
 from src.data_models import TravelPlanEntry, TravelStage
 from src.trackers.travel_stage_dialog import TravelStageDialog # For managing individual stages
@@ -56,7 +56,7 @@ class TravelPlanEntryDialog(QDialog):
         self.stages_table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
         self.stages_table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
         self.stages_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
-        self.stages_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.stages_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers) # Corrected Enum
 
         stage_buttons_layout = QHBoxLayout()
         self.add_stage_btn = QPushButton("Add Stage")
