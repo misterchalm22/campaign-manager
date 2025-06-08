@@ -129,7 +129,9 @@ class BaseTrackerWidget(QWidget, ABC, metaclass=CombinedMeta):
             try:
                 new_item_data = dialog.get_data() # Dialogs should have a get_data() method
                 if new_item_data:
-                    self._perform_add_item(new_item_data)
+                    # Get campaign object and pass to _perform_add_item
+                    campaign = self.main_window.application_data.campaigns.get(self.main_window.current_campaign_id)
+                    self._perform_add_item(new_item_data, campaign)
                     self.main_window._save_app_data()
                     self.refresh_display()
                     self.main_window.statusBar().showMessage(f"New {self._entity_name.lower()} added.", 3000)

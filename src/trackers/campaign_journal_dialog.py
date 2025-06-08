@@ -240,6 +240,10 @@ class CampaignJournalEntryDialog(QDialog):
             return self.journal_entry_to_edit
         return None
 
+    def get_data(self):
+        """Return the CampaignJournalEntry instance for saving to the campaign."""
+        return self.get_journal_entry_data()
+
 if __name__ == '__main__':
     from PySide6.QtWidgets import QApplication
     from src.data_models import ApplicationData, Campaign # For mock

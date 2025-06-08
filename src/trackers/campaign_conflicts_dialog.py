@@ -96,6 +96,10 @@ class CampaignConflictEntryDialog(QDialog):
                 )
         return None
 
+    def get_entry_data(self):
+        """Return the CampaignConflictEntry instance for saving to the campaign."""
+        return self.get_data()
+
 if __name__ == '__main__':
     from PySide6.QtWidgets import QApplication
     # Test adding

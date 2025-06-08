@@ -253,6 +253,15 @@ class NPCEntryDialog(QDialog):
             return self.npc_entry_to_edit
         return None
 
+    def get_entry_data(self) -> Optional[NPCEntry]:
+        if self.result() == QDialog.DialogCode.Accepted:
+            return self.npc_entry_to_edit
+        return None
+
+    def get_data(self):
+        """Return the NPCEntry instance for saving to the campaign."""
+        return self.get_npc_data()
+
 if __name__ == '__main__': # Basic test for the dialog
     from PySide6.QtWidgets import QApplication
     from src.data_models import ApplicationData, Campaign # For testing

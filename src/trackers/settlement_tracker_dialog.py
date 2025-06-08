@@ -269,6 +269,15 @@ class SettlementEntryDialog(QDialog):
             return self.settlement_entry_to_edit
         return None
 
+    def get_entry_data(self) -> Optional[SettlementEntry]:
+        if self.result() == QDialog.DialogCode.Accepted:
+            return self.settlement_entry_to_edit
+        return None
+
+    def get_data(self):
+        """Return the SettlementEntry instance for saving to the campaign."""
+        return self.get_settlement_data()
+
 if __name__ == '__main__':
     from PySide6.QtWidgets import QApplication
     from src.data_models import ApplicationData, Campaign
